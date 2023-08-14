@@ -12,9 +12,9 @@ public class Main {
         DataStructureHandler.getCollectionFromDisk();
         System.out.println("\nCollection loaded");
 
-        /* Read Options from disk */
-        DataStructureHandler.getOptionsFromDisk();
-        System.out.println("\nOptions loaded");
+        /* Read Flags from disk */
+        DataStructureHandler.getFlagsFromDisk();
+        System.out.println("\nFlags loaded");
 
         /* Read Document Index from disk */
         DataStructureHandler.getDocumentIndexFromDisk();
