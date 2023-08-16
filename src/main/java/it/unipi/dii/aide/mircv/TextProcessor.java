@@ -26,7 +26,7 @@ public class TextProcessor {
         tokenList = tokenizeText(input); // Tokenize the cleaned text into individual words
 
         /* Remove stop-words and perform stemming */
-        if (Flag.isFilterEnabled()) { // Check if the filtering flag is enabled
+        if (Flag.isSwsEnabled()) { // Check if the filtering flag is enabled
             tokenList = removeStopwords(tokenList); // Remove common stopwords
             tokenList = applyStemming(tokenList); // Perform stemming on the remaining words
         }

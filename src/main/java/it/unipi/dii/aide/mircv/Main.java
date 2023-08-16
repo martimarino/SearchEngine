@@ -1,12 +1,23 @@
 package it.unipi.dii.aide.mircv;
 
 import it.unipi.dii.aide.mircv.data_structures.DataStructureHandler;
+import it.unipi.dii.aide.mircv.utils.DataAnalysis;
 
+import java.io.*;
 import java.util.Scanner;
 
-public class Main {
 
-    public static void main(String[] args) {
+public class Main {
+    static String collection = "src/main/resources/collection.tsv";
+
+
+    public static void main(String[] args) throws IOException {
+
+        Scanner sc = new Scanner(System.in);
+        String choice;
+
+        DataAnalysis da = new DataAnalysis(collection);
+        da.runAnalysis();
 
         /* Read Collection info from disk */
         DataStructureHandler.getCollectionFromDisk();
@@ -24,19 +35,13 @@ public class Main {
         DataStructureHandler.getDictionaryFromDisk();
         System.out.println("\nDictionary loaded");
 
-        /* Load Stopwords */
-//        TextProcessor.stopwords= ;
-
         String query;
 
         while(true) {
 
-            System.out.println("--------------------------------------------");
-            System.out.println("Search Engine");
-            System.out.println("--------------------------------------------\n");
+            System.out.println("\n*** SEARCH ENGINE ***\n");
 
             System.out.println("Insert query or type 'q' to quit\n");
-            Scanner sc = new Scanner(System.in);
             query = sc.nextLine();
 
             if (query == null || query.isEmpty()){
@@ -47,8 +52,45 @@ public class Main {
             if (query.equals("q"))
                 break;
 
+            int validN;
+            do {
+                validN = 0;
+                System.out.println("Type the number of results to retrieve (10 or 20)");
+                choice = sc.nextLine();
+                try {
+                    int n = Integer.parseInt(choice);
+                    if(n > 0)
+                        validN = 1;
+                } catch (NumberFormatException nfe) {
+                    System.out.println("Insert a valid positive number");
+                    validN = 0;
+                }
+            } while (validN == 0);
 
 
+            do {
+                System.out.println("Type Y or N for stopwords removal and stemming options");
+                choice = sc.nextLine();
+            } while (!choice.equals("Y") && !choice.equals("N"));
+            if (choice.equals("Y")) {
+                Flag.enableSws(true);
+            }
+
+            do {
+                System.out.println("Type Y or N for compression");
+                choice = sc.nextLine();
+            } while (!choice.equals("Y") && !choice.equals("N"));
+            if (choice.equals("Y")) {
+                Flag.enableCompression(true);
+            }
+
+            do {
+                System.out.println("Type Y or N for scoring");
+                choice = sc.nextLine();
+            } while (!choice.equals("Y") && !choice.equals("N"));
+            if (choice.equals("Y")) {
+                Flag.enableScoring(true);
+            }
 
         }
 
