@@ -11,8 +11,13 @@ public class Lexicon {
         this.termToTermStat = new HashMap<>();
     }
 
-    public void addTerm(String term, LexiconElem le) {
-        termToTermStat.put(term, le);
+    public void addTerm(String term, int termId) {
+        if(termToTermStat.containsKey(term))
+            incCf(term);
+        else {
+            LexiconElem le = new LexiconElem(1, 1, termId);
+            termToTermStat.put(term, le);
+        }
     }
 
     public LexiconElem getTermStat(String term) {

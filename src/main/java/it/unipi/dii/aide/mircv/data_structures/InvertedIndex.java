@@ -19,24 +19,28 @@ public class InvertedIndex {
      * @param term  The term to be added.
      * @param docId The document ID associated with the term.
      */
-    public void addTerm(String term, int docId) {
-        int termFreq = 0;
+    public boolean addTerm(String term, int docId) {
+        int termFreq = 1;
+        boolean incDf = false;
         // add or update posting list of the term
         if (!invertedIndex.containsKey(term)) {
             invertedIndex.put(term, new ArrayList<>());
-            termFreq = 1;
-            //add new term in lexicon
-
+            invertedIndex.get(term).add(new Posting(docId, termFreq));
         }
-        else{
-            termFreq = invertedIndex.get(term).get(docId).getTermFreq() + 1;
-            //update df and cf in lexicon
+        else                                    // there is the term in hash table
+        {
+            if(!invertedIndex.get(term).contains(docId))      //there isn't a posting element with this docID
+            {
+                invertedIndex.get(term).add(new Posting(docId, termFreq));
+                incDf = true; // term in a new doc -> update df
+            }
+            else            // there is a posting element with this DocID
+            {
+                termFreq = invertedIndex.get(term).get(docId).getTermFreq() + 1;
+                invertedIndex.get(term).get(docId).setTermFreq(termFreq);
+            }
         }
-        // update inverted index
-        ArrayList<Posting> postings = invertedIndex.get(term);
-        postings.add(new Posting(docId,termFreq));
-        // update lexicon elem
-
+        return incDf;
     }
 
     /**

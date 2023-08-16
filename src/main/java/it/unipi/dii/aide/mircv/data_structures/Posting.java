@@ -2,7 +2,7 @@ package it.unipi.dii.aide.mircv.data_structures;
 
 public class Posting {
     private final int docId; //delta code
-    private final int termFreq; //unary code
+    private int termFreq; //unary code
 
     /**
      * Create a posting with a specified document ID.
@@ -18,4 +18,8 @@ public class Posting {
     public int getDocId() { return docId; }
 
     public int getTermFreq() { return termFreq; }
+
+    public void setTermFreq(int termFreq){
+        this.termFreq = termFreq;
+    }
 }
