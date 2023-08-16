@@ -73,7 +73,7 @@ public class DataStructureHandler {
                         HashMap<String, LexiconElem> lex = lexicon.getTermToTermStat();
                         System.out.println("********** Lexicon ********");
                         System.out.println("Term: " + term);
-                        System.out.println("TermId: " + termCounter + "TermId elem:" + lex.get(term).getTermId());
+                        System.out.println("TermId: " + termCounter + " - TermId elem:" + lex.get(term).getTermId());
                         System.out.println("Df: " + lex.get(term).getDf());
                         System.out.println("Cf: " + lex.get(term).getCf());
                         System.out.println("Lexicon size: " + lex.size());
@@ -87,7 +87,6 @@ public class DataStructureHandler {
                 HashMap<Integer, DocumentElement> doctable = dt.getDocIdToDocElem();
                 System.out.println("********** Document Table ********");
                 System.out.println("Docid: " + docCounter);
-
                 System.out.println("DocTable size: " + doctable.size());
                 System.out.println("Docno: " + doctable.get(docCounter-1).getDocno());
                 System.out.println("Length: " + doctable.get(docCounter-1).getDoclength());
