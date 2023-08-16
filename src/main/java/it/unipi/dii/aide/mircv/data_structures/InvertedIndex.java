@@ -18,6 +18,7 @@ public class InvertedIndex {
      *
      * @param term  The term to be added.
      * @param docId The document ID associated with the term.
+     * @return incDf If true the term is not in the document so need to increment df in lexicon, otherwise no need to increment it
      */
     public boolean addTerm(String term, int docId) {
         int termFreq = 1;

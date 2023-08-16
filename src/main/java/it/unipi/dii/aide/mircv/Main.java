@@ -19,8 +19,8 @@ public class Main {
         Scanner sc = new Scanner(System.in);
         String choice;
 
-        DataAnalysis da = new DataAnalysis(collection);
-        da.runAnalysis();
+//        DataAnalysis da = new DataAnalysis(collection);
+//        da.runAnalysis();
 
         DataStructureHandler dsh = new DataStructureHandler();
         dsh.createStructures(collection);
