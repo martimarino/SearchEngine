@@ -1,9 +1,12 @@
 package it.unipi.dii.aide.mircv;
 
-import it.unipi.dii.aide.mircv.data_structures.DataStructureHandler;
+import it.unipi.dii.aide.mircv.data_structures.*;
 import it.unipi.dii.aide.mircv.utils.DataAnalysis;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 
 
@@ -16,8 +19,11 @@ public class Main {
         Scanner sc = new Scanner(System.in);
         String choice;
 
-        DataAnalysis da = new DataAnalysis(collection);
-        da.runAnalysis();
+//        DataAnalysis da = new DataAnalysis(collection);
+//        da.runAnalysis();
+
+        DataStructureHandler dsh = new DataStructureHandler();
+        dsh.createStructures(collection);
 
         /* Read Collection info from disk */
         DataStructureHandler.getCollectionFromDisk();
@@ -97,3 +103,5 @@ public class Main {
     }
 
 }
+
+

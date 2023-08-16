@@ -46,6 +46,7 @@ public class DataAnalysis {
             }
             else if(i < 10) //if isn't empty
             {
+                System.out.println("Original record: " + record);
                 System.out.println("Preprocessed record:" + preprocessed);
             }
             maxTerms = Math.max(preprocessed.size(), maxTerms);

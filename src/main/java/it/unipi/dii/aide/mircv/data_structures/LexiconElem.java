@@ -6,12 +6,19 @@ package it.unipi.dii.aide.mircv.data_structures;
 import java.util.*;
 
 public class LexiconElem {
-    private int df;
-    private int cf;
+    private int df;     // document frequency
+    private int cf;     // collection frequency
     //private String term;
     private int termId;
 
     public LexiconElem() {
+        this.df = 0;
+        this.cf = 0;
+        this.termId = 0;
+    }
+
+    // constructor with parameters
+    public LexiconElem(int df, int cf, int termId) {
         this.df = 0;
         this.cf = 0;
         this.termId = 0;
