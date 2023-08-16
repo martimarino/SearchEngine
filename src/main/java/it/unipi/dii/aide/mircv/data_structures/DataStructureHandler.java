@@ -57,15 +57,18 @@ public class DataStructureHandler {
             if(!preprocessed.isEmpty()){
                 for(String term: preprocessed){
                     // Lexicon build
-                    if(!lexicon.getTermToTermStat().containsKey(term))
+                    // control check
+                    if(!lexicon.getTermToTermStat().containsKey(term)) {
+                        System.out.println("CHECK: " + termCounter + " TERM: " + term);
                         termCounter++;
+                    }
                     lexicon.addTerm(term, termCounter);
                     // Build inverted index
                     if(invertedIndex.addTerm(term, docCounter))
                         lexicon.incDf(term);         // Update df if first time term in this document
 
                     // test print for lexicon
-                    if(termCounter == 10)
+                    if(termCounter < 10)
                     {
                         HashMap<String, LexiconElem> lex = lexicon.getTermToTermStat();
                         System.out.println("********** Lexicon ********");
