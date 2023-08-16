@@ -23,7 +23,8 @@ public class InvertedIndex {
         int termFreq = 1;
         boolean incDf = false;
         // add or update posting list of the term
-        if (!invertedIndex.containsKey(term)) {
+        if (!invertedIndex.containsKey(term))   // there isn't the term in hash table
+        {
             invertedIndex.put(term, new ArrayList<>());
             invertedIndex.get(term).add(new Posting(docId, termFreq));
         }
