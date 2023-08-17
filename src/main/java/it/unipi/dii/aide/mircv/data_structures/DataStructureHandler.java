@@ -33,43 +33,45 @@ public class DataStructureHandler {
      * @throws IOException
      */
     public void createStructures(String collection) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(collection), StandardCharsets.UTF_8));
-        String record = br.readLine();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(collection), StandardCharsets.UTF_8))) {
+            // data structures init
+            DocumentTable dt = new DocumentTable();
+            Lexicon lexicon = new Lexicon();
+            InvertedIndex invertedIndex = new InvertedIndex();
 
-        DocumentTable dt = new DocumentTable();
-        Lexicon lexicon = new Lexicon();
-        InvertedIndex invertedIndex = new InvertedIndex();
+            System.out.println("\n*** Data structure build ***\n");
 
-        System.out.println("\n*** Data structure build ***\n");
-        int docCounter = 1;         // counter whose value will represent the DocID of the current document
-        int termCounter = 0;        // counter whose value will represent the TermID of the current term
-        // while to scroll through the dataset documents
-        while(record != null) {
-            ArrayList<String> preprocessed = TextProcessor.preprocessText(record);
-            String docno = preprocessed.get(0);         // get the docno
-            preprocessed.remove(0);
-            if(preprocessed.isEmpty()) // if document is empty skip it
-                continue;
+            int docCounter = 1;         // DocID of the current document
+            int termCounter = 0;        // TermID of the current term
 
-            dt.setDocIdToDocElem(docno, docCounter, preprocessed.size()); // add element to document table
-            docCounter++;              // update counter
-            // check if the document is empty
-            if(!preprocessed.isEmpty()){
-                for(String term: preprocessed){
+            String record;
+
+            // scroll through the dataset documents
+            while ((record = br.readLine()) != null) {
+                ArrayList<String> preprocessed = TextProcessor.preprocessText(record);
+
+                if (preprocessed.isEmpty()) {
+                    continue; // Skip empty documents
+                }
+
+                String docno = preprocessed.remove(0);
+                dt.setDocIdToDocElem(docno, docCounter, preprocessed.size());
+                docCounter++;
+
+                dt.setDocIdToDocElem(docno, docCounter, preprocessed.size()); // add element to document table
+                docCounter++;              // update counter
+
+                for (String term : preprocessed) {
                     // Lexicon build
-                    // control check
-                    if(!lexicon.getTermToTermStat().containsKey(term)) {
-                        System.out.println("CHECK: " + termCounter + " TERM: " + term);
-                        termCounter++;
-                    }
-                    lexicon.addTerm(term, termCounter);
-                    // Build inverted index
-                    if(invertedIndex.addTerm(term, docCounter))
-                        lexicon.incDf(term);         // Update df if first time term in this document
+                    LexiconElem lexElem = lexicon.getOrCreateTerm(term, termCounter);
+                    termCounter++;
 
+                    // Build inverted index
+                    if (invertedIndex.addTerm(term, docCounter)) {
+                        lexElem.incDf();
+                    }
                     // test print for lexicon
-                    if(termCounter < 10)
-                    {
+                    if (termCounter < 10) {
                         HashMap<String, LexiconElem> lex = lexicon.getTermToTermStat();
                         System.out.println("********** Lexicon ********");
                         System.out.println("Term: " + term);
@@ -78,21 +80,17 @@ public class DataStructureHandler {
                         System.out.println("Cf: " + lex.get(term).getCf());
                         System.out.println("Lexicon size: " + lex.size());
                     }
-
+                }
+                // test print for documentElement
+                if (docCounter == 5354) {
+                    HashMap<Integer, DocumentElement> doctable = dt.getDocIdToDocElem();
+                    System.out.println("********** Document Table ********");
+                    System.out.println("Docid: " + docCounter);
+                    System.out.println("DocTable size: " + doctable.size());
+                    System.out.println("Docno: " + doctable.get(docCounter - 1).getDocno());
+                    System.out.println("Length: " + doctable.get(docCounter - 1).getDoclength());
                 }
             }
-            // test print for documentElement
-            if(docCounter == 5354)
-            {
-                HashMap<Integer, DocumentElement> doctable = dt.getDocIdToDocElem();
-                System.out.println("********** Document Table ********");
-                System.out.println("Docid: " + docCounter);
-                System.out.println("DocTable size: " + doctable.size());
-                System.out.println("Docno: " + doctable.get(docCounter-1).getDocno());
-                System.out.println("Length: " + doctable.get(docCounter-1).getDoclength());
-            }
-            record = br.readLine();
         }
     }
-
 }

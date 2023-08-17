@@ -8,7 +8,7 @@ import java.util.*;
 public class LexiconElem {
     private int df;     // document frequency
     private int cf;     // collection frequency
-    //private String term;
+//    private String term;
     private int termId;
 
     public LexiconElem() {
@@ -17,11 +17,10 @@ public class LexiconElem {
         this.termId = 0;
     }
 
-    // constructor with parameters
-    public LexiconElem(int df, int cf, int termId) {
-        this.df = 0;
-        this.cf = 0;
-        this.termId = 0;
+    public LexiconElem(int termId) {
+        this.df = 1;
+        this.cf = 1;
+        this.termId = termId;
     }
 
     public void setDf(int df) { this.df = df; }
@@ -36,17 +35,13 @@ public class LexiconElem {
 
     public int getCf() { return cf; }
 
-    //public String getTerm() { return term; }
-
     public int getTermId() { return termId; }
 
-    public LexiconElem incDf(){
-        this.df = this.df + 1;
-        return this;
+    public void incDf(){
+        df++;
     }
 
-    public LexiconElem incCf(){
-        this.cf = this.cf + 1;
-        return this;
+    public void incCf(){
+        cf++;
     }
 }
