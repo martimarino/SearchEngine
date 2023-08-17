@@ -1,5 +1,6 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
+import it.unipi.dii.aide.mircv.Main;
 import it.unipi.dii.aide.mircv.TextProcessor;
 
 import java.io.BufferedReader;
@@ -11,6 +12,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class DataStructureHandler {
+
+    // data structures init
+    static DocumentTable dt = new DocumentTable();
+    static Lexicon lexicon = new Lexicon();
+    static InvertedIndex invertedIndex = new InvertedIndex();
 
     public static void getCollectionFromDisk() {
 
@@ -29,15 +35,11 @@ public class DataStructureHandler {
     }
 
     /**
-     * function to create and fill the lexicon, document table and inverted index
+     * Function to create and fill the lexicon, document table and inverted index
      * @throws IOException
      */
-    public void createStructures(String collection) throws IOException {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(collection), StandardCharsets.UTF_8))) {
-            // data structures init
-            DocumentTable dt = new DocumentTable();
-            Lexicon lexicon = new Lexicon();
-            InvertedIndex invertedIndex = new InvertedIndex();
+    public static void initializeDataStructures() throws IOException {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(Main.collection_path), StandardCharsets.UTF_8))) {
 
             System.out.println("\n*** Data structure build ***\n");
 
@@ -50,11 +52,12 @@ public class DataStructureHandler {
             while ((record = br.readLine()) != null) {
                 ArrayList<String> preprocessed = TextProcessor.preprocessText(record);
 
+                String docno = preprocessed.remove(0);
+
                 if (preprocessed.isEmpty()) {
                     continue; // Skip empty documents
                 }
 
-                String docno = preprocessed.remove(0);
                 dt.setDocIdToDocElem(docno, docCounter, preprocessed.size());
                 docCounter++;
 
@@ -73,7 +76,7 @@ public class DataStructureHandler {
                     // test print for lexicon
                     if (termCounter < 10) {
                         HashMap<String, LexiconElem> lex = lexicon.getTermToTermStat();
-                        System.out.println("********** Lexicon ********");
+                        System.out.println("********** Lexicon **********");
                         System.out.println("Term: " + term);
                         System.out.println("TermId: " + termCounter + " - TermId elem:" + lex.get(term).getTermId());
                         System.out.println("Df: " + lex.get(term).getDf());
@@ -82,9 +85,9 @@ public class DataStructureHandler {
                     }
                 }
                 // test print for documentElement
-                if (docCounter == 5354) {
+                if (docCounter == 53) {
                     HashMap<Integer, DocumentElement> doctable = dt.getDocIdToDocElem();
-                    System.out.println("********** Document Table ********");
+                    System.out.println("********** Document Table **********");
                     System.out.println("Docid: " + docCounter);
                     System.out.println("DocTable size: " + doctable.size());
                     System.out.println("Docno: " + doctable.get(docCounter - 1).getDocno());

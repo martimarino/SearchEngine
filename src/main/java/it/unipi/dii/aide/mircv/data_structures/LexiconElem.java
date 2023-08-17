@@ -3,8 +3,6 @@ package it.unipi.dii.aide.mircv.data_structures;
 /**
  *  Stores unique terms and their statistics
  */
-import java.util.*;
-
 public class LexiconElem {
     private int df;     // document frequency
     private int cf;     // collection frequency
@@ -36,6 +34,8 @@ public class LexiconElem {
     public int getCf() { return cf; }
 
     public int getTermId() { return termId; }
+
+//    public String getTerm() { return term; }
 
     public void incDf(){
         df++;
