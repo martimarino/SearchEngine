@@ -10,6 +10,8 @@ public class Main {
 
     public final static String collection_path = "src/main/resources/collection.tsv";
 
+    public final static int docelemsize = 28;
+
     public static void main(String[] args) throws IOException {
 
         Scanner sc = new Scanner(System.in);
@@ -28,7 +30,11 @@ public class Main {
         System.out.println("\nFlags loaded");
 
         /* Read Document Index from disk */
-        DataStructureHandler.getDocumentIndexFromDisk();
+        for(int i = 0; i < 10000; i++) {
+            DocumentElement de = DataStructureHandler.getDocumentIndexFromDisk(i*docelemsize);
+            if(de != null)
+                DataStructureHandler.getDt().setDocIdToDocElem(de.getDocno(), de.getDocid(), de.getDoclength());
+        }
         System.out.println("\nDocument loaded");
 
         /* Read Dictionary from disk */

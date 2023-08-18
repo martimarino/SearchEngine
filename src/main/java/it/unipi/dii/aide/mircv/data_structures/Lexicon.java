@@ -26,7 +26,7 @@ public class Lexicon {
      * Otherwise, it creates a new LexiconElem associated with the term, inserts it in the HashMap and returns it.
      */
     public LexiconElem getOrCreateTerm(String term, int termCounter) {
-        return termToTermStat.computeIfAbsent(term, t -> new LexiconElem(termCounter));
+        return termToTermStat.computeIfAbsent(term, t -> new LexiconElem(termCounter, term));
     }
 
     /**

@@ -6,7 +6,7 @@ package it.unipi.dii.aide.mircv.data_structures;
 public class LexiconElem {
     private int df;         // document frequency, number of documents in which there is the term
     private int cf;         // collection frequency, number of occurrences of the term in the collection
-//    private String term;
+    private String term;
     private int termId;
 
     // constructor without parameters
@@ -14,6 +14,7 @@ public class LexiconElem {
         this.df = 0;
         this.cf = 0;
         this.termId = 0;
+        this.term = "";
     }
 
     /**
@@ -21,10 +22,11 @@ public class LexiconElem {
         Is the first occurrence found of the term in the collection, will be in at least one document and present
         once in the collection for these set df and cf to 1.
      */
-    public LexiconElem(int termId) {
+    public LexiconElem(int termId, String term) {
         this.df = 1;                // set to 1
         this.cf = 1;                // set to 1
         this.termId = termId;
+        this.term = term;
     }
 
     // method to increment of 1 the document frequency
@@ -41,7 +43,7 @@ public class LexiconElem {
 
     public void setCf(int cf) { this.cf = cf; }
 
-    //public void setTerm(String term) { this.term = term; }
+    public void setTerm(String term) { this.term = term; }
 
     public void setTermId(int termId) { this.termId = termId; }
 

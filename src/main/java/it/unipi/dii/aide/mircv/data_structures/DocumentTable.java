@@ -23,7 +23,7 @@ public class DocumentTable{
     }
 
     public void setDocIdToDocElem(String docno, int docid, int doclength){
-        this.docIdToDocElem.put(docid, new DocumentElement(docno, doclength));
+        this.docIdToDocElem.put(docid, new DocumentElement(docno, doclength, docid));
     }
 
 
