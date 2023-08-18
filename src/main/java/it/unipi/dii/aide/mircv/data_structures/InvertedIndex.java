@@ -22,7 +22,7 @@ public class InvertedIndex {
      */
     public boolean addTerm(String term, int docId) {
         int termFreq = 1;
-        boolean incDf = false;
+        boolean incDf = false;                  // default value is false
         // add or update posting list of the term
         if (!invertedIndex.containsKey(term))   // there isn't the term in hash table
         {

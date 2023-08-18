@@ -4,23 +4,39 @@ package it.unipi.dii.aide.mircv.data_structures;
  *  Stores unique terms and their statistics
  */
 public class LexiconElem {
-    private int df;     // document frequency
-    private int cf;     // collection frequency
+    private int df;         // document frequency, number of documents in which there is the term
+    private int cf;         // collection frequency, number of occurrences of the term in the collection
 //    private String term;
     private int termId;
 
+    // constructor without parameters
     public LexiconElem() {
         this.df = 0;
         this.cf = 0;
         this.termId = 0;
     }
 
+    /**
+        Constructor with TermID parameter. Called when the first occurrence of a term is found.
+        Is the first occurrence found of the term in the collection, will be in at least one document and present
+        once in the collection for these set df and cf to 1.
+     */
     public LexiconElem(int termId) {
-        this.df = 1;
-        this.cf = 1;
+        this.df = 1;                // set to 1
+        this.cf = 1;                // set to 1
         this.termId = termId;
     }
 
+    // method to increment of 1 the document frequency
+    public void incDf(){
+        df++;
+    }
+    // method to increment of 1 the collection frequency
+    public void incCf(){
+        cf++;
+    }
+
+    // ---- start method get and set ----
     public void setDf(int df) { this.df = df; }
 
     public void setCf(int cf) { this.cf = cf; }
@@ -36,12 +52,4 @@ public class LexiconElem {
     public int getTermId() { return termId; }
 
 //    public String getTerm() { return term; }
-
-    public void incDf(){
-        df++;
-    }
-
-    public void incCf(){
-        cf++;
-    }
 }

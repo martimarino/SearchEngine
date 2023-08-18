@@ -41,37 +41,36 @@ public class DataStructureHandler {
     public static void initializeDataStructures() throws IOException {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(Main.collection_path), StandardCharsets.UTF_8))) {
 
-            System.out.println("\n*** Data structure build ***\n");
+            System.out.println("\n*** Data structure build ***\n");     // print for the User Interface
 
-            int docCounter = 1;         // DocID of the current document
-            int termCounter = 0;        // TermID of the current term
+            int docCounter = 1;         // Counter to indicate the DocID of the current document
+            int termCounter = 1;        // Counter to indicate the TermID of the current term
 
             String record;
 
             // scroll through the dataset documents
             while ((record = br.readLine()) != null) {
-                ArrayList<String> preprocessed = TextProcessor.preprocessText(record);
+                ArrayList<String> preprocessed = TextProcessor.preprocessText(record); // Preprocessing of document text
 
-                String docno = preprocessed.remove(0);
+                String docno = preprocessed.remove(0);      // get the DocNO of the current document
 
                 if (preprocessed.isEmpty()) {
-                    continue; // Skip empty documents
+                    continue;              // Empty documents, skip to next while iteration
                 }
 
-                dt.setDocIdToDocElem(docno, docCounter, preprocessed.size());
-                docCounter++;
+                dt.setDocIdToDocElem(docno, docCounter, preprocessed.size());       // add element to document table
+                docCounter++;              // update DocID counter
 
-                dt.setDocIdToDocElem(docno, docCounter, preprocessed.size()); // add element to document table
-                docCounter++;              // update counter
-
+                // scroll through the term of the document
                 for (String term : preprocessed) {
                     // Lexicon build
                     LexiconElem lexElem = lexicon.getOrCreateTerm(term, termCounter);
-                    termCounter++;
+                    termCounter++;         // update TermID counter
 
                     // Build inverted index
+                    // "addTerm" add posting in inverted index and return true if term is in a new doc -> update df
                     if (invertedIndex.addTerm(term, docCounter)) {
-                        lexElem.incDf();
+                        lexElem.incDf();                // increment Document Frequency of the term in the lexicon
                     }
                     // test print for lexicon
                     if (termCounter < 10) {
