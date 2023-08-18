@@ -4,9 +4,9 @@ package it.unipi.dii.aide.mircv.data_structures;
  *  Stores unique terms and their statistics
  */
 public class LexiconElem {
+    private String term;
     private int df;         // document frequency, number of documents in which there is the term
     private int cf;         // collection frequency, number of occurrences of the term in the collection
-    private String term;
     private int termId;
 
     // constructor without parameters
@@ -52,6 +52,10 @@ public class LexiconElem {
     public int getCf() { return cf; }
 
     public int getTermId() { return termId; }
+
+    public String getTerm() {
+        return term;
+    }
 
 //    public String getTerm() { return term; }
 }

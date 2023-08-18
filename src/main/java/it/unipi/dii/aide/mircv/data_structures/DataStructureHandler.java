@@ -21,7 +21,9 @@ public class DataStructureHandler {
     static Lexicon lexicon = new Lexicon();
     static InvertedIndex invertedIndex = new InvertedIndex();
     static final String documentFile = "src/main/resources/document.txt";
+    static final String vocabularyFile = "src/main/resources/vocabulary.txt";
     static final int docnodim  = 20;
+    static final int termdim = 20;
 
     public static void getCollectionFromDisk() {
 
@@ -63,11 +65,42 @@ public class DataStructureHandler {
         return null;
     }
 
+// retrieve all the dictionary from the disk
     public static void getDictionaryFromDisk() {
+        int vocsize = termdim + 4 + 4 + 4; // Size in bytes of term, df, cf, termId
 
+        try (FileChannel channel = new RandomAccessFile(documentFile, "rw").getChannel()) {
+            for (int i = 0; i < channel.size(); i += vocsize) { //iterate through all the vocabulary file
+                LexiconElem le = new LexiconElem();
+
+                MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, i, termdim);
+
+                // Buffer not created
+                if (buffer == null)
+                    continue;
+
+                CharBuffer.allocate(vocsize); //allocate a charbuffer of the dimension reservated to term
+                CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
+
+                if (charBuffer.toString().split("\0").length == 0)
+                    continue;
+
+                le.setTerm(charBuffer.toString().split("\0")[0]); //split using end string character
+                buffer.position(termdim); //skip term
+                le.setCf(buffer.getInt());
+                le.setDf(buffer.getInt());
+                le.setTermId(buffer.getInt());
+                lexicon.getTermToTermStat().put(le.getTerm(), le);
+            }
+
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
-
-    public static void storeCollectionIntoDisk(){
+        public static void storeCollectionIntoDisk(){
 
     }
 
@@ -87,7 +120,7 @@ public class DataStructureHandler {
             if(buffer == null)
                 return;
             //allocate 20bytes for docno
-            CharBuffer charBuffer = CharBuffer.allocate(20);
+            CharBuffer charBuffer = CharBuffer.allocate(docnodim);
             //put every char into charbuffer
             for(int i = 0; i < de.getDocno().length(); i++)
                 charBuffer.put(i, de.getDocno().charAt(i));
@@ -102,7 +135,28 @@ public class DataStructureHandler {
     }
 
 
-    public static void storeDictionaryIntoDisk(){
+    public static void storeDictionaryIntoDisk(LexiconElem le){
+
+        try (FileChannel channel = new RandomAccessFile(documentFile, "rw").getChannel()) {
+            int vocsize = termdim + 4 + 4 + 4; // Size in bytes of term, df, cf, termId
+            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), vocsize);
+            // Buffer not created
+            if(buffer == null)
+                return;
+            //allocate 20bytes for docno
+            CharBuffer charBuffer = CharBuffer.allocate(termdim);
+            //put every char into charbuffer
+            for(int i = 0; i < le.getTerm().length(); i++)
+                charBuffer.put(i, le.getTerm().charAt(i));
+            // write docno, docid and doclength into document file
+            buffer.put(StandardCharsets.UTF_8.encode(charBuffer));
+            buffer.putInt(le.getDf());
+            buffer.putInt(le.getCf());
+            buffer.putInt(le.getTermId());
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -140,6 +194,7 @@ public class DataStructureHandler {
                 for (String term : preprocessed) {
                     // Lexicon build
                     LexiconElem lexElem = lexicon.getOrCreateTerm(term, termCounter);
+                    storeDictionaryIntoDisk(lexElem);
                     termCounter++;         // update TermID counter
 
                     // Build inverted index

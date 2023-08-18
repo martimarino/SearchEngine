@@ -30,7 +30,7 @@ public class Main {
         System.out.println("\nFlags loaded");
 
         /* Read Document Index from disk */
-        for(int i = 0; i < 10000; i++) {
+        for(int i = 0; i < 10000; i++) { //need to put nr of documents into collection class
             DocumentElement de = DataStructureHandler.getDocumentIndexFromDisk(i*docelemsize);
             if(de != null)
                 DataStructureHandler.getDt().setDocIdToDocElem(de.getDocno(), de.getDocid(), de.getDoclength());
@@ -38,6 +38,7 @@ public class Main {
         System.out.println("\nDocument loaded");
 
         /* Read Dictionary from disk */
+
         DataStructureHandler.getDictionaryFromDisk();
         System.out.println("\nDictionary loaded");
 
