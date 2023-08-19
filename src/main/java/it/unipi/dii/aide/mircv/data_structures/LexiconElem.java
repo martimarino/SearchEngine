@@ -8,6 +8,7 @@ public class LexiconElem {
     private int df;         // document frequency, number of documents in which there is the term
     private int cf;         // collection frequency, number of occurrences of the term in the collection
     private int termId;
+    private long offset; // starting point of the posting list of the term in the inverted index file
 
     // constructor without parameters
     public LexiconElem() {
@@ -15,6 +16,7 @@ public class LexiconElem {
         this.cf = 0;
         this.termId = 0;
         this.term = "";
+        this.offset = 0;
     }
 
     /**
@@ -27,6 +29,7 @@ public class LexiconElem {
         this.cf = 1;                // set to 1
         this.termId = termId;
         this.term = term;
+        this.offset = 0;
     }
 
     // method to increment of 1 the document frequency
@@ -55,6 +58,14 @@ public class LexiconElem {
 
     public String getTerm() {
         return term;
+    }
+
+    public long getOffset() {
+        return offset;
+    }
+
+    public void setOffset(long offset) {
+        this.offset = offset;
     }
 
 //    public String getTerm() { return term; }

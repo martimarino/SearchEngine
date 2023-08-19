@@ -10,4 +10,31 @@ public class PostingList {
     private String term;
     // ArrayList of postings with DocID and TermFrequency for each document in which term is present
     private ArrayList<Posting> postings;
+
+
+    public PostingList(){
+        this.term = "";
+        this.postings = new ArrayList<Posting>();
+    }
+    public PostingList(String term, ArrayList<Posting> postings) {
+        this.term = term;
+        this.postings = postings;
+    }
+
+
+    public String getTerm() {
+        return term;
+    }
+
+    public void setTerm(String term) {
+        this.term = term;
+    }
+
+    public ArrayList<Posting> getPostings() {
+        return postings;
+    }
+
+    public void setPostings(ArrayList<Posting> postings) {
+        this.postings = postings;
+    }
 }

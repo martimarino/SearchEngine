@@ -1,6 +1,7 @@
 package it.unipi.dii.aide.mircv;
 
 import it.unipi.dii.aide.mircv.data_structures.*;
+import it.unipi.dii.aide.mircv.utils.DataAnalysis;
 
 import java.io.*;
 import java.util.Scanner;
@@ -16,10 +17,11 @@ public class Main {
 
         Scanner sc = new Scanner(System.in);
 
-//        DataAnalysis da = new DataAnalysis();
-//        da.runAnalysis();
+/*       DataAnalysis da = new DataAnalysis();
+       da.runAnalysis();*/
 
-        DataStructureHandler.initializeDataStructures();
+        //DataStructureHandler.initializeDataStructures();
+        DataStructureHandler.SPIMIalgorithm();
 
         /* Read Collection info from disk */
         DataStructureHandler.getCollectionFromDisk();

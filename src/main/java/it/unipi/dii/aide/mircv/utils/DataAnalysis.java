@@ -21,7 +21,7 @@ public class DataAnalysis {
     static BufferedReader br;
     static int maxTermSize = 0;
 
-    public DataAnalysis(String source) throws IOException {
+    public DataAnalysis() throws IOException {
 
         /* Read collection */
         br = new BufferedReader(new InputStreamReader(new FileInputStream(Main.collection_path), StandardCharsets.UTF_8));
