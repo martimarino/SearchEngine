@@ -44,6 +44,8 @@ public class Main {
         DataStructureHandler.getDictionaryFromDisk();
         System.out.println("\nDictionary loaded");
 
+        //DataStructureHandler.getIndexFromDisk();
+
         while(true) {
 
             System.out.println("\n*** SEARCH ENGINE ***\n");

@@ -21,7 +21,7 @@ public class InvertedIndex {
      * @param docId The document ID associated with the term.
      * @return incDf If true the term is not in the document so need to increment df in lexicon, otherwise no need to increment it
      */
-    public boolean addTerm(String term, int docId) {
+    public boolean addTerm(String term, int docId, int tf) {
          //arraylist<Posting> version
         /*int termFreq = 1;
         boolean incDf = false;                  // default value is false
@@ -50,6 +50,9 @@ public class InvertedIndex {
         // instead of ArrayList<Posting> we can use directly PostingList
         int termFreq = 1;
         boolean incDf = false;                  // default value is false
+        //tf is 0 when building index, otherwise in case of get index
+        if(tf != 0)
+            termFreq = tf;
         // add or update posting list of the term
         if (!invertedIndex.containsKey(term))   // there isn't the term in hash table
         {
@@ -70,8 +73,10 @@ public class InvertedIndex {
                 termFreq = invertedIndex.get(term).getPostings().get(posting.size()-1).getTermFreq() + 1;
                 invertedIndex.get(term).getPostings().get(posting.size()-1).setTermFreq(termFreq);
             }
-
+            if(tf != 0)
+                System.out.println("TF: " + tf + "TERMFREQ: " + invertedIndex.get(term).getPostings().get(posting.size()-1).getTermFreq());
         }
+
         return incDf;
     }
 
