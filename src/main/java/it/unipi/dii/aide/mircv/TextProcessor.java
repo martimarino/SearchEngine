@@ -19,7 +19,7 @@ public class TextProcessor {
 
     // Main function to execute text preprocessing
     public static ArrayList<String> preprocessText(String input) throws IOException {
-        ArrayList<String> tokenList = new ArrayList<>();
+        ArrayList<String> tokenList;
 
         /* Preprocess the Text */
         input = cleanText(input); // Clean the text by removing URLs, HTML tags, punctuation, etc.

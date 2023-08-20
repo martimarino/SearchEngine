@@ -9,7 +9,7 @@ public class Lexicon {
 
     // constructor without parameters
     public Lexicon() {
-        this.termToTermStat = new HashMap<String, LexiconElem>();
+        this.termToTermStat = new HashMap<>();
     }
 
 //    public void addTerm(String term, int termId) {
@@ -31,7 +31,7 @@ public class Lexicon {
 
     /**
      * function which returns, if present, the LexiconElem associated with the term passed as a parameter.
-     * Otherwise returns null.
+     * Otherwise, returns null.
      */
     public LexiconElem getTermStat(String term) {
         return termToTermStat.getOrDefault(term, null);

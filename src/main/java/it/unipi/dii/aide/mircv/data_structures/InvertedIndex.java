@@ -11,7 +11,7 @@ public class InvertedIndex {
     private HashMap<String, PostingList> invertedIndex;
 
     public InvertedIndex() {
-        this.invertedIndex = new HashMap<String, PostingList>();
+        this.invertedIndex = new HashMap<>();
     }
 
     /**
@@ -50,13 +50,15 @@ public class InvertedIndex {
         // instead of ArrayList<Posting> we can use directly PostingList
         int termFreq = 1;
         boolean incDf = false;                  // default value is false
+
         //tf is 0 when building index, otherwise in case of get index
         if(tf != 0)
             termFreq = tf;
+
         // add or update posting list of the term
         if (!invertedIndex.containsKey(term))   // there isn't the term in hash table
         {
-            invertedIndex.put(term, new PostingList(term, new ArrayList<Posting>()));
+            invertedIndex.put(term, new PostingList(term, new ArrayList<>()));
             invertedIndex.get(term).getPostings().add(new Posting(docId, termFreq));
         }
         else                                    // there is the term in hash table

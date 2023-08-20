@@ -14,7 +14,7 @@ public class PostingList {
 
     public PostingList(){
         this.term = "";
-        this.postings = new ArrayList<Posting>();
+        this.postings = new ArrayList<>();
     }
     public PostingList(String term, ArrayList<Posting> postings) {
         this.term = term;

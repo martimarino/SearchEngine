@@ -53,7 +53,7 @@ public class DataStructuresTest {
     @Test
     public void datasetTest() throws IOException {
         System.out.println("\n*** Test Dataset ***");
-        HashMap<String, PostingList> dict = new HashMap<String, PostingList>();
+        HashMap<String, PostingList> dict = new HashMap<>();
 
         BufferedReader br;
         int maxTermSize = 0;

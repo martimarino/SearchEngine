@@ -16,7 +16,7 @@ import java.util.HashMap;
 
 public class DataAnalysis {
 
-    HashMap<String, PostingList> dict = new HashMap<String, PostingList>();
+    HashMap<String, PostingList> dict = new HashMap<>();
 
     static BufferedReader br;
     static int maxTermSize = 0;

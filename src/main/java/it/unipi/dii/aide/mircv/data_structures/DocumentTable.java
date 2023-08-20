@@ -15,7 +15,7 @@ public class DocumentTable{
     }
     // constructor without parameters
     public DocumentTable() {
-        this.docIdToDocElem = new HashMap<Integer, DocumentElement>();
+        this.docIdToDocElem = new HashMap<>();
     }
 
     public HashMap<Integer, DocumentElement> getDocIdToDocElem() {

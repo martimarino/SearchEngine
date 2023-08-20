@@ -20,7 +20,7 @@ public class Main {
 /*       DataAnalysis da = new DataAnalysis();
        da.runAnalysis();*/
 
-        //DataStructureHandler.initializeDataStructures();
+        DataStructureHandler.initializeDataStructures();
         DataStructureHandler.SPIMIalgorithm();
 
         /* Read Collection info from disk */
@@ -42,7 +42,7 @@ public class Main {
         /* Read Dictionary from disk */
 
         DataStructureHandler.getDictionaryFromDisk();
-        System.out.println("\nDictionary loaded");
+        System.out.println("\nV dictionary loaded");
 
         //DataStructureHandler.getIndexFromDisk();
 

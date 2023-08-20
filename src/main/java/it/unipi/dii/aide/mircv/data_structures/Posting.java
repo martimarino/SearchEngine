@@ -1,7 +1,7 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
 public class Posting {
-    private int docId;    // DocID (recommended delta code compression)
+    private final int docId;    // DocID (recommended delta code compression)
     private int termFreq;       // frequency of the term in the document(recommended unary code compression)
 
     /**
