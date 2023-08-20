@@ -10,6 +10,15 @@ public class LexiconElem {
     private int termId;
     private long offset; // starting point of the posting list of the term in the inverted index file
 
+    public LexiconElem(String term, int df, int cf, int termId, long offset) {
+        this.term = term;
+        this.df = df;
+        this.cf = cf;
+        this.termId = termId;
+        this.term = term;
+        this.offset = offset;
+    }
+
     // constructor without parameters
     public LexiconElem() {
         this.df = 0;
