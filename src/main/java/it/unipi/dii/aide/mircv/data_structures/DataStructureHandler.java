@@ -45,7 +45,7 @@ public class DataStructureHandler {
             if(buffer == null)
                 return null;
 
-            CharBuffer.allocate(docnodim); //allocate a charbuffer of the dimension reservated to docno
+            CharBuffer.allocate(docnodim); //allocate a charbuffer of the dimension reserved to docno
             CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
 
             if(charBuffer.toString().split("\0").length == 0)
@@ -117,10 +117,6 @@ public class DataStructureHandler {
                 lexicon.getTermToTermStat().put(le.getTerm(), le);
                 System.out.println("Term: " + le.getTerm() + " CF: " + le.getCf() + " DF: " + le.getDf() + " OFFSET: " + le.getOffset());
             }
-
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -135,9 +131,10 @@ public class DataStructureHandler {
     // Read document table elements from file
     public static void storeDocumentTableElementIntoDisk(DocumentElement de){
 
-        System.out.println("DOCNO: " + de.getDocno() + " DOCID: " + de.getDocid() + " DOCLENGTH: " + de.getDoclength());
+        //System.out.println("DOCNO: " + de.getDocno() + " DOCID: " + de.getDocid() + " DOCLENGTH: " + de.getDoclength());
 
         try (FileChannel channel = new RandomAccessFile(documentFile, "rw").getChannel()) {
+
             int docsize = 4 + docnodim + 4; // Size in bytes of docid, docno, and doclength
             MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), docsize);
             // Buffer not created
@@ -209,8 +206,7 @@ public class DataStructureHandler {
                 // store dictionary into the disk
                 storeDictionaryIntoDisk(lexicon.getTermStat(posList.getTerm()));
             }
-        } catch (FileNotFoundException fileNotFoundException) {
-            fileNotFoundException.printStackTrace();
+            lexiconBlocks.add(Long.valueOf(termfreqchannel.size()));// update of the offset of the block for the lexicon file
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
@@ -297,53 +293,62 @@ public class DataStructureHandler {
         long memoryAvailable = Runtime.getRuntime().maxMemory() * 70 / 100;
         int docCounter = 0;
         int termCounter = 0;
+        int printInterval = 500; // Print memory usage every 500 documents
 
         try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(Main.collection_path), StandardCharsets.UTF_8))) {
 
             String record;
-            System.out.println("MEMORY AVALABLE : " + memoryAvailable);
+
             while ((record = br.readLine()) != null) {
-                    if(record.isBlank()) // empty string or composed by whitespace characters
-                        continue;
+                if(record.isBlank()) // empty string or composed by whitespace characters
+                    continue;
 
-                    ArrayList<String> preprocessed = TextProcessor.preprocessText(record); // Preprocessing of document text
+                if (docCounter % printInterval == 0)
+                    System.out.println("MEMORY AVAILABLE : " + memoryAvailable);
 
-                    String docno = preprocessed.remove(0);      // get the DocNO of the current document
-                    if (preprocessed.isEmpty()) {
-                        continue;              // Empty documents, skip to next while iteration
+                ArrayList<String> preprocessed = TextProcessor.preprocessText(record); // Preprocessing of document text
+
+                String docno = preprocessed.remove(0);      // get the DocNO of the current document
+                if (preprocessed.isEmpty()) {
+                    continue;              // Empty documents, skip to next while iteration
+                }
+
+                DocumentElement de = new DocumentElement(docno, docCounter, preprocessed.size());
+                DataStructureHandler.storeDocumentTableElementIntoDisk(de); // store document table one document at a time
+                docCounter++;              // update DocID counter
+
+                for (String term : preprocessed) {
+
+                    // Lexicon build
+                    if(term.length() > 32)
+                        term = term.substring(0,32);
+
+                    // Lexicon build
+                    LexiconElem lexElem = lexicon.getOrCreateTerm(term, termCounter);
+                    termCounter++;         // update TermID counter
+
+                    // Build inverted index
+                    // "addTerm" add posting in inverted index and return true if term is in a new doc -> update df
+                    if (invertedIndex.addTerm(term, docCounter, 0)) {
+                        lexElem.incDf();                // increment Document Frequency of the term in the lexicon
                     }
+                    npostings++;
+                    //System.out.println("*** NPOSTINGS: " + npostings + "***");
+                }
 
-                    DocumentElement de = new DocumentElement(docno, docCounter, preprocessed.size());
-                    DataStructureHandler.storeDocumentTableElementIntoDisk(de); // store document table one document at a time
-                    docCounter++;              // update DocID counter
-
-                    for (String term : preprocessed) {
-                        // Lexicon build
-                        LexiconElem lexElem = lexicon.getOrCreateTerm(term, termCounter);
-                        termCounter++;         // update TermID counter
-
-
-                        // Build inverted index
-                        // "addTerm" add posting in inverted index and return true if term is in a new doc -> update df
-                        if (invertedIndex.addTerm(term, docCounter, 0)) {
-                            lexElem.incDf();                // increment Document Frequency of the term in the lexicon
-                        }
-                        npostings++;
-                        //System.out.println("*** NPOSTINGS: " + npostings + "***");
-
-                    }
-
+                if (docCounter % printInterval == 0)
                     System.out.println("TOT MEMORY: " + Runtime.getRuntime().totalMemory() + " MEM AVAILABLE: " + memoryAvailable);
-                    if(Runtime.getRuntime().totalMemory() > memoryAvailable) {
-                        System.out.println("********** Memory full **********");
 
-                        //store index and lexicon to disk
-                        storeIndexAndVocabularyIntoDisk(invertedIndex);
-                        //free memory
-                        freeMemory();
-                        System.gc();
-                        System.out.println("*********** Free memory **********");
-                        npostings = 0; // new partial index
+                if(Runtime.getRuntime().totalMemory() > memoryAvailable) {
+                    System.out.println("********** Memory full **********");
+                    //store index and lexicon to disk
+                    storeIndexAndVocabularyIntoDisk(invertedIndex);
+                    //free memory
+                    freeMemory();
+                    System.gc();
+                    System.out.println("*********** Free memory **********");
+                    npostings = 0; // new partial index
+
                 }
                 if(docCounter == 10000) {
 
@@ -354,8 +359,6 @@ public class DataStructureHandler {
                 }
             }
 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
