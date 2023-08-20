@@ -94,7 +94,7 @@ public class DataStructureHandler {
 
         try (FileChannel channel = new RandomAccessFile(vocabularyFile, "rw").getChannel()) {
             for (int i = 0; i < channel.size(); i += vocsize) { //iterate through all the vocabulary file
-                LexiconElem le = new LexiconElem();
+                LexiconElem le = new LexiconElem();         // create new LexiconElem
 
                 MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, i, vocsize);
 
@@ -125,6 +125,7 @@ public class DataStructureHandler {
             e.printStackTrace();
         }
     }
+
     public static void storeCollectionIntoDisk(){
 
     }
@@ -156,9 +157,9 @@ public class DataStructureHandler {
             e.printStackTrace();
         }
     }
+
+
     public static void storeDictionaryIntoDisk(LexiconElem le){
-
-
         try (FileChannel channel = new RandomAccessFile(vocabularyFile, "rw").getChannel()) {
             int vocsize = termdim + 4 + 4 + 4 + 8; // Size in bytes of term, df, cf, termId, offset
             MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), vocsize);
@@ -180,8 +181,8 @@ public class DataStructureHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
+
     public static void storeIndexAndVocabularyIntoDisk(InvertedIndex ii){
         System.out.println("STORE");
         //sort in lexicographic order the terms of the index
@@ -194,7 +195,6 @@ public class DataStructureHandler {
             for (PostingList posList : ii.getInvertedIndex().values()) {
                 System.out.println("P: " + posList.getTerm());
                 for (Posting posting : posList.getPostings()) {
-                    //store index into disk
 
                     // Buffer not created
                     if(bufferdocid == null || buffertermfreq == null)

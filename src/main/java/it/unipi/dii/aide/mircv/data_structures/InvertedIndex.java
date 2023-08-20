@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 /**
  * Stores term-document statistics (in posting lists)
  */
-
 public class InvertedIndex {
     private HashMap<String, PostingList> invertedIndex;
 
