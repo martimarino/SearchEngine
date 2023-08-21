@@ -34,6 +34,7 @@ public class Main {
         /* Read Document Index from disk */
         for(int i = 0; i < 10000; i++) { //need to put nr of documents into collection class
             DocumentElement de = DataStructureHandler.getDocumentIndexFromDisk(i*docelemsize);
+
             if(de != null)
                 DataStructureHandler.getDt().setDocIdToDocElem(de.getDocno(), de.getDocid(), de.getDoclength());
         }
@@ -44,7 +45,7 @@ public class Main {
         DataStructureHandler.getDictionaryFromDisk();
         System.out.println("\nV dictionary loaded");
 
-        //DataStructureHandler.getIndexFromDisk();
+        DataStructureHandler.getIndexFromDisk();
 
         while(true) {
 
