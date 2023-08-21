@@ -1,13 +1,13 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
 public class DocumentElement {
+
     //single document element with correspondent docid and relative length
     private int docid;
     private String docno;
     private int doclength;
 
 
-    // constructor
     public DocumentElement(String docno, int docid, int doclength) {
         this.docno = docno;
         this.doclength = doclength;
@@ -19,6 +19,9 @@ public class DocumentElement {
         this.docid = 0;
         this.doclength = 0;
     }
+
+
+    // ---- start method get and set ----
 
     public int getDoclength() {
         return doclength;

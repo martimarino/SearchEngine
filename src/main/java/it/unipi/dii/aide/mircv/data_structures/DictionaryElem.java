@@ -3,7 +3,8 @@ package it.unipi.dii.aide.mircv.data_structures;
 /**
  *  Stores unique terms and their statistics
  */
-public class LexiconElem {
+public class DictionaryElem {
+
     private String term;
     private int df;         // document frequency, number of documents in which there is the term
     private int cf;         // collection frequency, number of occurrences of the term in the collection
@@ -11,22 +12,22 @@ public class LexiconElem {
     private long offsetTermFreq; // starting point of the posting list of the term in the term freq file
     private long offsetDocId; // starting point of the posting list of the term in the docid file
 
-    public LexiconElem(String term, int df, int cf, int termId, long offset) {
+    public DictionaryElem(String term, int df, int cf, int termId, long offsetTermFreq, long offsetDocId) {
         this.term = term;
         this.df = df;
         this.cf = cf;
         this.termId = termId;
         this.term = term;
-        this.offset = offset;
+        this.offsetTermFreq = offsetTermFreq;
+        this.offsetDocId = offsetDocId;
     }
 
     // constructor without parameters
-    public LexiconElem() {
+    public DictionaryElem() {
         this.df = 0;
         this.cf = 0;
         this.termId = 0;
         this.term = "";
-
     }
 
     /**
@@ -34,18 +35,18 @@ public class LexiconElem {
         Is the first occurrence found of the term in the collection, will be in at least one document and present
         once in the collection for these set df and cf to 1.
      */
-    public LexiconElem(int termId, String term) {
+    public DictionaryElem(int termId, String term) {
         this.df = 1;                // set to 1
         this.cf = 1;                // set to 1
         this.termId = termId;
         this.term = term;
-
     }
 
     // method to increment of 1 the document frequency
     public void incDf(){
         df++;
     }
+
     // method to increment of 1 the collection frequency
     public void incCf(){
         cf++;
@@ -86,6 +87,4 @@ public class LexiconElem {
         this.offsetDocId = offsetDocId;
     }
 
-
-//    public String getTerm() { return term; }
 }
