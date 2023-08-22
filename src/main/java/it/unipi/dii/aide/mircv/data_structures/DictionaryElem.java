@@ -5,6 +5,8 @@ package it.unipi.dii.aide.mircv.data_structures;
  */
 public class DictionaryElem {
 
+    public static final int DICT_ELEM_SIZE = DataStructureHandler.TERM_DIM + 3 * Integer.BYTES + 2 * Long.BYTES;
+
     private String term;
     private int df;         // document frequency, number of documents in which there is the term
     private int cf;         // collection frequency, number of occurrences of the term in the collection
