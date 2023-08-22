@@ -1,7 +1,14 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
+import javax.swing.*;
 import java.io.*;
+import java.nio.CharBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+
+import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.*;
 
 public class IndexMerger {
 

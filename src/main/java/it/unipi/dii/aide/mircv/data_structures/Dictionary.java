@@ -2,6 +2,9 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Dictionary {
 
@@ -39,4 +42,14 @@ public class Dictionary {
         return termToTermStat;
     }
 
+    public void sort(){
+        termToTermStat = getTermToTermStat().entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (a, b) -> { throw new AssertionError(); },
+                        LinkedHashMap::new
+                ));
+    }
 }
