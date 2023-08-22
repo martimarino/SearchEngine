@@ -4,6 +4,7 @@ import it.unipi.dii.aide.mircv.data_structures.*;
 
 import java.io.*;
 import java.util.Scanner;
+import java.nio.file.*;
 
 
 public class Main {
@@ -18,6 +19,8 @@ public class Main {
 
 /*       DataAnalysis da = new DataAnalysis();
        da.runAnalysis();*/
+
+        file_cleaner();
 
         DataStructureHandler.initializeDataStructures();
         DataStructureHandler.SPIMIalgorithm();
@@ -82,6 +85,28 @@ public class Main {
 
         }
 
+    }
+
+    private static void file_cleaner() {
+
+        File folder = new File("./src/main/resources/");
+        File[] files = folder.listFiles();
+
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile() && !file.getName().equals("stopwords.txt") && !file.getName().equals("collection.tsv")) {
+                    try {
+                        if (file.delete()) {
+                            System.out.println("Deleted: " + file.getName());
+                        } else {
+                            System.err.println("Failed to delete: " + file.getName());
+                        }
+                    } catch (SecurityException e) {
+                        System.err.println("SecurityException: " + e.getMessage());
+                    }
+                }
+            }
+        }
     }
 
     private static boolean getUserChoice(Scanner sc, String option) {

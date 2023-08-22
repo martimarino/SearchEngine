@@ -17,10 +17,12 @@ import java.util.ArrayList;
 public class DataStructureHandler {
 
     // Constants for file paths
-    private static final String DOCUMENT_FILE = "src/main/resources/document.txt"; // file in which is stored the document table
-    private static final String VOCABULARY_FILE = "src/main/resources/vocabulary.txt"; // file in which is stored the vocabulary
-    private static final String DOCID_FILE = "src/main/resources/docid.txt";
-    private static final String TERMFREQ_FILE = "src/main/resources/termfreq.txt";
+    public static final String DOCUMENT_FILE = "src/main/resources/document.txt"; // file in which is stored the document table
+    public static final String VOCABULARY_FILE = "src/main/resources/vocabulary.txt"; // file in which is stored the vocabulary
+    public static final String FLAGS_FILE = "src/main/resources/flags"; // file in which flags are stored
+    public static final String DOCID_FILE = "src/main/resources/docid.txt";
+    public static final String TERMFREQ_FILE = "src/main/resources/termfreq.txt";
+
 
     private static final int DOCNO_DIM = 10;        // Length of docno (in bytes)
     private static final int TERM_DIM = 32;          // Length of a term (in bytes)
@@ -34,8 +36,6 @@ public class DataStructureHandler {
 
     private static ArrayList<Long> indexBlocks;         // Offsets of the InvertedIndex blocks
     private static ArrayList<Long> dictionaryBlocks;    // Offsets of the dictionary blocks
-
-    public static RandomAccessFile Flags_raf;
 
     /**
      * Initializes data structures and fills them from the input collection.
@@ -202,17 +202,21 @@ public class DataStructureHandler {
 
     public static void storeFlagsIntoDisk() throws IOException {
 
-        ByteBuffer FlagsBuffer = ByteBuffer.allocate(12);
-        Flags_raf.getChannel().position(0);
+        try ( RandomAccessFile Flags_raf  = new RandomAccessFile(new File(FLAGS_FILE),"rw");) {
+            ByteBuffer FlagsBuffer = ByteBuffer.allocate(12);
+            Flags_raf.getChannel().position(0);
 
-        FlagsBuffer.putInt(Flag.isSwsEnabled() ? 1 : 0);
-        FlagsBuffer.putInt(Flag.isScoringEnabled() ? 1 : 0);
-        FlagsBuffer.putInt(Flag.isCompressionEnabled() ? 1 : 0);
+            FlagsBuffer.putInt(Flag.isSwsEnabled() ? 1 : 0);
+            FlagsBuffer.putInt(Flag.isScoringEnabled() ? 1 : 0);
+            FlagsBuffer.putInt(Flag.isCompressionEnabled() ? 1 : 0);
 
-        FlagsBuffer = ByteBuffer.wrap(FlagsBuffer.array());
+            FlagsBuffer = ByteBuffer.wrap(FlagsBuffer.array());
 
-        while (FlagsBuffer.hasRemaining())
-            Flags_raf.getChannel().write(FlagsBuffer);
+            while (FlagsBuffer.hasRemaining())
+                Flags_raf.getChannel().write(FlagsBuffer);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
     }
 
     // Read document table elements from file
@@ -273,7 +277,7 @@ public class DataStructureHandler {
         }
     }
 
-    public static void storeIndexAndVocabularyIntoDisk(InvertedIndex ii){
+    public static void storeIndexAndVocabularyIntoDisk(InvertedIndex ii) {
 
         final int INT_SIZE = 4;
 
@@ -281,9 +285,12 @@ public class DataStructureHandler {
         invertedIndex.sort();
         System.out.println("SORTED");
 
-        try (FileChannel docidChannel = new RandomAccessFile(DOCID_FILE, "rw").getChannel();
-             FileChannel termfreqChannel = new RandomAccessFile(TERMFREQ_FILE, "rw").getChannel()) {
-
+        try (
+                RandomAccessFile docidFile = new RandomAccessFile(DOCID_FILE, "rw");
+                RandomAccessFile termfreqFile = new RandomAccessFile(TERMFREQ_FILE, "rw");
+                FileChannel docidChannel = docidFile.getChannel();
+                FileChannel termfreqChannel = termfreqFile.getChannel()
+        ) {
             indexBlocks.add(docidChannel.size() + 1); //update the offset of the block for the docid file
 
             // Create buffers for docid and termfreq
@@ -300,9 +307,8 @@ public class DataStructureHandler {
 
                 //iterate through postings in the posting list
                 for (Posting posting : posList.getPostings()) {
-
                     // Buffer not created
-                    if(bufferdocid == null || buffertermfreq == null)
+                    if (bufferdocid == null || buffertermfreq == null)
                         return;
 
                     // Write DocID and TermFreq to buffers
@@ -319,6 +325,7 @@ public class DataStructureHandler {
             ioException.printStackTrace();
         }
     }
+
 
     public static void getCollectionFromDisk() {
 
@@ -450,6 +457,7 @@ public class DataStructureHandler {
             e.printStackTrace();
         }
     }
+
 
 
     public static void freeMemory(){

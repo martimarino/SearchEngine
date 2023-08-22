@@ -58,9 +58,12 @@ public class InvertedIndex {
      * @param term The term to retrieve postings for.
      * @return The list of postings associated with the term.
      */
-/*    public List<Posting> getPostings(String term) {
-        return invertedIndex.getOrDefault(term, new ArrayList<>());
-    }*/
+
+    public void addPosting(String term, Posting posting) {
+        // Get or create the PostingList associated with the term
+        PostingList postingList = invertedIndex.computeIfAbsent(term, key -> new PostingList(key, new ArrayList<>()));
+        postingList.addPosting(posting);
+    }
 
     public PostingList getPostings(String term) {
         return invertedIndex.getOrDefault(term, new PostingList());
