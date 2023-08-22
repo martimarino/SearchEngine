@@ -1,8 +1,10 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
+import it.unipi.dii.aide.mircv.Flag;
 import it.unipi.dii.aide.mircv.Main;
 import it.unipi.dii.aide.mircv.TextProcessor;
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -33,6 +35,7 @@ public class DataStructureHandler {
     private static ArrayList<Long> indexBlocks;         // Offsets of the InvertedIndex blocks
     private static ArrayList<Long> dictionaryBlocks;    // Offsets of the dictionary blocks
 
+    public static RandomAccessFile Flags_raf;
 
     /**
      * Initializes data structures and fills them from the input collection.
@@ -197,8 +200,19 @@ public class DataStructureHandler {
 
     }
 
-    public static void storeFlagsIntoDisk(){
+    public static void storeFlagsIntoDisk() throws IOException {
 
+        ByteBuffer FlagsBuffer = ByteBuffer.allocate(12);
+        Flags_raf.getChannel().position(0);
+
+        FlagsBuffer.putInt(Flag.isSwsEnabled() ? 1 : 0);
+        FlagsBuffer.putInt(Flag.isScoringEnabled() ? 1 : 0);
+        FlagsBuffer.putInt(Flag.isCompressionEnabled() ? 1 : 0);
+
+        FlagsBuffer = ByteBuffer.wrap(FlagsBuffer.array());
+
+        while (FlagsBuffer.hasRemaining())
+            Flags_raf.getChannel().write(FlagsBuffer);
     }
 
     // Read document table elements from file
@@ -206,7 +220,8 @@ public class DataStructureHandler {
 
         //System.out.println("DOCNO: " + de.getDocno() + " DOCID: " + de.getDocid() + " DOCLENGTH: " + de.getDoclength());
 
-        try (FileChannel channel = new RandomAccessFile(DOCUMENT_FILE, "rw").getChannel()) {
+        try (RandomAccessFile raf = new RandomAccessFile(DOCUMENT_FILE, "rw");
+             FileChannel channel = raf.getChannel()) {
 
             int docsize = 4 + DOCNO_DIM + 4; // Size in bytes of docid, docno, and doclength
             MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), docsize);
@@ -233,7 +248,8 @@ public class DataStructureHandler {
     }
 
     public static void storeDictionaryIntoDisk(DictionaryElem dictElem){
-        try (FileChannel channel = new RandomAccessFile(VOCABULARY_FILE, "rw").getChannel()) {
+        try (RandomAccessFile raf = new RandomAccessFile(VOCABULARY_FILE, "rw");
+             FileChannel channel = raf.getChannel()) {
             int vocsize = TERM_DIM + 4 + 4 + 4 + 8 + 8; // Size in bytes of term, df, cf, termId, offset
             MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), vocsize);
             // Buffer not created
@@ -259,39 +275,46 @@ public class DataStructureHandler {
 
     public static void storeIndexAndVocabularyIntoDisk(InvertedIndex ii){
 
-        //sort in lexicographic order the terms of the index
+        final int INT_SIZE = 4;
+
+        // Sort the inverted index lexicographically
         invertedIndex.sort();
         System.out.println("SORTED");
-        try (FileChannel docidchannel = new RandomAccessFile(DOCID_FILE, "rw").getChannel(); FileChannel termfreqchannel = new RandomAccessFile(TERMFREQ_FILE, "rw").getChannel()) {
 
-            MappedByteBuffer bufferdocid = docidchannel.map(FileChannel.MapMode.READ_WRITE, 0, N_POSTINGS * 4); // from 0 to number of postings * 4 (int dimension)
-            MappedByteBuffer buffertermfreq = termfreqchannel.map(FileChannel.MapMode.READ_WRITE, 0, N_POSTINGS *4); //from 0 to number of postings * 4 (int dimension)
-            indexBlocks.add(Long.valueOf(docidchannel.size()+1)); //update of the offset of the block for the docid file
+        try (FileChannel docidChannel = new RandomAccessFile(DOCID_FILE, "rw").getChannel();
+             FileChannel termfreqChannel = new RandomAccessFile(TERMFREQ_FILE, "rw").getChannel()) {
+
+            indexBlocks.add(docidChannel.size() + 1); //update the offset of the block for the docid file
+
+            // Create buffers for docid and termfreq
+            MappedByteBuffer bufferdocid = docidChannel.map(FileChannel.MapMode.READ_WRITE, 0, (long) N_POSTINGS * INT_SIZE); // from 0 to number of postings * int dimension
+            MappedByteBuffer buffertermfreq = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, 0, (long) N_POSTINGS * INT_SIZE); //from 0 to number of postings * int dimension
 
             // iterate through all the posting list of all the terms
             for (PostingList posList : ii.getInvertedIndex().values()) {
-
                 System.out.println("P: " + posList.getTerm());          // print current term of the InvertedIndex
-                dictionary.getTermStat(posList.getTerm()).setOffsetTermFreq(DICTIONARY_OFFSET);
-                dictionary.getTermStat(posList.getTerm()).setOffsetDocId(DICTIONARY_OFFSET);
 
-                //iterate through all the postings of the previous posting list
+                DictionaryElem dictElem = dictionary.getTermStat(posList.getTerm());
+                dictElem.setOffsetTermFreq(DICTIONARY_OFFSET);
+                dictElem.setOffsetDocId(DICTIONARY_OFFSET);
+
+                //iterate through postings in the posting list
                 for (Posting posting : posList.getPostings()) {
 
                     // Buffer not created
                     if(bufferdocid == null || buffertermfreq == null)
                         return;
 
-                    //write docId and termFreq
+                    // Write DocID and TermFreq to buffers
                     //System.out.println("OF+DOCID: " + posting.getDocId() + " TERMFREQ: " + posting.getTermFreq());
                     bufferdocid.putInt(posting.getDocId());         // write DocID
                     buffertermfreq.putInt(posting.getTermFreq());   // write TermFrequency
-                    DICTIONARY_OFFSET += 4;
+                    DICTIONARY_OFFSET += INT_SIZE;
                 }
-                // store dictionary into the disk
-                storeDictionaryIntoDisk(dictionary.getTermStat(posList.getTerm()));
+                // store dictionary entry to disk
+                storeDictionaryIntoDisk(dictElem);
             }
-            dictionaryBlocks.add(termfreqchannel.size());// update of the offset of the block for the dictionary file
+            dictionaryBlocks.add(termfreqChannel.size());// update of the offset of the block for the dictionary file
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
