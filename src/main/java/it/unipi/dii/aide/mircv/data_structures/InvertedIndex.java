@@ -4,10 +4,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Stores term-document statistics (in posting lists)
+ * Stores term - document statistics (in posting lists)
  */
 public class InvertedIndex {
+
     private HashMap<String, PostingList> invertedIndex;
+
 
     public InvertedIndex() {
         this.invertedIndex = new HashMap<>();
@@ -18,68 +20,37 @@ public class InvertedIndex {
      *
      * @param term  The term to be added.
      * @param docId The document ID associated with the term.
-     * @return incDf If true the term is not in the document so need to increment df in lexicon, otherwise no need to increment it
+     * @param tf    The term frequency (tf) in the document.
+     * @return incDf If true, the term is not in the document, so df needs to be incremented in the dictionary;
+     * otherwise, no need to increment it.
      */
     public boolean addTerm(String term, int docId, int tf) {
-         //arraylist<Posting> version
-        /*int termFreq = 1;
-        boolean incDf = false;                  // default value is false
-        // add or update posting list of the term
-        if (!invertedIndex.containsKey(term))   // there isn't the term in hash table
-        {
+        // Initialize term frequency to 1 if tf is not provided (tf = 0 during index construction)
+        int termFreq = (tf != 0) ? tf : 1;
 
-            invertedIndex.put(term, new ArrayList<>());
-            invertedIndex.get(term).put(term, new Posting(docId, termFreq));
-        }
-        else                                    // there is the term in hash table
-        {
-            if(!invertedIndex.get(term).contains(docId))      //there isn't a posting element with this docID
-            {
-                invertedIndex.get(term).add(new Posting(docId, termFreq));
-                incDf = true; // term in a new doc -> update df
+        // Get or create the PostingList associated with the term
+        PostingList postingList = invertedIndex.computeIfAbsent(term, key -> new PostingList(key, new ArrayList<>()));
+        List<Posting> postings = postingList.getPostings();
+
+        // Check if the posting list is empty or if the last posting is for a different document
+        if (postings.isEmpty() || postings.get(postings.size() - 1).getDocId() != docId) {
+            // Add a new posting for the current document
+            postings.add(new Posting(docId, termFreq));
+
+            // Print term frequency and term frequency in the current posting (only during index construction)
+            if (tf != 0) {
+                System.out.println("TF: " + tf + " TERMFREQ: " + termFreq);
             }
-            else            // there is a posting element with this DocID
-            {
-                termFreq = invertedIndex.get(term).get(docId).getTermFreq() + 1;
-                invertedIndex.get(term).get(docId).setTermFreq(termFreq);
-            }
+
+            return true; // Increment df only if it's a new document
+        } else {
+            // Increment the term frequency for the current document
+            int lastTermFreq = postings.get(postings.size() - 1).getTermFreq();
+            postings.get(postings.size() - 1).setTermFreq(lastTermFreq + 1);
+            return false; // No need to increment df
         }
-        return incDf;*/
-
-        // instead of ArrayList<Posting> we can use directly PostingList
-        int termFreq = 1;
-        boolean incDf = false;                  // default value is false
-
-        //tf is 0 when building index, otherwise in case of get index
-        if(tf != 0)
-            termFreq = tf;
-
-        // add or update posting list of the term
-        if (!invertedIndex.containsKey(term))   // there isn't the term in hash table
-        {
-            invertedIndex.put(term, new PostingList(term, new ArrayList<>()));
-            invertedIndex.get(term).getPostings().add(new Posting(docId, termFreq));
-        }
-        else                                    // there is the term in hash table
-        {
-            ArrayList<Posting> posting = invertedIndex.get(term).getPostings();
-            if(posting.get(posting.size()-1).getDocId() != docId)      //there isn't a posting element with this docID
-            {
-                invertedIndex.get(term).getPostings().add(new Posting(docId, termFreq));
-                incDf = true; // term in a new doc -> update df
-                ArrayList<Posting> pos = invertedIndex.get(term).getPostings();
-            }
-            else            // there is a posting element with this DocID
-            {
-                termFreq = invertedIndex.get(term).getPostings().get(posting.size()-1).getTermFreq() + 1;
-                invertedIndex.get(term).getPostings().get(posting.size()-1).setTermFreq(termFreq);
-            }
-            if(tf != 0)
-                System.out.println("TF: " + tf + "TERMFREQ: " + invertedIndex.get(term).getPostings().get(posting.size()-1).getTermFreq());
-        }
-
-        return incDf;
     }
+
 
     /**
      * Get the postings associated with a given term.
@@ -113,4 +84,5 @@ public class InvertedIndex {
     public void setInvertedIndex(HashMap<String, PostingList> invertedIndex) {
         this.invertedIndex = invertedIndex;
     }
+
 }
