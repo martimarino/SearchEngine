@@ -2,7 +2,6 @@ package it.unipi.dii.aide.mircv.utils;
 
 import it.unipi.dii.aide.mircv.Main;
 import it.unipi.dii.aide.mircv.TextProcessor;
-import it.unipi.dii.aide.mircv.data_structures.Posting;
 import it.unipi.dii.aide.mircv.data_structures.PostingList;
 
 import java.io.BufferedReader;
@@ -24,7 +23,7 @@ public class DataAnalysis {
     public DataAnalysis() throws IOException {
 
         /* Read collection */
-        br = new BufferedReader(new InputStreamReader(new FileInputStream(Main.collection_path), StandardCharsets.UTF_8));
+        br = new BufferedReader(new InputStreamReader(new FileInputStream(Main.COLLECTION_PATH), StandardCharsets.UTF_8));
 
     }
 

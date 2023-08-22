@@ -59,7 +59,7 @@ public class DataStructuresTest {
         int maxTermSize = 0;
 
         /* Read collection */
-        br = new BufferedReader(new InputStreamReader(new FileInputStream(Main.collection_path), StandardCharsets.UTF_8));
+        br = new BufferedReader(new InputStreamReader(new FileInputStream(Main.COLLECTION_PATH), StandardCharsets.UTF_8));
 
         String record = br.readLine();
 

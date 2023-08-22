@@ -1,7 +1,6 @@
 package it.unipi.dii.aide.mircv;
 
 import it.unipi.dii.aide.mircv.data_structures.*;
-import it.unipi.dii.aide.mircv.utils.DataAnalysis;
 
 import java.io.*;
 import java.util.Scanner;
@@ -9,9 +8,9 @@ import java.util.Scanner;
 
 public class Main {
 
-    public final static String collection_path = "src/main/resources/collection.tsv";
+    public final static String COLLECTION_PATH = "src/main/resources/collection.tsv";
 
-    public final static int docelemsize = 28;
+    public final static int DOCELEM_SIZE = 28;
 
     public static void main(String[] args) throws IOException {
 
@@ -33,7 +32,7 @@ public class Main {
 
         /* Read Document Index from disk */
         for(int i = 0; i < 10000; i++) { //need to put nr of documents into collection class
-            DocumentElement de = DataStructureHandler.getDocumentIndexFromDisk(i*docelemsize);
+            DocumentElement de = DataStructureHandler.getDocumentIndexFromDisk(i* DOCELEM_SIZE);
 
             if(de != null)
                 DataStructureHandler.getDt().setDocIdToDocElem(de.getDocno(), de.getDocid(), de.getDoclength());
