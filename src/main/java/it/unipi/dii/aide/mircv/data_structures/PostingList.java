@@ -21,6 +21,10 @@ public class PostingList {
         this.postings = postings;
     }
 
+    public void addPosting(Posting posting) {
+        postings.add(posting);
+    }
+
     // ---- start method get and set ----
 
     public String getTerm() {

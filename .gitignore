@@ -1,3 +1,3 @@
-/src/main/resources/collection.tar.gz
-/src/main/resources/collection.tsv
+/src/main/resources/*
+!src/main/resources/stopwords.txt
 /target/
