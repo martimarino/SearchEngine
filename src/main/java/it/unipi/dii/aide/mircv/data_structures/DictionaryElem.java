@@ -59,6 +59,18 @@ public class DictionaryElem {
         setCf(getCf() + 1);
     }
 
+    // add the quantity passed as a parameter to the current Df
+    public void addDf(int n)
+    {
+        setDf(getDf() + 1);
+    }
+
+    // add the quantity passed as a parameter to the current Cf
+    public void addCf(int n)
+    {
+        setCf(getCf() + n);
+    }
+
     // ---- start method get and set ----
     public void setDf(int df) { this.df = df; }
 

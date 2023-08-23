@@ -56,16 +56,16 @@ public class IndexMerger {
         ArrayList<Long> currentBlockOffset = new ArrayList<>(nrBlocks);
 /*        ArrayList<Posting> mergedPosting = new ArrayList<>(); // iterate over pq to find elements to merge*/
         currentBlockOffset.addAll(dictionaryBlocks);
-        DictionaryElem de;
+        //DictionaryElem de;
 
-        boolean isFirst = true;
+        //boolean isFirst = true;
         try (
                 // 2: open channels for reading the partial vocabulary file, the output index file and the output vocabulary file
                 FileChannel channel = new RandomAccessFile(DataStructureHandler.PARTIAL_VOCABULARY_FILE, "rw").getChannel();
                 FileChannel IndexChannel = new RandomAccessFile(DataStructureHandler.INVERTED_INDEX_FILE, "rw").getChannel();
                 // 3: open the file in output for the index
                 FileChannel outIndexChannel = new RandomAccessFile(DataStructureHandler.INVERTED_INDEX_FILE, "w").getChannel();
-                FileChannel outChannel = new RandomAccessFile(DataStructureHandler.VOCABULARY_FILE, "w").getChannel()
+                FileChannel outDictionaryChannel = new RandomAccessFile(DataStructureHandler.VOCABULARY_FILE, "w").getChannel()
         ) {
             // scroll through all blocks
             for(int i = 0; i <=  nrBlocks; i++) {
@@ -75,6 +75,10 @@ public class IndexMerger {
                 // 4: add the first term and block number to priority queue
                 pq.add(new TermBlock(charBuffer.toString().split("\0")[0], i)); //add to the priority queue a term block element (term + its blocks number)
             }
+            // build temp structures
+            DictionaryElem tempDE = new DictionaryElem();       // empty temporary DictionaryELem, contains the accumulated data for each term
+            PostingList tempPL = new PostingList();             //
+
             //5: merging the posting list
             while(!pq.isEmpty()) {
 
@@ -90,12 +94,53 @@ public class IndexMerger {
                  * -- term già trovato: update
                  */
 
-                TermBlock termBlock = pq.poll();        // get lowest term
-                String term = termBlock.getTerm();
-                int block_id = termBlock.getBlock();
+                TermBlock currentTermBlock = pq.poll();        // get lowest term
+                String term = currentTermBlock.getTerm();
+                int block_id = currentTermBlock.getBlock();
+                // get current elem of dictionary
+                DictionaryElem currentDE = getDictionaryElemFromDisk(currentBlockOffset.get(block_id), channel);
+                // get current postings
+                PostingList currentPL = DataStructureHandler.readIndexElemFromDisk(currentDE.getOffsetDocId(), currentDE.getOffsetTermFreq(), term, currentDE.getDf());
 
                 //get all term data for that block from the vocabulary
-                de = getDictionaryElemFromDisk(currentBlockOffset.get(block_id), channel);
+                if (tempDE.getTermId() == 0) {        // first time term found
+                    tempDE = currentDE;     // set temp DE
+                    tempPL = currentPL;     // set temp PL
+                } else {    // term already found
+                    if (term.equals(tempDE.getTerm())) { // same term found, temporary structures update
+                        // update DictionaryElem
+                        tempDE.addCf(currentDE.getCf());        // update Cf
+                        tempDE.addDf(currentDE.getDf());        // update Df
+                        // update offsetTermFreq
+                        // update offsetDocId
+
+                        // update InvertedIndex, add the current postings to the previus postings for the same term
+                        tempPL.extend(currentPL);
+                        /****** da chiedere ******
+                         * nell'estensione della postingList non si deve controllare duplicati perchè scorriamo i
+                         * documenti quindi in blocchi diversi ci saranno dati da documenti diversi quindi in blocchi
+                         * diversi dell'inverted index ci saranno postings contenenti docID diversi
+                         */
+                    } else {    // write to disk
+                        // write DictionaryElem to disk
+                        storeDictionaryIntoDisk(tempDE, VOCABULARY_FILE);
+
+                        // write InvertedIndexElem to disk
+    //                    buffer = outIndexChannel.map(FileChannel.MapMode.READ_WRITE, DataStructureHandler.dictionaryBlocks.get(i), TERM_DIM); // get first term of the block
+    //                    CharBuffer.allocate(TERM_DIM); //allocate a charbuffer of the dimension reserved to term
+    //                    CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
+
+                        // reput current in pq
+                        pq.add(currentTermBlock);
+
+                        // reset temp structures
+                        tempDE.setTermId(0);
+                        tempPL.setPostings(new ArrayList<Posting>());
+
+                        //continue;   da scommentare se dopo c'è solo aggiornamento offset
+                    }
+
+                }
 
                 //update position of reading from the dictionary file
                 currentBlockOffset.set(block_id, DataStructureHandler.dictionaryBlocks.get(block_id) + vocsize);
@@ -112,9 +157,7 @@ public class IndexMerger {
 
 
                 // after read next term if it is different from the previous (set to true if first)
-                isFirst = false;
-
-
+                //isFirst = false;
             }
 
 
