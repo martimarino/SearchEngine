@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 public class InvertedIndex {
 
     private HashMap<String, PostingList> invertedIndex;
-
+    // HashMap<String, ArrayList<Posting>> invertedIndex;
 
     public InvertedIndex() {
         this.invertedIndex = new HashMap<>();

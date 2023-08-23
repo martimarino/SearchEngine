@@ -51,9 +51,10 @@ public class IndexMerger {
              FileChannel indexchannel = new RandomAccessFile(INVERTED_INDEX_FILE, "rw").getChannel();
              FileChannel outchannel = new RandomAccessFile(DataStructureHandler.VOCABULARY_FILE, "w").getChannel()
         ) {
-            for(int i = 0; i <= DataStructureHandler.dictionaryBlocks.size(); i++) {
+            // scroll through all blocks
+            for(int i = 0; i <=  nrBlocks; i++) {
                 buffer = channel.map(FileChannel.MapMode.READ_ONLY, DataStructureHandler.dictionaryBlocks.get(i), TERM_DIM); // get first term of the block
-                CharBuffer.allocate(TERM_DIM); //allocate a charbuffer of the dimension reserved to docno
+                CharBuffer.allocate(TERM_DIM); //allocate a charbuffer of the dimension reserved to term
                 CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
                 // 4: add the first term and block number to priority queue
                 pq.add(new TermBlock(charBuffer.toString().split("\0")[0], i)); //add to the priority queue a term block element (term + its blocks number)
