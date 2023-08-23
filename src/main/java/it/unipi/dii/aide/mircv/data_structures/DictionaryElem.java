@@ -7,13 +7,14 @@ public class DictionaryElem {
 
     public static final int DICT_ELEM_SIZE = DataStructureHandler.TERM_DIM + 3 * Integer.BYTES + 2 * Long.BYTES;
 
-    private String term;    //32 byte
-    private int df;         // document frequency, number of documents in which there is the term
-    private int cf;         // collection frequency, number of occurrences of the term in the collection
+    private String term;        //32 byte
+    private int df;             // document frequency, number of documents in which there is the term
+    private int cf;             // collection frequency, number of occurrences of the term in the collection
     private int termId;
-    private long offsetTermFreq; // starting point of the posting list of the term in the term freq file
-    private long offsetDocId; // starting point of the posting list of the term in the docid file
+    private long offsetTermFreq;// starting point of the posting list of the term in the term freq file
+    private long offsetDocId;   // starting point of the posting list of the term in the docid file
 
+    // constructor with all parameters
     public DictionaryElem(String term, int df, int cf, int termId, long offsetTermFreq, long offsetDocId) {
         this.term = term;
         this.df = df;

@@ -25,12 +25,12 @@ public class DataStructureHandler {
     public static final String BLOCK_FILE = "src/main/resources/blocks.txt";
     public static final String FINAL_FILE = "src/main/resources/merged.txt";
 
-    public static final int DOCNO_DIM = 10;         // Length of docno (in bytes)
-    public static final int TERM_DIM = 32;          // Length of a term (in bytes)
-    public static final int BLOCK_SIZE = Long.BYTES;         // Length of block (in bytes)
-    private static int N_POSTINGS = 0;               // Number of partial postings to save in the file
-    private static long DICTIONARY_OFFSET = 0;       // Offset of the terms in the dictionary
-    private static long INDEX_OFFSET = 0;           // Offset of the termfreq and docid in index
+    public static final int DOCNO_DIM = 10;             // Length of docno (in bytes)
+    public static final int TERM_DIM = 32;              // Length of a term (in bytes)
+    public static final int BLOCK_SIZE = Long.BYTES;    // Length of block (in bytes)
+    private static int N_POSTINGS = 0;                  // Number of partial postings to save in the file
+    private static long DICTIONARY_OFFSET = 0;          // Offset of the terms in the dictionary
+    private static long INDEX_OFFSET = 0;               // Offset of the termfreq and docid in index
 
     // Data structures initialization
     private static DocumentTable dt = new DocumentTable();
@@ -388,9 +388,11 @@ public class DataStructureHandler {
 
     }
 
+    /**
+     *
+     */
     public static void getBlocksFromDisk(){
-
-        if(!dictionaryBlocks.isEmpty())
+        if(!dictionaryBlocks.isEmpty()) //control check
             dictionaryBlocks.clear();
 
         DocumentElement de = new DocumentElement();

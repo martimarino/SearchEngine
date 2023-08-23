@@ -10,6 +10,9 @@ import java.util.*;
 
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.*;
 
+/**
+ * class to merge the InverteIndex
+ */
 public class IndexMerger {
 
     private static PriorityQueue<TermBlock> pq = new PriorityQueue<>(dictionaryBlocks.size() == 0 ? 1 : dictionaryBlocks.size(), new CompareTerm());
@@ -18,6 +21,9 @@ public class IndexMerger {
 
     }
 
+    /**
+     *  function to merge the block of the inverted index
+     */
     public static void mergeBlocks() {
 
         //get blocks from file
@@ -79,7 +85,16 @@ public class IndexMerger {
 
     }
 
+    /**
+     * class to compare
+     */
     private static class CompareTerm implements java.util.Comparator<TermBlock> {
+        /**
+         *
+         * @param o1
+         * @param o2
+         * @return
+         */
         @Override
         public int compare(TermBlock o1, TermBlock o2) {
             if (o1.getTerm().compareTo(o2.getTerm()) == 0) {
