@@ -423,32 +423,35 @@ public class DataStructureHandler {
         return null;
     }
 
+    // function to read index from disk
     public static void getIndexFromDisk() {
-        int indexsize = 4; //docId and termFreq are int, 4Byte each
-        int read = 0;
+        int indexsize = 4;      // docId and termFreq are int, 4Byte each
+        int read = 0;           // var that indicate
 
         try (FileChannel docidChannel = new RandomAccessFile(DOCID_FILE, "rw").getChannel(); FileChannel termfreqChannel = new RandomAccessFile(TERMFREQ_FILE, "rw").getChannel()) {
             // iterate through each term in dictionary
             for (String term : dictionary.getTermToTermStat().keySet()) {
-                read = 0;
+                read = 0;       // reset read to 0
                 long offsetDocid = dictionary.getTermToTermStat().get(term).getOffsetDocId();
                 long offsetTermFreq = dictionary.getTermToTermStat().get(term).getOffsetTermFreq();
+                // len represents the amount of memory in which the inverted index information is stored for that term
+                // len = number of posting(equal to df) * dimension of each posting
                 int len = dictionary.getTermToTermStat().get(term).getDf()*4; //number of postings for the term
 //                System.out.println("TERM: " + term + " OFFSET: " + offsetDocid + " END: " + (offsetDocid + len));
                 System.out.println(String.format("TERM: %20s - OFFSET: %10s - DOCID: %10s", term, offsetDocid, (offsetDocid + len)));
 
-
                 MappedByteBuffer docidBuffer = docidChannel.map(FileChannel.MapMode.READ_WRITE, offsetDocid, offsetDocid + len); //put into buffer from offset to offset plus the number of postings * 4 (int dimension)
                 MappedByteBuffer termfreqBuffer = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, offsetTermFreq, offsetTermFreq + len);
 
+                // read each posting related to the term
                 while (read < len) {
-                    int docid = docidBuffer.getInt();
-                    int termfreq = termfreqBuffer.getInt();
+                    int docid = docidBuffer.getInt();           // read the DocID
+                    int termfreq = termfreqBuffer.getInt();     // read the TermFrequency
 //                    System.out.println("TERM: " + term + " TERMFREQ: " + termfreq + " DOCID: " + docid);
                     System.out.println(String.format("TERM: %20s - TERMFREQ: %8s - DOCID: %10s", term, termfreq, docid));
 
                     invertedIndex.addTerm(term, docid, termfreq);
-                    read += 4;
+                    read += 4;                      // update read, next Postings
                     docidBuffer.position(read);
                     termfreqBuffer.position(read);
                 }
@@ -458,20 +461,23 @@ public class DataStructureHandler {
             e.printStackTrace();
         }
     }
+
     // read each block
     public static void getIndexBlockFromDisk() {
-        int indexsize = 4; //docId and termFreq are int, 4Byte each
-        int read = 0;
+        int indexsize = 4;      // docId and termFreq are int, 4Byte each
+        int read = 0;           //
 
         try (FileChannel docidChannel = new RandomAccessFile(DOCID_FILE, "rw").getChannel(); FileChannel termfreqChannel = new RandomAccessFile(TERMFREQ_FILE, "rw").getChannel()){
+            // iterate through each term in dictionary
             for (String term : dictionary.getTermToTermStat().keySet()) {
                 long offsetDocid = dictionary.getTermToTermStat().get(term).getOffsetDocId();
                 long offsetTermFreq = dictionary.getTermToTermStat().get(term).getOffsetTermFreq();
-                int len = dictionary.getTermToTermStat().get(term).getDf();
+                int len = dictionary.getTermToTermStat().get(term).getDf(); // get Df related to term
 
                 MappedByteBuffer docidBuffer = docidChannel.map(FileChannel.MapMode.READ_WRITE, offsetDocid, offsetDocid + dictionary.getTermToTermStat().get(term).getDf());
                 MappedByteBuffer termfreqBuffer = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, offsetTermFreq, offsetTermFreq + dictionary.getTermToTermStat().get(term).getDf());
 
+                //
                 while (read < len) {
                     System.out.println("TERM: " + term + " TERMFREQ: " + termfreqBuffer.getInt() + " DOCID: " + docidBuffer.getInt());
                     invertedIndex.addTerm(term, docidBuffer.getInt(), termfreqBuffer.getInt());
@@ -482,14 +488,15 @@ public class DataStructureHandler {
             e.printStackTrace();
         }
     }
+
     // retrieve all the dictionary from the disk
     public static void getDictionaryFromDisk() {
         int vocsize = TERM_DIM + 4 + 4 + 4 + 8 + 8; // Size in bytes of term, df, cf, termId, offsetTermFreq, offsetDocId
 
         // read dictionary from disk
         try (FileChannel channel = new RandomAccessFile(PARTIAL_VOCABULARY_FILE, "rw").getChannel()) {
-            for (int i = 0; i < channel.size(); i += vocsize) { //iterate through all the vocabulary file
-                DictionaryElem le = new DictionaryElem();         // create new DictionaryElem
+            for (int i = 0; i < channel.size(); i += vocsize) {     //iterate through all the vocabulary file
+                DictionaryElem le = new DictionaryElem();           // create new DictionaryElem
 
                 MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, i, vocsize);
 
@@ -502,6 +509,7 @@ public class DataStructureHandler {
 
                 le.setTerm(charBuffer.toString().split("\0")[0]); //split using end string character
                 buffer.position(TERM_DIM); //skip term
+                // set field of the DictionaryElem le
                 le.setCf(buffer.getInt());
                 le.setDf(buffer.getInt());
                 le.setTermId(buffer.getInt());
@@ -516,7 +524,7 @@ public class DataStructureHandler {
     }
 
 
-
+    // method to free memory by deleting the information in document table, dictionary,and inverted index
     public static void freeMemory(){
         dt.getDocIdToDocElem().clear();
         dictionary.getTermToTermStat().clear();
