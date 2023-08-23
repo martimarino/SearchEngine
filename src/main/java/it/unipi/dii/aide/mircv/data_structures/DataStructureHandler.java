@@ -36,7 +36,7 @@ public class DataStructureHandler {
 
     // Data structures initialization
     private static DocumentTable dt = new DocumentTable();   // we can not instantiate it while building it, we can do it only during read from file
-    private static final Dictionary dictionary = new Dictionary();
+    static final Dictionary dictionary = new Dictionary();
     private static final InvertedIndex invertedIndex = new InvertedIndex();
 
     public static ArrayList<Long> dictionaryBlocks;    // Offsets of the dictionary blocks
@@ -154,8 +154,8 @@ public class DataStructureHandler {
                 for (String term : preprocessed) {
 
                     // Dictionary build
-                    if(term.length() > 32)
-                        term = term.substring(0,32);
+                    if(term.length() > TERM_DIM)
+                        term = term.substring(0,TERM_DIM);
 
                     DictionaryElem dictElem = dictionary.getOrCreateTerm(term, termCounter);
                     termCounter++;         // update TermID counter
@@ -207,7 +207,7 @@ public class DataStructureHandler {
              FileChannel channel = raf.getChannel()) {
 
             int offset_size = Long.BYTES; // Size in bytes of vocabulary offset in inverted index file for each block
-            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, offset_size*dictionaryBlocks.size()); //offset_size (size of dictionary offset) * number of blocks
+            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, (long) offset_size *dictionaryBlocks.size()); //offset_size (size of dictionary offset) * number of blocks
 
             // Buffer not created
             if(buffer == null)
@@ -281,8 +281,8 @@ public class DataStructureHandler {
         }
     }
 
-    public static void storeDictionaryIntoDisk(DictionaryElem dictElem){
-        try (RandomAccessFile raf = new RandomAccessFile(PARTIAL_VOCABULARY_FILE, "rw");
+    public static void storeDictionaryIntoDisk(DictionaryElem dictElem, String path){
+        try (RandomAccessFile raf = new RandomAccessFile(path, "rw");
              FileChannel channel = raf.getChannel()) {
             int vocsize = TERM_DIM + 4 + 4 + 4 + 8 + 8; // Size in bytes of term, df, cf, termId, offsets
             MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), vocsize);
@@ -327,6 +327,7 @@ public class DataStructureHandler {
             // Sort the dictionary lexicographically
             dictionary.sort();
             dictionaryBlocks.add(DICTIONARY_OFFSET);// update of the offset of the block for the dictionary file
+
             // iterate through all the terms of the dictionary ordered
             for(String term: dictionary.getTermToTermStat().keySet()){
                 System.out.println("Dict term: " + term);
@@ -349,12 +350,16 @@ public class DataStructureHandler {
                     INDEX_OFFSET += INT_SIZE;
                 }
                 // store dictionary entry to disk
-                storeDictionaryIntoDisk(dictElem);
+                storeDictionaryIntoDisk(dictElem, PARTIAL_VOCABULARY_FILE);
             }
 
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
+    }
+
+    public static void storeInvertedIndexIntoDisk() {
+
     }
 
     public static void getCollectionFromDisk() {
@@ -566,8 +571,6 @@ public class DataStructureHandler {
                 termfreqBuffer.position(read); // skip to to position of the new termfreq to read (new posting)
             }
             return pl;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }

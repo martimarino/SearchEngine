@@ -76,14 +76,15 @@ public class IndexMerger {
                 pq.add(new TermBlock(charBuffer.toString().split("\0")[0], i)); //add to the priority queue a term block element (term + its blocks number)
             }
             //5: merging the posting list
-            while(!pq.isEmpty()){
+            while(!pq.isEmpty()) {
 
                 /**
                  * abbiamo la coda prioritaria ordinata
                  * prendere il primo elemento (term, blockid) e aggiornare l'offset del blocco corrispondente
                  * - aggiornare il vocabolario finale
                  * -- primo volta term: aggiungi
-                 * -- term già trovato: update
+                 * -- term già trovato: while finché si trova lo stesso term
+                 * --- update
                  * - aggiornare l'inverted index finale
                  * -- primo elemento: aggiungi
                  * -- term già trovato: update
@@ -100,7 +101,7 @@ public class IndexMerger {
                 currentBlockOffset.set(block_id, DataStructureHandler.dictionaryBlocks.get(block_id) + vocsize);
 
                 //read posting list for the specified term
-                PostingList pl = DataStructureHandler.readIndexElemFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), term, de.getDf());
+        //        PostingList pl = DataStructureHandler.readIndexElemFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), term, de.getDf());
 
                 // read next term from the vocabulary of the previous index block
                 buffer = channel.map(FileChannel.MapMode.READ_ONLY, currentBlockOffset.get(block_id), TERM_DIM); // get first term of the block

@@ -25,6 +25,12 @@ public class PostingList {
         postings.add(posting);
     }
 
+    public void extend (PostingList pl) {
+        for (Posting p : pl.getPostings()) {
+            addPosting(p);
+        }
+    }
+
     // ---- start method get and set ----
 
     public String getTerm() {

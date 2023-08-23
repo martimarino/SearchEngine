@@ -4,7 +4,6 @@ import it.unipi.dii.aide.mircv.data_structures.*;
 
 import java.io.*;
 import java.util.Scanner;
-import java.nio.file.*;
 
 
 public class Main {
@@ -78,7 +77,6 @@ public class Main {
                 }
             } while (validN == 0);
 
-
             Flag.enableSws(getUserChoice(sc, "stopwords removal"));
             Flag.enableCompression(getUserChoice(sc, "compression"));
             Flag.enableScoring(getUserChoice(sc, "scoring"));
@@ -94,7 +92,10 @@ public class Main {
 
         if (files != null) {
             for (File file : files) {
-                if (file.isFile() && !file.getName().equals("stopwords.txt") && !file.getName().equals("collection.tsv")) {
+                if (file.isFile()
+                        && !file.getName().equals("stopwords.txt")
+                        && !file.getName().equals("collection.tsv")
+                        && !file.getName().equals("msmarco-test2020-queries.tsv")) {
                     try {
                         if (file.delete()) {
                             System.out.println("Deleted: " + file.getName());
