@@ -42,7 +42,9 @@ public class IndexMerger {
         //      finchè non è terminata la lettura di tutti i blocchi (terminata la lettura del buffer)
         //      finchè non è vuota la lista dei candidati
 
-        DataStructureHandler.getBlocksFromDisk();
+        int nrBlocks = DataStructureHandler.dictionaryBlocks.size();    // dictionary number
+        long vocsize = 4 + 4 + 4 + 8 + 8; // Size in bytes of df, cf, termId, offset
+        DataStructureHandler.getBlocksFromDisk(); // 1: get blocks of dictionary from file
 
         MappedByteBuffer buffer;
         try (FileChannel channel = new RandomAccessFile(DataStructureHandler.PARTIAL_VOCABULARY_FILE, "rw").getChannel();
@@ -53,6 +55,7 @@ public class IndexMerger {
                 buffer = channel.map(FileChannel.MapMode.READ_ONLY, DataStructureHandler.dictionaryBlocks.get(i), TERM_DIM); // get first term of the block
                 CharBuffer.allocate(TERM_DIM); //allocate a charbuffer of the dimension reserved to docno
                 CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
+                // 4: add the first term and block number to priority queue
                 pq.add(new TermBlock(charBuffer.toString().split("\0")[0], i)); //add to the priority queue a term block element (term + its blocks number)
             }
 
@@ -99,19 +102,19 @@ public class IndexMerger {
     private static class CompareTerm implements java.util.Comparator<TermBlock> {
         /**
          *
-         * @param o1
-         * @param o2
+         * @param tb1
+         * @param tb2
          * @return
          */
         @Override
-        public int compare(TermBlock o1, TermBlock o2) {
-            if (o1.getTerm().compareTo(o2.getTerm()) == 0) {
-                if(o1.getBlock() < o2.getBlock())
+        public int compare(TermBlock tb1, TermBlock tb2) {
+            if (tb1.getTerm().compareTo(tb2.getTerm()) == 0) {
+                if(tb1.getBlock()<tb2.getBlock())
                     return -1;
                 else
                     return 1;
             } else {
-                return o1.getTerm().compareTo(o2.getTerm());
+                return tb1.getTerm().compareTo(tb2.getTerm());
             }
         }
     }

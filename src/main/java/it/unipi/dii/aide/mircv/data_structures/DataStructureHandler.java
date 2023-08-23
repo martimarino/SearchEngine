@@ -20,15 +20,16 @@ public class DataStructureHandler {
     public static final String DOCUMENT_FILE = "src/main/resources/document.txt"; // file in which is stored the document table
     public static final String VOCABULARY_FILE = "src/main/resources/vocabulary.txt"; // file in which is stored the vocabulary
     public static final String PARTIAL_VOCABULARY_FILE = "src/main/resources/partial_vocabulary.txt"; // file in which is stored the vocabulary in blocks
+    public static final String BLOCK_FILE = "src/main/resources/blocks.txt"; // file containing the offset of each vocabulary block
     public static final String FLAGS_FILE = "src/main/resources/flags"; // file in which flags are stored
     public static final String DOCID_FILE = "src/main/resources/docid.txt";  // file containing the docId (element of posting list) for each block
     public static final String TERMFREQ_FILE = "src/main/resources/termfreq.txt";   // file containing the TermFrequency (element of posting list) for each block
-    public static final String BLOCK_FILE = "src/main/resources/blocks.txt"; // file containing the offset of each vocabulary block
     public static final String INVERTED_INDEX_FILE = "src/main/resources/mergedIndex.txt";   // file containing the InvertedIndex merged
 
     public static final int DOCNO_DIM = 10;             // Length of docno (in bytes)
     public static final int TERM_DIM = 32;              // Length of a term (in bytes)
     public static final int BLOCK_SIZE = Long.BYTES;    // Length of block (in bytes)
+
     private static int N_POSTINGS = 0;                  // Number of partial postings to save in the file
     private static long DICTIONARY_OFFSET = 0;          // Offset of the terms in the dictionary
     private static long INDEX_OFFSET = 0;               // Offset of the termfreq and docid in index
