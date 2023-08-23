@@ -1,6 +1,5 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
-import javax.swing.*;
 import java.io.*;
 import java.nio.CharBuffer;
 import java.nio.MappedByteBuffer;
@@ -38,7 +37,10 @@ public class IndexMerger {
         DataStructureHandler.getBlocksFromDisk();
 
         MappedByteBuffer buffer;
-        try (FileChannel channel = new RandomAccessFile(DataStructureHandler.VOCABULARY_FILE, "rw").getChannel(); FileChannel outchannel = new RandomAccessFile(DataStructureHandler.VOCABULARY_FILE, "w").getChannel()) {
+        try (FileChannel channel = new RandomAccessFile(DataStructureHandler.PARTIAL_VOCABULARY_FILE, "rw").getChannel();
+             FileChannel indexchannel = new RandomAccessFile(INVERTED_INDEX_FILE, "rw").getChannel();
+             FileChannel outchannel = new RandomAccessFile(DataStructureHandler.VOCABULARY_FILE, "w").getChannel()
+        ) {
             for(int i = 0; i <= DataStructureHandler.dictionaryBlocks.size(); i++) {
                 buffer = channel.map(FileChannel.MapMode.READ_ONLY, DataStructureHandler.dictionaryBlocks.get(i), TERM_DIM);
                 CharBuffer.allocate(TERM_DIM); //allocate a charbuffer of the dimension reserved to docno
@@ -46,8 +48,6 @@ public class IndexMerger {
                 pq.add(new TermBlock(charBuffer.toString().split("\0")[0], i)); //split using end string character
             }
 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
