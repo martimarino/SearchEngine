@@ -19,11 +19,12 @@ public class DataStructureHandler {
     // Constants for file paths
     public static final String DOCUMENT_FILE = "src/main/resources/document.txt"; // file in which is stored the document table
     public static final String VOCABULARY_FILE = "src/main/resources/vocabulary.txt"; // file in which is stored the vocabulary
+    public static final String PARTIAL_VOCABULARY_FILE = "src/main/resources/partial_vocabulary.txt"; // file in which is stored the vocabulary in blocks
     public static final String FLAGS_FILE = "src/main/resources/flags"; // file in which flags are stored
-    public static final String DOCID_FILE = "src/main/resources/docid.txt";
-    public static final String TERMFREQ_FILE = "src/main/resources/termfreq.txt";
-    public static final String BLOCK_FILE = "src/main/resources/blocks.txt";
-    public static final String FINAL_FILE = "src/main/resources/merged.txt";
+    public static final String DOCID_FILE = "src/main/resources/docid.txt";  // file containing the docId (element of posting list) for each block
+    public static final String TERMFREQ_FILE = "src/main/resources/termfreq.txt";   // file containing the TermFrequency (element of posting list) for each block
+    public static final String BLOCK_FILE = "src/main/resources/blocks.txt"; // file containing the offset of each vocabulary block
+    public static final String INVERTED_INDEX_FILE = "src/main/resources/mergedIndex.txt";   // file containing the InvertedIndex merged
 
     public static final int DOCNO_DIM = 10;             // Length of docno (in bytes)
     public static final int TERM_DIM = 32;              // Length of a term (in bytes)
@@ -226,31 +227,7 @@ public class DataStructureHandler {
     // -- start of store and get functions --
 /*
     public static void storeCollectionIntoDisk(){
-        try (RandomAccessFile raf = new RandomAccessFile(DOCUMENT_FILE, "rw");
-             FileChannel channel = raf.getChannel()) {
 
-            int docsize = 4 + DOCNO_DIM + 4; // Size in bytes of docid, docno, and doclength
-            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), docsize);
-
-            // Buffer not created
-            if(buffer == null)
-                return;
-
-            //allocate bytes for docno
-            CharBuffer charBuffer = CharBuffer.allocate(DOCNO_DIM);
-
-            //put every char into charbuffer
-            for(int i = 0; i < de.getDocno().length(); i++)
-                charBuffer.put(i, de.getDocno().charAt(i));
-
-            // write docno, docid and doclength into document file
-            buffer.put(StandardCharsets.UTF_8.encode(charBuffer));
-            buffer.putInt(de.getDocid());
-            buffer.putInt(de.getDoclength());
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }*/
 
     public static void storeFlagsIntoDisk() throws IOException {
@@ -305,7 +282,7 @@ public class DataStructureHandler {
     }
 
     public static void storeDictionaryIntoDisk(DictionaryElem dictElem){
-        try (RandomAccessFile raf = new RandomAccessFile(VOCABULARY_FILE, "rw");
+        try (RandomAccessFile raf = new RandomAccessFile(PARTIAL_VOCABULARY_FILE, "rw");
              FileChannel channel = raf.getChannel()) {
             int vocsize = TERM_DIM + 4 + 4 + 4 + 8 + 8; // Size in bytes of term, df, cf, termId, offset
             MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), vocsize);
@@ -380,10 +357,10 @@ public class DataStructureHandler {
         }
     }
 
-
     public static void getCollectionFromDisk() {
 
     }
+
     public static void getFlagsFromDisk() {
 
     }
@@ -510,7 +487,7 @@ public class DataStructureHandler {
         int vocsize = TERM_DIM + 4 + 4 + 4 + 8 + 8; // Size in bytes of term, df, cf, termId, offsetTermFreq, offsetDocId
 
         // read dictionary from disk
-        try (FileChannel channel = new RandomAccessFile(VOCABULARY_FILE, "rw").getChannel()) {
+        try (FileChannel channel = new RandomAccessFile(PARTIAL_VOCABULARY_FILE, "rw").getChannel()) {
             for (int i = 0; i < channel.size(); i += vocsize) { //iterate through all the vocabulary file
                 DictionaryElem le = new DictionaryElem();         // create new DictionaryElem
 

@@ -25,15 +25,23 @@ public class IndexMerger {
      */
     public static void mergeBlocks() {
 
-        //get blocks from file
-        //open all files in read for each block (leggo da offset blocco fino a offset blocco successivo; nell'ultimo fino a channel.size())
-        //open one file in output for the index
+        // 1. get blocks of dictionary from file
+        // 2. open all files in read for each block (leggo da offset 1 elemento; nell'ultimo fino a channel.size())
+        // 3. open one file in output for the index (risultato finale) scriviamo informazioni da lista di c
         // 4. pick all the first terms of each block and order them basing on the lexicographic order and block index
-        // get from ordered list the first two (if exists) elements with the same term
-        // svuoto list ordinata del punto precedente
-        //aggiorno posizione in lettura nel buffer dei blocchi da cui si è letto
-        // rieseguo dal punto 4.
-        //finchè non è terminata la lettura di tutti i blocchi (terminata la lettura del buffer)
+        //    -> si mette nella lista di candidati, si dovrà mantenere informazione per ogni termine in quale blocco lo
+        //       si è letto (per aggiornamenti futuri della posizione di lettura)
+        // 5.  merge delle posting list degli indici parziali dei termini nel relativo blocco
+        //    -> (avremo lista con candidati senza ripetizioni di termini)
+        // 6. prendo dalla lista candidati(ordinata) primo term in ordine lessicografico e scrivo nel file output
+        //      (se tutto ordinato correttamente si avrà certezza che term sarà con valori finali e non ci sarà da aggiornarlo
+        // 7. aggiorno posizione in lettura nel buffer dei blocchi da cui si è letto il primo termine della lista candidati (passo sopra)
+        // 7.1. aggiorno lista candidati, tolgo il primo termine.
+        // 7.2. aggiorno il vocabolario per quel termine e scrivo su file
+        // 8. rieseguo dal punto 4. :
+        //      finchè non è terminata la lettura di tutti i blocchi (terminata la lettura del buffer)
+        //      finchè non è vuota la lista dei candidati
+
         DataStructureHandler.getBlocksFromDisk();
 
         MappedByteBuffer buffer;
@@ -42,10 +50,10 @@ public class IndexMerger {
              FileChannel outchannel = new RandomAccessFile(DataStructureHandler.VOCABULARY_FILE, "w").getChannel()
         ) {
             for(int i = 0; i <= DataStructureHandler.dictionaryBlocks.size(); i++) {
-                buffer = channel.map(FileChannel.MapMode.READ_ONLY, DataStructureHandler.dictionaryBlocks.get(i), TERM_DIM);
+                buffer = channel.map(FileChannel.MapMode.READ_ONLY, DataStructureHandler.dictionaryBlocks.get(i), TERM_DIM); // get first term of the block
                 CharBuffer.allocate(TERM_DIM); //allocate a charbuffer of the dimension reserved to docno
                 CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
-                pq.add(new TermBlock(charBuffer.toString().split("\0")[0], i)); //split using end string character
+                pq.add(new TermBlock(charBuffer.toString().split("\0")[0], i)); //add to the priority queue a term block element (term + its blocks number)
             }
 
         } catch (IOException e) {
@@ -54,9 +62,9 @@ public class IndexMerger {
 
     }
 
-
-
-
+    /**
+     * class
+     */
     private static class TermBlock {
 
         String term;

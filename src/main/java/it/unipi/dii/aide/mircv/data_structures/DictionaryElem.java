@@ -5,7 +5,7 @@ package it.unipi.dii.aide.mircv.data_structures;
  */
 public class DictionaryElem {
 
-    public static final int DICT_ELEM_SIZE = DataStructureHandler.TERM_DIM + 3 * Integer.BYTES + 2 * Long.BYTES;
+    private static final int DICT_ELEM_SIZE = DataStructureHandler.TERM_DIM + 3 * Integer.BYTES + 2 * Long.BYTES;
 
     private String term;        //32 byte
     private int df;             // document frequency, number of documents in which there is the term
@@ -16,21 +16,21 @@ public class DictionaryElem {
 
     // constructor with all parameters
     public DictionaryElem(String term, int df, int cf, int termId, long offsetTermFreq, long offsetDocId) {
-        this.term = term;
-        this.df = df;
-        this.cf = cf;
-        this.termId = termId;
-        this.term = term;
-        this.offsetTermFreq = offsetTermFreq;
-        this.offsetDocId = offsetDocId;
+        this.setTerm(term);
+        this.setDf(df);
+        this.setCf(cf);
+        this.setTermId(termId);
+        this.setTerm(term);
+        this.setOffsetTermFreq(offsetTermFreq);
+        this.setOffsetDocId(offsetDocId);
     }
 
     // constructor without parameters
     public DictionaryElem() {
-        this.df = 0;
-        this.cf = 0;
-        this.termId = 0;
-        this.term = "";
+        this.setDf(0);
+        this.setCf(0);
+        this.setTermId(0);
+        this.setTerm("");
     }
 
     /**
@@ -39,20 +39,24 @@ public class DictionaryElem {
         once in the collection for these set df and cf to 1.
      */
     public DictionaryElem(int termId, String term) {
-        this.df = 1;                // set to 1
-        this.cf = 1;                // set to 1
-        this.termId = termId;
-        this.term = term;
+        this.setDf(1);                // set to 1
+        this.setCf(1);                // set to 1
+        this.setTermId(termId);
+        this.setTerm(term);
+    }
+
+    public static int getDictElemSize() {
+        return DICT_ELEM_SIZE;
     }
 
     // method to increment of 1 the document frequency
     public void incDf(){
-        df++;
+        setDf(getDf() + 1);
     }
 
     // method to increment of 1 the collection frequency
     public void incCf(){
-        cf++;
+        setCf(getCf() + 1);
     }
 
     // ---- start method get and set ----
