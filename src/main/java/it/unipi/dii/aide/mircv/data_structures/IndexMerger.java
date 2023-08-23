@@ -20,6 +20,11 @@ public class IndexMerger {
 
     }
 
+    // abaco 1 2 4
+    // alveare 3
+    // abaco 1 abaco 2 alveare 3 abaco 4
+    // abaco 1 abaco 2 abaco 4 alveare 3
+
     /**
      *  function to merge the block of the inverted index
      */
@@ -47,9 +52,20 @@ public class IndexMerger {
         DataStructureHandler.getBlocksFromDisk(); // 1: get blocks of dictionary from file
 
         MappedByteBuffer buffer;
-        try (FileChannel channel = new RandomAccessFile(DataStructureHandler.PARTIAL_VOCABULARY_FILE, "rw").getChannel();
-             FileChannel indexchannel = new RandomAccessFile(INVERTED_INDEX_FILE, "rw").getChannel();
-             FileChannel outchannel = new RandomAccessFile(DataStructureHandler.VOCABULARY_FILE, "w").getChannel()
+        // array containing the current read offset for each blocks
+        ArrayList<Long> currentBlockOffset = new ArrayList<>(nrBlocks);
+/*        ArrayList<Posting> mergedPosting = new ArrayList<>(); // iterate over pq to find elements to merge*/
+        currentBlockOffset.addAll(dictionaryBlocks);
+        DictionaryElem de;
+
+        boolean isFirst = true;
+        try (
+                // 2: open channels for reading the partial vocabulary file, the output index file and the output vocabulary file
+                FileChannel channel = new RandomAccessFile(DataStructureHandler.PARTIAL_VOCABULARY_FILE, "rw").getChannel();
+                FileChannel IndexChannel = new RandomAccessFile(DataStructureHandler.INVERTED_INDEX_FILE, "rw").getChannel();
+                // 3: open the file in output for the index
+                FileChannel outIndexChannel = new RandomAccessFile(DataStructureHandler.INVERTED_INDEX_FILE, "w").getChannel();
+                FileChannel outChannel = new RandomAccessFile(DataStructureHandler.VOCABULARY_FILE, "w").getChannel()
         ) {
             // scroll through all blocks
             for(int i = 0; i <=  nrBlocks; i++) {
@@ -59,12 +75,55 @@ public class IndexMerger {
                 // 4: add the first term and block number to priority queue
                 pq.add(new TermBlock(charBuffer.toString().split("\0")[0], i)); //add to the priority queue a term block element (term + its blocks number)
             }
+            //5: merging the posting list
+            while(!pq.isEmpty()){
+
+                /**
+                 * abbiamo la coda prioritaria ordinata
+                 * prendere il primo elemento (term, blockid) e aggiornare l'offset del blocco corrispondente
+                 * - aggiornare il vocabolario finale
+                 * -- primo volta term: aggiungi
+                 * -- term già trovato: update
+                 * - aggiornare l'inverted index finale
+                 * -- primo elemento: aggiungi
+                 * -- term già trovato: update
+                 */
+
+                TermBlock termBlock = pq.poll();        // get lowest term
+                String term = termBlock.getTerm();
+                int block_id = termBlock.getBlock();
+
+                //get all term data for that block from the vocabulary
+                de = getDictionaryElemFromDisk(currentBlockOffset.get(block_id), channel);
+
+                //update position of reading from the dictionary file
+                currentBlockOffset.set(block_id, DataStructureHandler.dictionaryBlocks.get(block_id) + vocsize);
+
+                //read posting list for the specified term
+                PostingList pl = DataStructureHandler.readIndexElemFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), term, de.getDf());
+
+                // read next term from the vocabulary of the previous index block
+                buffer = channel.map(FileChannel.MapMode.READ_ONLY, currentBlockOffset.get(block_id), TERM_DIM); // get first term of the block
+                CharBuffer.allocate(TERM_DIM); //allocate a charbuffer of the dimension reserved to term
+                CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
+                pq.add(new TermBlock(charBuffer.toString().split("\0")[0], block_id)); //add to the priority queue a term block element (term + its blocks number)
+
+
+
+                // after read next term if it is different from the previous (set to true if first)
+                isFirst = false;
+
+
+            }
+
+
 
         } catch (IOException e) {
             e.printStackTrace();
         }
 
     }
+
 
     /**
      * class

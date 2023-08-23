@@ -35,7 +35,7 @@ public class DataStructureHandler {
     private static long INDEX_OFFSET = 0;               // Offset of the termfreq and docid in index
 
     // Data structures initialization
-    private static DocumentTable dt = new DocumentTable();
+    private static DocumentTable dt = new DocumentTable();   // we can not instantiate it while building it, we can do it only during read from file
     private static final Dictionary dictionary = new Dictionary();
     private static final InvertedIndex invertedIndex = new InvertedIndex();
 
@@ -122,11 +122,10 @@ public class DataStructureHandler {
      */
     public static void SPIMIalgorithm() {
 
-        long memoryAvailable = Runtime.getRuntime().maxMemory() * 70 / 100;
+        long memoryAvailable = Runtime.getRuntime().maxMemory() * 80 / 100;
         int docCounter = 0;
         int termCounter = 0;
         int printInterval = 500; // Print memory usage every 500 documents
-
 
         dictionaryBlocks = new ArrayList<>();
 
@@ -285,7 +284,7 @@ public class DataStructureHandler {
     public static void storeDictionaryIntoDisk(DictionaryElem dictElem){
         try (RandomAccessFile raf = new RandomAccessFile(PARTIAL_VOCABULARY_FILE, "rw");
              FileChannel channel = raf.getChannel()) {
-            int vocsize = TERM_DIM + 4 + 4 + 4 + 8 + 8; // Size in bytes of term, df, cf, termId, offset
+            int vocsize = TERM_DIM + 4 + 4 + 4 + 8 + 8; // Size in bytes of term, df, cf, termId, offsets
             MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), vocsize);
             // Buffer not created
             if(buffer == null)
@@ -426,7 +425,7 @@ public class DataStructureHandler {
 
     // function to read index from disk
     public static void getIndexFromDisk() {
-        int indexsize = 4;      // docId and termFreq are int, 4Byte each
+        int indexsize = Integer.BYTES;      // docId and termFreq are int, 4Byte each
         int read = 0;           // var that indicate
 
         try (FileChannel docidChannel = new RandomAccessFile(DOCID_FILE, "rw").getChannel(); FileChannel termfreqChannel = new RandomAccessFile(TERMFREQ_FILE, "rw").getChannel()) {
@@ -437,7 +436,7 @@ public class DataStructureHandler {
                 long offsetTermFreq = dictionary.getTermToTermStat().get(term).getOffsetTermFreq();
                 // len represents the amount of memory in which the inverted index information is stored for that term
                 // len = number of posting(equal to df) * dimension of each posting
-                int len = dictionary.getTermToTermStat().get(term).getDf()*4; //number of postings for the term
+                int len = dictionary.getTermToTermStat().get(term).getDf()*indexsize; //number of postings for the term
 //                System.out.println("TERM: " + term + " OFFSET: " + offsetDocid + " END: " + (offsetDocid + len));
                 System.out.println(String.format("TERM: %20s - OFFSET: %10s - DOCID: %10s", term, offsetDocid, (offsetDocid + len)));
 
@@ -450,7 +449,6 @@ public class DataStructureHandler {
                     int termfreq = termfreqBuffer.getInt();     // read the TermFrequency
 //                    System.out.println("TERM: " + term + " TERMFREQ: " + termfreq + " DOCID: " + docid);
                     System.out.println(String.format("TERM: %20s - TERMFREQ: %8s - DOCID: %10s", term, termfreq, docid));
-
                     invertedIndex.addTerm(term, docid, termfreq);
                     read += 4;                      // update read, next Postings
                     docidBuffer.position(read);
@@ -524,6 +522,58 @@ public class DataStructureHandler {
         }
     }
 
+    public static DictionaryElem getDictionaryElemFromDisk(long start, FileChannel channel){
+
+        long vocsize = 4 + 4 + 4 + 8 + 8; // Size in bytes of term, df, cf, termId, offset
+        MappedByteBuffer buffer = null; // get first term of the block
+        try {
+            buffer = channel.map(FileChannel.MapMode.READ_ONLY, start + TERM_DIM,  start + vocsize);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        DictionaryElem le = new DictionaryElem();           // create new DictionaryElem
+
+        le.setCf(buffer.getInt());
+        le.setDf(buffer.getInt());
+        le.setTermId(buffer.getInt());
+        le.setOffsetTermFreq(buffer.getLong());
+        le.setOffsetDocId(buffer.getLong());
+        return le;
+
+    }
+
+    public static PostingList readIndexElemFromDisk(long offsetDocId, long offsetTermFreq, String term, int posting_size) {
+
+        int read = 0;
+        PostingList pl = new PostingList();
+
+        try (FileChannel docidChannel = new RandomAccessFile(DOCID_FILE, "rw").getChannel(); FileChannel termfreqChannel = new RandomAccessFile(TERMFREQ_FILE, "rw").getChannel()) {
+
+            MappedByteBuffer docidBuffer = docidChannel.map(FileChannel.MapMode.READ_WRITE, offsetDocId, offsetDocId + posting_size);
+            MappedByteBuffer termfreqBuffer = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, offsetTermFreq, offsetTermFreq + posting_size);
+
+            //while nr of postings read are less than the number of postings to read (all postings of the term)
+            while (read < posting_size) {
+                System.out.println("TERM: " + term + " TERMFREQ: " + termfreqBuffer.getInt() + " DOCID: " + docidBuffer.getInt());
+                int docid = docidBuffer.getInt();           // read the DocID
+                int termfreq = termfreqBuffer.getInt();     // read the TermFrequency
+//              System.out.println("TERM: " + term + " TERMFREQ: " + termfreq + " DOCID: " + docid);
+                pl.addPosting(new Posting(docid, termfreq)); // add the posting to the posting list
+                System.out.println(String.format("TERM: %20s - TERMFREQ: %8s - DOCID: %10s", term, termfreq, docid));
+                read += 4;                      // update read, next Postings
+                docidBuffer.position(read); // skip to position of the new docid to read (new posting)
+                termfreqBuffer.position(read); // skip to to position of the new termfreq to read (new posting)
+            }
+            return pl;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    return null;
+    }
 
     // method to free memory by deleting the information in document table, dictionary,and inverted index
     public static void freeMemory(){
