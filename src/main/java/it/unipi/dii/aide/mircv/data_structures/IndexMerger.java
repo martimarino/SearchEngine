@@ -54,17 +54,14 @@ public class IndexMerger {
         MappedByteBuffer buffer;
         // array containing the current read offset for each blocks
         ArrayList<Long> currentBlockOffset = new ArrayList<>(nrBlocks);
-/*        ArrayList<Posting> mergedPosting = new ArrayList<>(); // iterate over pq to find elements to merge*/
         currentBlockOffset.addAll(dictionaryBlocks);
-        //DictionaryElem de;
 
-        //boolean isFirst = true;
         try (
                 // 2: open channels for reading the partial vocabulary file, the output index file and the output vocabulary file
                 FileChannel channel = new RandomAccessFile(DataStructureHandler.PARTIAL_VOCABULARY_FILE, "rw").getChannel();
-                FileChannel IndexChannel = new RandomAccessFile(DataStructureHandler.INVERTED_INDEX_FILE, "rw").getChannel();
                 // 3: open the file in output for the index
-                FileChannel outIndexChannel = new RandomAccessFile(DataStructureHandler.INVERTED_INDEX_FILE, "w").getChannel();
+                FileChannel outDocIdChannel = new RandomAccessFile(DOCID_FILE, "w").getChannel();
+                FileChannel outTermFreqChannel = new RandomAccessFile(TERMFREQ_FILE, "w").getChannel();
                 FileChannel outDictionaryChannel = new RandomAccessFile(DataStructureHandler.VOCABULARY_FILE, "w").getChannel()
         ) {
             // scroll through all blocks
@@ -105,14 +102,16 @@ public class IndexMerger {
                 //get all term data for that block from the vocabulary
                 if (tempDE.getTermId() == 0) {        // first time term found
                     tempDE = currentDE;     // set temp DE
+                    // update offsetTermFreq
+                    tempDE.setOffsetTermFreq(outTermFreqChannel.size());
+                    // update offsetDocId
+                    tempDE.setOffsetDocId(outDocIdChannel.size());
                     tempPL = currentPL;     // set temp PL
                 } else {    // term already found
                     if (term.equals(tempDE.getTerm())) { // same term found, temporary structures update
                         // update DictionaryElem
                         tempDE.addCf(currentDE.getCf());        // update Cf
                         tempDE.addDf(currentDE.getDf());        // update Df
-                        // update offsetTermFreq
-                        // update offsetDocId
 
                         // update InvertedIndex, add the current postings to the previus postings for the same term
                         tempPL.extend(currentPL);
@@ -122,11 +121,14 @@ public class IndexMerger {
                          * diversi dell'inverted index ci saranno postings contenenti docID diversi
                          */
                     } else {    // write to disk
+
                         // write DictionaryElem to disk
                         storeDictionaryIntoDisk(tempDE, VOCABULARY_FILE);
 
                         // write InvertedIndexElem to disk
-    //                    buffer = outIndexChannel.map(FileChannel.MapMode.READ_WRITE, DataStructureHandler.dictionaryBlocks.get(i), TERM_DIM); // get first term of the block
+                        storePostingListToDisk(tempPL, outTermFreqChannel, outDocIdChannel);
+
+                        //buffer = outIndexChannel.map(FileChannel.MapMode.READ_WRITE, DataStructureHandler.dictionaryBlocks.get(i), TERM_DIM); // get first term of the block
     //                    CharBuffer.allocate(TERM_DIM); //allocate a charbuffer of the dimension reserved to term
     //                    CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
 
@@ -137,7 +139,7 @@ public class IndexMerger {
                         tempDE.setTermId(0);
                         tempPL.setPostings(new ArrayList<Posting>());
 
-                        //continue;   da scommentare se dopo c'è solo aggiornamento offset
+                        //continue;   //da scommentare se dopo c'è solo aggiornamento offset
                     }
 
                 }
@@ -145,23 +147,7 @@ public class IndexMerger {
                 //update position of reading from the dictionary file
                 currentBlockOffset.set(block_id, DataStructureHandler.dictionaryBlocks.get(block_id) + vocsize);
 
-                //read posting list for the specified term
-        //        PostingList pl = DataStructureHandler.readIndexElemFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), term, de.getDf());
-
-                // read next term from the vocabulary of the previous index block
-                buffer = channel.map(FileChannel.MapMode.READ_ONLY, currentBlockOffset.get(block_id), TERM_DIM); // get first term of the block
-                CharBuffer.allocate(TERM_DIM); //allocate a charbuffer of the dimension reserved to term
-                CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
-                pq.add(new TermBlock(charBuffer.toString().split("\0")[0], block_id)); //add to the priority queue a term block element (term + its blocks number)
-
-
-
-                // after read next term if it is different from the previous (set to true if first)
-                //isFirst = false;
             }
-
-
-
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -22,9 +22,10 @@ public class DataStructureHandler {
     public static final String PARTIAL_VOCABULARY_FILE = "src/main/resources/partial_vocabulary.txt"; // file in which is stored the vocabulary in blocks
     public static final String BLOCK_FILE = "src/main/resources/blocks.txt"; // file containing the offset of each vocabulary block
     public static final String FLAGS_FILE = "src/main/resources/flags"; // file in which flags are stored
-    public static final String DOCID_FILE = "src/main/resources/docid.txt";  // file containing the docId (element of posting list) for each block
-    public static final String TERMFREQ_FILE = "src/main/resources/termfreq.txt";   // file containing the TermFrequency (element of posting list) for each block
-    public static final String INVERTED_INDEX_FILE = "src/main/resources/mergedIndex.txt";   // file containing the InvertedIndex merged
+    public static final String PARTIAL_DOCID_FILE = "src/main/resources/docid.txt";  // file containing the docId (element of posting list) for each block
+    public static final String PARTIAL_TERMFREQ_FILE = "src/main/resources/termfreq.txt";   // file containing the TermFrequency (element of posting list) for each block
+    public static final String DOCID_FILE = "src/main/resources/mergedDocId.txt";   // file containing the docId of the InvertedIndex merged
+    public static final String TERMFREQ_FILE = "src/main/resources/mergedTermFreq.txt";   // file containing the termFreq of the InvertedIndex merged
 
     public static final int DOCNO_DIM = 10;             // Length of docno (in bytes)
     public static final int TERM_DIM = 32;              // Length of a term (in bytes)
@@ -313,8 +314,8 @@ public class DataStructureHandler {
         final int INT_SIZE = 4;
 
         try (
-                RandomAccessFile docidFile = new RandomAccessFile(DOCID_FILE, "rw");
-                RandomAccessFile termfreqFile = new RandomAccessFile(TERMFREQ_FILE, "rw");
+                RandomAccessFile docidFile = new RandomAccessFile(PARTIAL_DOCID_FILE, "rw");
+                RandomAccessFile termfreqFile = new RandomAccessFile(PARTIAL_TERMFREQ_FILE, "rw");
                 FileChannel docidChannel = docidFile.getChannel();
                 FileChannel termfreqChannel = termfreqFile.getChannel()
         ) {
@@ -433,7 +434,7 @@ public class DataStructureHandler {
         int indexsize = Integer.BYTES;      // docId and termFreq are int, 4Byte each
         int read = 0;           // var that indicate
 
-        try (FileChannel docidChannel = new RandomAccessFile(DOCID_FILE, "rw").getChannel(); FileChannel termfreqChannel = new RandomAccessFile(TERMFREQ_FILE, "rw").getChannel()) {
+        try (FileChannel docidChannel = new RandomAccessFile(PARTIAL_DOCID_FILE, "rw").getChannel(); FileChannel termfreqChannel = new RandomAccessFile(PARTIAL_TERMFREQ_FILE, "rw").getChannel()) {
             // iterate through each term in dictionary
             for (String term : dictionary.getTermToTermStat().keySet()) {
                 read = 0;       // reset read to 0
@@ -471,7 +472,7 @@ public class DataStructureHandler {
         int indexsize = 4;      // docId and termFreq are int, 4Byte each
         int read = 0;           //
 
-        try (FileChannel docidChannel = new RandomAccessFile(DOCID_FILE, "rw").getChannel(); FileChannel termfreqChannel = new RandomAccessFile(TERMFREQ_FILE, "rw").getChannel()){
+        try (FileChannel docidChannel = new RandomAccessFile(PARTIAL_DOCID_FILE, "rw").getChannel(); FileChannel termfreqChannel = new RandomAccessFile(PARTIAL_TERMFREQ_FILE, "rw").getChannel()){
             // iterate through each term in dictionary
             for (String term : dictionary.getTermToTermStat().keySet()) {
                 long offsetDocid = dictionary.getTermToTermStat().get(term).getOffsetDocId();
@@ -553,7 +554,7 @@ public class DataStructureHandler {
         int read = 0;
         PostingList pl = new PostingList();
 
-        try (FileChannel docidChannel = new RandomAccessFile(DOCID_FILE, "rw").getChannel(); FileChannel termfreqChannel = new RandomAccessFile(TERMFREQ_FILE, "rw").getChannel()) {
+        try (FileChannel docidChannel = new RandomAccessFile(PARTIAL_DOCID_FILE, "rw").getChannel(); FileChannel termfreqChannel = new RandomAccessFile(PARTIAL_TERMFREQ_FILE, "rw").getChannel()) {
 
             MappedByteBuffer docidBuffer = docidChannel.map(FileChannel.MapMode.READ_WRITE, offsetDocId, offsetDocId + posting_size);
             MappedByteBuffer termfreqBuffer = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, offsetTermFreq, offsetTermFreq + posting_size);
@@ -578,7 +579,25 @@ public class DataStructureHandler {
     return null;
     }
 
-    // method to free memory by deleting the information in document table, dictionary,and inverted index
+    //store one posting list of a term into the disk
+    public static void storePostingListToDisk(PostingList pl, FileChannel termfreqChannel, FileChannel docidChannel) {
+
+        //number of postings in the posting list
+        int len = pl.getPostings().size();
+        // Create buffers for docid and termfreq
+        try {
+            MappedByteBuffer bufferdocid = docidChannel.map(FileChannel.MapMode.READ_WRITE, docidChannel.size(), len* Integer.BYTES); // from 0 to number of postings * int dimension
+            MappedByteBuffer buffertermfreq = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, termfreqChannel.size(), len* Integer.BYTES); //from 0 to number of postings * int dimension
+            for (Posting posting : pl.getPostings()) {
+                bufferdocid.putInt(posting.getDocId());
+                buffertermfreq.putInt(posting.getTermFreq());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+        // method to free memory by deleting the information in document table, dictionary,and inverted index
     public static void freeMemory(){
         dt.getDocIdToDocElem().clear();
         dictionary.getTermToTermStat().clear();
