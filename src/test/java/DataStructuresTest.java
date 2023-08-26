@@ -41,7 +41,7 @@ public class DataStructuresTest {
     @Test
     public void test1() throws IOException {
         System.out.println("Test 1");
-        DataStructureHandler.initializeDataStructures();
+        //DataStructureHandler.initializeDataStructures();
     }
 
     @Test

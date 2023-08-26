@@ -2,6 +2,7 @@ package it.unipi.dii.aide.mircv;
 
 import it.unipi.dii.aide.mircv.data_structures.*;
 
+import javax.xml.crypto.Data;
 import java.io.*;
 import java.util.Scanner;
 
@@ -10,7 +11,7 @@ public class Main {
 
     public final static String COLLECTION_PATH = "src/main/resources/collection.tsv";
 
-    public final static int DOCELEM_SIZE = 28;
+    public final static int DOCELEM_SIZE = 18;
 
     public static void main(String[] args) throws IOException {
 
@@ -19,11 +20,10 @@ public class Main {
 /*       DataAnalysis da = new DataAnalysis();
        da.runAnalysis();*/
 
-        file_cleaner();
-
-        DataStructureHandler.initializeDataStructures();
-        DataStructureHandler.SPIMIalgorithm();
-
+        //file_cleaner();
+        DataStructureHandler.getBlocksFromDisk();
+        //DataStructureHandler.SPIMIalgorithm();
+        IndexMerger.mergeBlocks();
         /* Read Collection info from disk */
         DataStructureHandler.getCollectionFromDisk();
         System.out.println("\nCollection loaded");
@@ -31,22 +31,25 @@ public class Main {
         /* Read Flags from disk */
         DataStructureHandler.getFlagsFromDisk();
         System.out.println("\nFlags loaded");
-
-        /* Read Document Index from disk */
-        for(int i = 0; i < 10000; i++) { //need to put nr of documents into collection class
-            DocumentElement de = DataStructureHandler.getDocumentIndexFromDisk(i* DOCELEM_SIZE);
+       /* DocumentTable dt = new DocumentTable();
+         //Read Document Index from disk
+        for(int i = 0; i < 8841823; i++) { //need to put nr of documents into collection class
+            DocumentElement de = DataStructureHandler.getDocumentIndexFromDisk(i*DOCELEM_SIZE);
 
             if(de != null)
-                DataStructureHandler.getDt().setDocIdToDocElem(de.getDocno(), de.getDocid(), de.getDoclength());
+                dt.setDocIdToDocElem(de.getDocno(), de.getDocid(), de.getDoclength());
         }
-        System.out.println("\nDocument loaded");
+        System.out.println("\nDocument loaded");*/
 
-        /* Read Dictionary from disk */
-
-        DataStructureHandler.getDictionaryFromDisk();
+        Dictionary d = DataStructureHandler.getDictionaryFromDisk();
         System.out.println("\nV dictionary loaded");
 
-        DataStructureHandler.getIndexFromDisk();
+        /* Read Dictionary from disk */
+/*
+
+
+        DataStructureHandler.getIndexFromDisk();*/
+
 
         while(true) {
 
