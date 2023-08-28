@@ -44,6 +44,11 @@ public class DataStructureHandler {
 
     public static ArrayList<Long> dictionaryBlocks = new ArrayList<>();    // Offsets of the dictionary blocks
 
+    // variable that indicates after how many iterations to make a control printout (used in various methods)
+    public static int printInterval = 1000;
+    // variable that stipulates the behaviour for control printouts. If false there will be no printouts, if true there will be all printouts.
+    public static boolean verbose = false;
+
     /**
      * Initializes data structures and fills them from the input collection.
      *
@@ -58,7 +63,7 @@ public class DataStructureHandler {
         long memoryAvailable = Runtime.getRuntime().maxMemory() * 80 / 100;
         int docCounter = 1;
         int termCounter = 1;
-        int printInterval = 500; // Print memory usage every 500 documents
+        long startTime, endTime;    // variables to show execution time
 
         dictionaryBlocks = new ArrayList<>();
 
@@ -66,7 +71,8 @@ public class DataStructureHandler {
 
             String record;
 
-
+            startTime = System.currentTimeMillis();         // start time to SPIMI Algorithm
+            // while to scan all documents in the collection
             while ((record = br.readLine()) != null) {
                 if(record.isBlank()) // empty string or composed by whitespace characters
                     continue;
@@ -107,7 +113,8 @@ public class DataStructureHandler {
                     //System.out.println("*** NPOSTINGS: " + npostings + "***");
                 }
 
-                if (docCounter % printInterval == 0) {
+                // Print memory usage every 500 documents
+                if ((docCounter % printInterval == 0) && verbose) {
                     System.out.println("NUM DOC: " + docCounter);
                     //System.out.println("TOT MEMORY: " + Runtime.getRuntime().totalMemory() + " - MEM AVAILABLE: " + memoryAvailable);
                 }
@@ -124,9 +131,20 @@ public class DataStructureHandler {
 
                 }
             }
+            endTime = System.currentTimeMillis();           // end time of SPIMI algorithm
+            System.out.println("\nSPIMI Algorithm done in(s): " + (endTime-startTime)/1000 + " in (m): " + (endTime-startTime)/60000);
 
+            // store blocks into disk
+            startTime = System.currentTimeMillis();         // start time to store block
             storeBlocksIntoDisk();
+            endTime = System.currentTimeMillis();           // end time of store block
+            System.out.println("\nStore block (end of SPIMI Algorithm) done\nin(ms): " + (endTime-startTime) + "in(s): " + (endTime-startTime)/1000 + " in (m): " + (endTime-startTime)/60000);
+
+            // merge blocks into disk
+            startTime = System.currentTimeMillis();         // start time to merge blocks
             IndexMerger.mergeBlocks();
+            endTime = System.currentTimeMillis();           // end time of merge blocks
+            System.out.println("\nMerge block (end of SPIMI Algorithm) done\nin(s): " + (endTime-startTime)/1000 + " in (m): " + (endTime-startTime)/60000);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -293,7 +311,6 @@ public class DataStructureHandler {
 
             // iterate through all the terms of the dictionary ordered
             for (String term : dictionary.getTermToTermStat().keySet()) {
-                //System.out.println("Dict term: " + term);
                 //get posting list of the term
                 ArrayList<Posting> posList = invIndex.get(term);
                 //create dictionary element for the term
@@ -316,7 +333,8 @@ public class DataStructureHandler {
                 //storeDictionaryIntoDisk(dictElem, PARTIAL_VOCABULARY_FILE);
                 MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), vocsize);
 
-                System.out.println("TERM DICT: " + term);
+                if (verbose)
+                    System.out.println("TERM DICT: " + term);       // control print of the term
                 //allocate 20bytes for docno
                 CharBuffer charBuffer = CharBuffer.allocate(TERM_DIM);
                 //put every char into charbuffer
@@ -395,8 +413,11 @@ public class DataStructureHandler {
             buffer.position(DOCNO_DIM); //skip docno
             de.setDoclength(buffer.getInt());
             de.setDocid(buffer.getInt());
-            if(start % 1000 == 0)
+
+            // print of the document element fields taken from the disk
+            if((start % printInterval == 0) && verbose)
                 System.out.println("DOCNO: " + de.getDocno() + " DOCID: " + de.getDocid() + " DOCLENGTH: " + de.getDoclength());
+
             return de;
         } catch (IOException e) {
             e.printStackTrace();
@@ -423,7 +444,10 @@ public class DataStructureHandler {
             le.setTermId(buffer.getInt());
             le.setOffsetTermFreq(buffer.getLong());
             le.setOffsetDocId(buffer.getLong());
-            System.out.println("TERM: " + le.getTerm() + " CF: " + le.getCf() + " DF: " + le.getDf() + " TERMID: " + le.getTermId() + " OFFSET: " + le.getOffsetDocId());
+
+            // print of the dictionary element fields taken from the disk
+            if (verbose)
+                System.out.println("TERM: " + le.getTerm() + " CF: " + le.getCf() + " DF: " + le.getDf() + " TERMID: " + le.getTermId() + " OFFSET: " + le.getOffsetDocId());
             return le;
 
         } catch (IOException e) {
@@ -461,7 +485,9 @@ public class DataStructureHandler {
                 le.setOffsetTermFreq(buffer.getLong());
                 le.setOffsetDocId(buffer.getLong());
                 d.getTermToTermStat().put(term, le);
-                if(position % 10000 == 0)
+
+                // print of the dictionary element fields taken from the disk
+                if((position % printInterval == 0) && verbose)
                     System.out.println("TERM: " + le.getTerm() + " CF: " + le.getCf() + " DF: " + le.getDf() + " TERMID: " + le.getTermId() + " OFFSET: " + le.getOffsetDocId());
             }
             return dictionary;
@@ -495,7 +521,7 @@ public class DataStructureHandler {
             }
             return null;
     }
-        //store one posting list of a term into the disk
+    //store one posting list of a term into the disk
     public static void storePostingListToDisk(PostingList pl, FileChannel termfreqChannel, FileChannel docidChannel) {
 
         //number of postings in the posting list
@@ -513,7 +539,7 @@ public class DataStructureHandler {
         }
     }
 
-        // method to free memory by deleting the information in document table, dictionary,and inverted index
+    // method to free memory by deleting the information in document table, dictionary,and inverted index
     public static void freeMemory(){
         dt.getDocIdToDocElem().clear();
         dictionary.getTermToTermStat().clear();
