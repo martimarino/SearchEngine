@@ -8,13 +8,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.*;
+import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.DICT_ELEM_SIZE;
+import static it.unipi.dii.aide.mircv.utils.Constants.*;
 
 /**
  * class to merge the InverteIndex
  */
 public class IndexMerger {
 
-    private static PriorityQueue<TermBlock> pq = new PriorityQueue<>(dictionaryBlocks.size() == 0 ? 1 : dictionaryBlocks.size(), new CompareTerm());
+    private static PriorityQueue<TermBlock> pq = new PriorityQueue<>(dictionaryBlockOffsets.size() == 0 ? 1 : dictionaryBlockOffsets.size(), new CompareTerm());
 
     public IndexMerger() {
 
@@ -47,24 +49,25 @@ public class IndexMerger {
         //      finchè non è terminata la lettura di tutti i blocchi (terminata la lettura del buffer)
         //      finchè non è vuota la lista dei candidati
 
-        int nrBlocks = DataStructureHandler.dictionaryBlocks.size();    // dictionary number
-        long vocsize = TERM_DIM + 4 + 4 + 4 + 8 + 8; // Size in bytes of df, cf, termId, offset
+        int nrBlocks = DataStructureHandler.dictionaryBlockOffsets.size();    // dictionary number
         DataStructureHandler.getBlocksFromDisk(); // 1: get blocks of dictionary from file
-        MappedByteBuffer buffer = null;
-        // array containing the current read offset for each blocks
-        ArrayList<Long> currentBlockOffset = new ArrayList<>(nrBlocks);
-        currentBlockOffset.addAll(dictionaryBlocks);
-        System.out.println("Merge: " + nrBlocks);
+
+        MappedByteBuffer buffer;
+
+        ArrayList<Long> currentBlockOffset = new ArrayList<>(nrBlocks); // array containing the current read offset for each blocks
+        currentBlockOffset.addAll(dictionaryBlockOffsets);
+
+        System.out.println("\nMerging " + nrBlocks + " blocks");
 
         try (
                 // 2: open channels for reading the partial vocabulary file, the output index file and the output vocabulary file
-                FileChannel channel = new RandomAccessFile(DataStructureHandler.PARTIAL_VOCABULARY_FILE, "rw").getChannel();
+                FileChannel channel = new RandomAccessFile(PARTIAL_DICTIONARY_FILE, "rw").getChannel();
                 FileChannel docidChannel = new RandomAccessFile(PARTIAL_DOCID_FILE, "rw").getChannel();
                 FileChannel termfreqChannel = new RandomAccessFile(PARTIAL_TERMFREQ_FILE, "rw").getChannel();
                 // 3: open the file in output for the index
                 FileChannel outDocIdChannel = new RandomAccessFile(DOCID_FILE, "rw").getChannel();
                 FileChannel outTermFreqChannel = new RandomAccessFile(TERMFREQ_FILE, "rw").getChannel();
-                FileChannel outDictionaryChannel = new RandomAccessFile(DataStructureHandler.VOCABULARY_FILE, "rw").getChannel()
+                FileChannel outDictionaryChannel = new RandomAccessFile(DICTIONARY_FILE, "rw").getChannel()
         ) {
             // scroll through all blocks
             for(int i = 0; i <  nrBlocks; i++) {
@@ -95,13 +98,13 @@ public class IndexMerger {
                  */
                 // get first element from priority queue
                 TermBlock currentTermBlock = pq.poll();        // get lowest term
-                System.out.println("TERM: " + currentTermBlock.getTerm() + " BLOCK: " + currentTermBlock.getBlock());
+                if(verbose) System.out.println("TERM: " + currentTermBlock.getTerm() + " BLOCK: " + currentTermBlock.getBlock());
                 String term = currentTermBlock.getTerm();
                 int block_id = currentTermBlock.getBlock();
 
-                if(!(currentBlockOffset.get(block_id) + vocsize >= channel.size())) {
+                if(!(currentBlockOffset.get(block_id) + DICT_ELEM_SIZE >= channel.size())) {
                     //read new element
-                    buffer = channel.map(FileChannel.MapMode.READ_ONLY, currentBlockOffset.get(block_id) + vocsize, TERM_DIM); // get first term of the block
+                    buffer = channel.map(FileChannel.MapMode.READ_ONLY, currentBlockOffset.get(block_id) + DICT_ELEM_SIZE, TERM_DIM); // get first term of the block
                     CharBuffer.allocate(TERM_DIM); //allocate a charbuffer of the dimension reserved to term
                     CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
                     // 4: add the first term and block number to priority queue
@@ -114,7 +117,7 @@ public class IndexMerger {
                     // get current elem of dictionary
                     DictionaryElem currentDE = getDictionaryElemFromDisk(currentBlockOffset.get(block_id), channel);
 
-                    if(currentDE == null)
+                    if(currentDE == null && verbose)
                         System.out.println("TERM: " + term);
 
                     // get current postings
@@ -168,7 +171,7 @@ public class IndexMerger {
                     }
                 }
                 //update position of reading from the dictionary file
-                currentBlockOffset.set(block_id, currentBlockOffset.get(block_id) + vocsize);
+                currentBlockOffset.set(block_id, currentBlockOffset.get(block_id) + DICT_ELEM_SIZE);
             }
         } catch (IOException e) {
             e.printStackTrace();

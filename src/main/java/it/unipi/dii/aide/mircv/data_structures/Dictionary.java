@@ -16,16 +16,6 @@ public class Dictionary {
         this.termToTermStat = new HashMap<>();
     }
 
-//    public void addTerm(String term, int termId) {
-//        if(termToTermStat.containsKey(term))
-//            incCf(term);
-//        else {
-//            System.out.println("ELSE");
-//            DictionaryElem le = new DictionaryElem(1, 1, termId);
-//            termToTermStat.put(term, le);
-//        }
-//    }
-
     /**
      * Function which returns, if present, the DictionaryElem associated with the term passed as a parameter.
      * Otherwise, it creates a new DictionaryElem associated with the term, inserts it in the HashMap and returns it.
@@ -35,7 +25,7 @@ public class Dictionary {
     }
 
     public DictionaryElem getTermStat(String term) {
-        return termToTermStat.getOrDefault(term, null);
+        return termToTermStat.get(term);
     }
 
     public HashMap<String, DictionaryElem> getTermToTermStat() {

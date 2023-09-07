@@ -1,11 +1,13 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
+import static it.unipi.dii.aide.mircv.utils.Constants.*;
+
 /**
  *  Stores unique terms and their statistics
  */
 public class DictionaryElem {
 
-    private static final int DICT_ELEM_SIZE = DataStructureHandler.TERM_DIM + 3 * Integer.BYTES + 2 * Long.BYTES;
+    static final int DICT_ELEM_SIZE = TERM_DIM + 3 * Integer.BYTES + 2 * Long.BYTES;
 
     private String term;        //32 byte
     private int df;             // document frequency, number of documents in which there is the term
@@ -15,7 +17,7 @@ public class DictionaryElem {
     private long offsetDocId;   // starting point of the posting list of the term in the docid file
 
     // constructor with all parameters
-    public DictionaryElem(String term, int df, int cf, int termId, long offsetTermFreq, long offsetDocId) {
+    public DictionaryElem (String term, int df, int cf, int termId, long offsetTermFreq, long offsetDocId) {
         this.setTerm(term);
         this.setDf(df);
         this.setCf(cf);
@@ -47,16 +49,6 @@ public class DictionaryElem {
 
     public static int getDictElemSize() {
         return DICT_ELEM_SIZE;
-    }
-
-    // method to increment of 1 the document frequency
-    public void incDf(){
-        setDf(getDf() + 1);
-    }
-
-    // method to increment of 1 the collection frequency
-    public void incCf(){
-        setCf(getCf() + 1);
     }
 
     // add the quantity passed as a parameter to the current Df

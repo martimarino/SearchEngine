@@ -12,6 +12,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static it.unipi.dii.aide.mircv.utils.Constants.COLLECTION_PATH;
+
 
 public class DataAnalysis {
 
@@ -23,7 +25,7 @@ public class DataAnalysis {
     public DataAnalysis() throws IOException {
 
         /* Read collection */
-        br = new BufferedReader(new InputStreamReader(new FileInputStream(Main.COLLECTION_PATH), StandardCharsets.UTF_8));
+        br = new BufferedReader(new InputStreamReader(new FileInputStream(COLLECTION_PATH), StandardCharsets.UTF_8));
 
     }
 

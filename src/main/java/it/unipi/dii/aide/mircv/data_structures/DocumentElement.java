@@ -2,6 +2,9 @@ package it.unipi.dii.aide.mircv.data_structures;
 
 public class DocumentElement {
 
+    public static final int DOCNO_DIM = 10;                     // Length of docno (in bytes)
+    public final static int DOCELEM_SIZE = 4 + DOCNO_DIM + 4;   // Size in bytes of docid, docno, and doclength
+
     //single document element with correspondent docid and relative length
     private int docid;
     private String docno;
