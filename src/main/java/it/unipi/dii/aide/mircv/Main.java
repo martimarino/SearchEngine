@@ -3,6 +3,7 @@ package it.unipi.dii.aide.mircv;
 import it.unipi.dii.aide.mircv.data_structures.*;
 
 import java.io.*;
+import java.util.HashMap;
 import java.util.Scanner;
 
 import static it.unipi.dii.aide.mircv.data_structures.DocumentElement.DOCELEM_SIZE;
@@ -11,7 +12,7 @@ import static it.unipi.dii.aide.mircv.utils.Constants.*;
 
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         Scanner sc = new Scanner(System.in);
 
@@ -25,17 +26,22 @@ public class Main {
             switch (mode) {
 
                 case "i":
-                    file_cleaner();                             // delete all created files
+//                    file_cleaner();                             // delete all created files
 
-                    Flag.enableSws(getUserChoice(sc, "stopwords removal"));
-                    Flag.enableCompression(getUserChoice(sc, "compression"));
-                    Flag.enableScoring(getUserChoice(sc, "scoring"));
+                    Flag.setSws(getUserChoice(sc, "stopwords removal"));
+                    Flag.setCompression(getUserChoice(sc, "compression"));
+                    Flag.setScoring(getUserChoice(sc, "scoring"));
+
+                    DataStructureHandler.storeFlagsIntoDisk();
 
                     long startTime, endTime;
 
-                    // Do SPIMI Algorithm
-                    System.out.println("\nIndexing...");
-                    DataStructureHandler.SPIMIalgorithm();
+//                    // Do SPIMI Algorithm
+//                    System.out.println("\nIndexing...");
+//                    DataStructureHandler.SPIMIalgorithm();
+
+                    DataStructureHandler.getBlockOffsetsFromDisk();
+                    IndexMerger.mergeBlocks();
 
                     // Read Flags from disk
                     startTime = System.currentTimeMillis();
@@ -45,7 +51,7 @@ public class Main {
 
 
                     //Read Document Index from disk and put into memory
-                    DocumentTable dt = new DocumentTable();         // create document table in memory
+                    HashMap<Integer, DocumentElement> dt = new HashMap<Integer, DocumentElement>();         // create document table in memory
                     startTime = System.currentTimeMillis();
 
                     // for to read all DocumentElement stored into disk
@@ -53,7 +59,7 @@ public class Main {
                         DocumentElement de = DataStructureHandler.getDocumentIndexFromDisk(i*DOCELEM_SIZE); // get the ith DocElem
 
                         if(de != null)
-                            dt.setDocIdToDocElem(de.getDocno(), de.getDocid(), de.getDoclength());
+                            dt.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
                     }
                     endTime = System.currentTimeMillis();           // end time to read Document Index from disk
                     System.out.println("Document Table loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");

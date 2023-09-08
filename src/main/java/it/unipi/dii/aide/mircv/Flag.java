@@ -15,13 +15,13 @@ public class Flag {
 
 
 
-    public static void enableSws(boolean sws_flag) { Flag.sws_flag = sws_flag; }
+    public static void setSws(boolean sws_flag) { Flag.sws_flag = sws_flag; }
 
-    public static void enableCompression(boolean compression_flag) {
+    public static void setCompression(boolean compression_flag) {
         Flag.compression_flag = compression_flag;
     }
 
-    public static void enableScoring(boolean scoring_flag) {
+    public static void setScoring(boolean scoring_flag) {
         Flag.scoring_flag = scoring_flag;
     }
 

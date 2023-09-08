@@ -10,7 +10,7 @@
 // */
 //public class InvertedIndex {
 //
-//    private HashMap<String, PostingList> invertedIndex;
+//    private HashMap<String, DictionaryElemPostings> invertedIndex;
 //    // HashMap<String, ArrayList<Posting>> invertedIndex;
 //
 //    public InvertedIndex() {
@@ -30,8 +30,8 @@
 //        // Initialize term frequency to 1 if tf is not provided (tf = 0 during index construction)
 //        int termFreq = (tf != 0) ? tf : 1;
 //
-//        // Get or create the PostingList associated with the term
-//        PostingList postingList = invertedIndex.computeIfAbsent(term, key -> new PostingList(key, new ArrayList<>()));
+//        // Get or create the DictionaryElemPostings associated with the term
+//        DictionaryElemPostings postingList = invertedIndex.computeIfAbsent(term, key -> new DictionaryElemPostings(key, new ArrayList<>()));
 //        List<Posting> postings = postingList.getPostings();
 //
 //        // Check if the posting list is empty or if the last posting is for a different document
@@ -62,13 +62,13 @@
 //     */
 //
 //    public void addPosting(String term, Posting posting) {
-//        // Get or create the PostingList associated with the term
-//        PostingList postingList = invertedIndex.computeIfAbsent(term, key -> new PostingList(key, new ArrayList<>()));
+//        // Get or create the DictionaryElemPostings associated with the term
+//        DictionaryElemPostings postingList = invertedIndex.computeIfAbsent(term, key -> new DictionaryElemPostings(key, new ArrayList<>()));
 //        postingList.addPosting(posting);
 //    }
 //
-//    public PostingList getPostings(String term) {
-//        return invertedIndex.getOrDefault(term, new PostingList());
+//    public DictionaryElemPostings getPostings(String term) {
+//        return invertedIndex.getOrDefault(term, new DictionaryElemPostings());
 //    }
 //
 //    public void sort(){
@@ -82,11 +82,11 @@
 //                ));
 //    }
 //
-//    public HashMap<String, PostingList> getInvertedIndex() {
+//    public HashMap<String, DictionaryElemPostings> getInvertedIndex() {
 //        return invertedIndex;
 //    }
 //
-//    public void setInvertedIndex(HashMap<String, PostingList> invertedIndex) {
+//    public void setInvertedIndex(HashMap<String, DictionaryElemPostings> invertedIndex) {
 //        this.invertedIndex = invertedIndex;
 //    }
 //

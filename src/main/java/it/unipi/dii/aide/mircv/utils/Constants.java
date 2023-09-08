@@ -16,7 +16,7 @@ public final class Constants {
     public static final String DOCID_FILE = RES + "merged_docId.txt";   // file containing the docId of the InvertedIndex merged
     public static final String TERMFREQ_FILE = RES + "merged_TermFreq.txt";   // file containing the termFreq of the InvertedIndex merged
 
-    public static final String BLOCK_FILE = RES + "blocks.txt"; // file containing the offset of each vocabulary block
+    public static final String BLOCKOFFSETS_FILE = RES + "blocks.txt"; // file containing the offset of each vocabulary block
     public static final String FLAGS_FILE = RES + "flags"; // file in which flags are stored
 
     public static final int INT_BYTES = Integer.BYTES;
@@ -32,9 +32,9 @@ public final class Constants {
 
 
     // variable that indicates after how many iterations to make a control printout (used in various methods)
-    public static int printInterval = 1000;
+    public static int printInterval = 1000000;
     // variable that stipulates the behaviour for control printouts. If false there will be no printouts, if true there will be all printouts.
-    public static boolean verbose = false;
+    public static boolean verbose = true;
 
     public static String formatTime(long start, long end) {
 

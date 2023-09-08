@@ -1,6 +1,5 @@
 package it.unipi.dii.aide.mircv.utils;
 
-import it.unipi.dii.aide.mircv.Main;
 import it.unipi.dii.aide.mircv.TextProcessor;
 import it.unipi.dii.aide.mircv.data_structures.PostingList;
 

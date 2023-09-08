@@ -10,15 +10,14 @@ public class PostingList {
     private String term;        // term associated with the posting ArrayList
     private ArrayList<Posting> postings;        // ArrayList of postings with DocID and TermFreq for each doc in which term is present
 
-
     public PostingList(){
         this.term = "";
         this.postings = new ArrayList<>();
     }
 
-    public PostingList(String term, ArrayList<Posting> postings) {
+    public PostingList(String term) {
         this.term = term;
-        this.postings = postings;
+        this.postings = new ArrayList<>();
     }
 
     public void addPosting(Posting posting) {
@@ -48,4 +47,17 @@ public class PostingList {
     public void setPostings(ArrayList<Posting> postings) {
         this.postings = postings;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder list = new StringBuilder();
+        for (Posting p : postings) {
+            list.append(p).append(", ");
+        }
+        return "PostingList{" +
+                "term='" + term + '\'' +
+                ", postings=[" + list + "]" +
+                '}';
+    }
+
 }

@@ -8,12 +8,16 @@ public class Posting {
     /**
      * Create a posting with a specified document ID.
      *
-     * @param docId The document ID associated with the posting.
+     * @param docId The documensit ID associated with the posting.
      * @param termFreq the occurrence of term in the document associated with the posting.
      */
     public Posting(int docId, int termFreq) {
         this.docId = docId;
         this.termFreq = termFreq;
+    }
+
+    public void addTermFreq(int n){
+        this.termFreq += n;
     }
 
     // ---- start method get and set ----
@@ -24,5 +28,13 @@ public class Posting {
 
     public void setTermFreq(int termFreq){
         this.termFreq = termFreq;
+    }
+
+    @Override
+    public String toString() {
+        return "Posting{" +
+                "docId=" + docId +
+                ", termFreq=" + termFreq +
+                '}';
     }
 }

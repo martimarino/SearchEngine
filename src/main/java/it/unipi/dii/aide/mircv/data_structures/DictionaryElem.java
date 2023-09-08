@@ -9,12 +9,12 @@ public class DictionaryElem {
 
     static final int DICT_ELEM_SIZE = TERM_DIM + 3 * Integer.BYTES + 2 * Long.BYTES;
 
-    private String term;        //32 byte
-    private int df;             // document frequency, number of documents in which there is the term
-    private int cf;             // collection frequency, number of occurrences of the term in the collection
-    private int termId;
-    private long offsetTermFreq;// starting point of the posting list of the term in the term freq file
-    private long offsetDocId;   // starting point of the posting list of the term in the docid file
+    protected String term;        //32 byte
+    protected int df;             // document frequency, number of documents in which there is the term
+    protected int cf;             // collection frequency, number of occurrences of the term in the collection
+    protected int termId;
+    protected long offsetTermFreq;// starting point of the posting list of the term in the term freq file
+    protected long offsetDocId;   // starting point of the posting list of the term in the docid file
 
     // constructor with all parameters
     public DictionaryElem (String term, int df, int cf, int termId, long offsetTermFreq, long offsetDocId) {
@@ -44,6 +44,12 @@ public class DictionaryElem {
         this.setDf(1);                // set to 1
         this.setCf(1);                // set to 1
         this.setTermId(termId);
+        this.setTerm(term);
+    }
+
+    public DictionaryElem(String term) {
+        this.setDf(1);                // set to 1
+        this.setCf(1);                // set to 1
         this.setTerm(term);
     }
 
@@ -98,4 +104,15 @@ public class DictionaryElem {
         this.offsetDocId = offsetDocId;
     }
 
+    @Override
+    public String toString() {
+        return "DictionaryElem{" +
+                "term='" + term + '\'' +
+                ", df=" + df +
+                ", cf=" + cf +
+                ", termId=" + termId +
+                ", offsetTermFreq=" + offsetTermFreq +
+                ", offsetDocId=" + offsetDocId +
+                '}';
+    }
 }
