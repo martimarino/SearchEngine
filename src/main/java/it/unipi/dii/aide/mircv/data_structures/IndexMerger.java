@@ -85,11 +85,15 @@ public class IndexMerger {
             DictionaryElem tempDE = new DictionaryElem();       // empty temporary DictionaryELem, contains the accumulated data for each term
             PostingList tempPL = new PostingList();             // empty temporary PostingList
 
-            PostingList currentPL = new PostingList();
-            DictionaryElem currentDE = new DictionaryElem();
+            PostingList currentPL;
+            DictionaryElem currentDE;
 
             boolean pick = true;
             int i = 0; int lim = 15;
+
+            TermBlock currentTermBlock;
+            String term = "";
+            int block_id = -1;
 
             //5: merging the posting list
             while(!pq.isEmpty() && i < lim) {i++;
@@ -107,20 +111,23 @@ public class IndexMerger {
                  * -- term già trovato: update
                  */
 
-                // get first element from priority queue
-                TermBlock currentTermBlock = pq.poll();        // get lowest term
-                String term = currentTermBlock.getTerm();
-                int block_id = currentTermBlock.getBlock();
+                if(pick) {
+                    // get first element from priority queue
+                    currentTermBlock = pq.poll();        // get lowest term
+                    term = currentTermBlock.getTerm();
+                    block_id = currentTermBlock.getBlock();
 
-                if(verbose && i < lim) System.out.println("Current term (removed from pq): " + currentTermBlock);
+                    if (verbose && i < lim) System.out.println("Current term (removed from pq): " + currentTermBlock);
 
-                //read new element
-                if(!(currentBlockOffset.get(block_id) + DICT_ELEM_SIZE >= dictChannel.size())) {
-                    buffer = dictChannel.map(FileChannel.MapMode.READ_ONLY, currentBlockOffset.get(block_id) + DICT_ELEM_SIZE, TERM_DIM); // get first term of the block
-                    String[] t = StandardCharsets.UTF_8.decode(buffer).toString().split("\0");      // 4: add the first term and block number to priority queue
-                    if (!(t.length == 0))
-                        pq.add(new TermBlock(t[0], block_id)); //add to the priority queue a term block element (term + its blocks number)
-                    if(verbose && i < lim) System.out.println("New term (added to pq) -> TERM: " + Arrays.toString(t) + " - BLOCK: " + block_id);
+                    //read new element
+                    if (!(currentBlockOffset.get(block_id) + DICT_ELEM_SIZE >= dictChannel.size())) {
+                        buffer = dictChannel.map(FileChannel.MapMode.READ_ONLY, currentBlockOffset.get(block_id) + DICT_ELEM_SIZE, TERM_DIM); // get first term of the block
+                        String[] t = StandardCharsets.UTF_8.decode(buffer).toString().split("\0");      // 4: add the first term and block number to priority queue
+                        if (!(t.length == 0))
+                            pq.add(new TermBlock(t[0], block_id)); //add to the priority queue a term block element (term + its blocks number)
+                        if (verbose && i < lim)
+                            System.out.println("New term (added to pq) -> TERM: " + Arrays.toString(t) + " - BLOCK: " + block_id);
+                    }
                 }
 
                 if(verbose && i < lim){
@@ -137,13 +144,14 @@ public class IndexMerger {
 
 
                 if (tempDE.getTerm().equals("")) {        // first iteration
-                    if(verbose && i < 10) System.out.println("*** First time term found");
+                    if(verbose && i < 10) System.out.println("*** First iteration");
 
                     //set temp variables values
                     tempDE = currentDE;
                     tempDE.setOffsetTermFreq(outTermFreqChannel.size());
                     tempDE.setOffsetDocId(outDocIdChannel.size());
                     tempPL = currentPL;
+                    pick = true;
 
                     if(verbose && i < lim) System.out.println("CURR DE: " + currentDE);
                     if(verbose && i < lim) System.out.println("CURR PL: " + currentPL);
@@ -164,6 +172,7 @@ public class IndexMerger {
 
                         // update InvertedIndex, add the current postings to the previus postings for the same term;
                         tempPL.extend(currentPL);
+                        pick = true;
 
                         /****** da chiedere ******
                          * nell'estensione della postingList non si deve controllare duplicati perchè scorriamo i
@@ -183,31 +192,23 @@ public class IndexMerger {
                         // write InvertedIndexElem to disk
                         storePostingListToDisk(tempPL, outTermFreqChannel, outDocIdChannel);
 
-                        //buffer = outIndexChannel.map(FileChannel.MapMode.READ_WRITE, DataStructureHandler.dictionaryBlocks.get(i), TERM_DIM); // get first term of the block
-    //                    CharBuffer.allocate(TERM_DIM); //allocate a charbuffer of the dimension reserved to term
-    //                    CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
-
-                        // reput current in pq
-                        pq.add(currentTermBlock);
-                        if(verbose && i < lim) System.out.println("Add to pq: " + currentTermBlock);
-
                         //set temp variables values
                         tempDE = currentDE;
                         tempPL = currentPL;
+                        pick = false;
 
                         if(verbose && i < lim) System.out.println("CURR DE: " + currentDE);
                         if(verbose && i < lim) System.out.println("CURR PL: " + currentPL);
                         if(verbose && i < lim) System.out.println("TEMP DE: " + tempDE);
                         if(verbose && i < lim) System.out.println("TEMP PL: " + tempPL);
 
-                        currentBlockOffset.set(block_id, currentBlockOffset.get(block_id) - DICT_ELEM_SIZE);
-
                         //continue;   //da scommentare se dopo c'è solo aggiornamento offset
                     }
                 }
                 //update position of reading from the dictionary file
-                currentBlockOffset.set(block_id, currentBlockOffset.get(block_id) + DICT_ELEM_SIZE);
-                currentDE = new DictionaryElem();
+                if(pick)
+                    currentBlockOffset.set(block_id, currentBlockOffset.get(block_id) + DICT_ELEM_SIZE);
+
                 currentPL.getPostings().clear();
 
             }
