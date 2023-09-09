@@ -101,21 +101,21 @@ public class DataStructureHandler {
                 }
             }
             endTime = System.currentTimeMillis();           // end time of SPIMI algorithm
-            System.out.println("\nSPIMI Algorithm done in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+            System.out.println(ANSI_YELLOW + "\nSPIMI Algorithm done in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
 
             // store blocks into disk
             startTime = System.currentTimeMillis();
             storeBlockOffsetsIntoDisk();
             endTime = System.currentTimeMillis();
-            System.out.println("\nBlocks stored in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+            System.out.println(ANSI_YELLOW + "\nBlocks stored in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
 
             // merge blocks into disk
             startTime = System.currentTimeMillis();         // start time to merge blocks
             IndexMerger.mergeBlocks();
             endTime = System.currentTimeMillis();           // end time of merge blocks
-            System.out.println("\nBlocks merged in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+            System.out.println(ANSI_YELLOW + "\nBlocks merged in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -341,6 +341,9 @@ public class DataStructureHandler {
             Flag.setSws(isSwsEnabled == 1);
             Flag.setScoring(isScoringEnabled == 1);
             Flag.setCompression(isCompressionEnabled == 1);
+
+            if(verbose) System.out.println("*** Flags read -> sws: " + isSwsEnabled + ", scoring: " + isScoringEnabled + ", compression: " + isCompressionEnabled);
+
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }

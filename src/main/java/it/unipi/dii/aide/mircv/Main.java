@@ -47,7 +47,7 @@ public class Main {
                     startTime = System.currentTimeMillis();
                     DataStructureHandler.getFlagsFromDisk();
                     endTime = System.currentTimeMillis();
-                    System.out.println("\nFlags loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+                    System.out.println(ANSI_YELLOW + "Flags loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
 
                     //Read Document Index from disk and put into memory
@@ -62,13 +62,13 @@ public class Main {
                             dt.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
                     }
                     endTime = System.currentTimeMillis();           // end time to read Document Index from disk
-                    System.out.println("Document Table loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+                    System.out.println(ANSI_YELLOW + "Document Table loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
                     //Read Dictionary from disk
                     startTime = System.currentTimeMillis();         // start time to read Dictionary from disk
                     Dictionary d = DataStructureHandler.getDictionaryFromDisk();
                     endTime = System.currentTimeMillis();           // end time to read Dictionary from disk
-                    System.out.println("Dictionary loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+                    System.out.println(ANSI_YELLOW + "Dictionary loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 /*
         DataStructureHandler.getIndexFromDisk();*/
 

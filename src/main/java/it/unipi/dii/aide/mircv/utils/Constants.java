@@ -48,6 +48,7 @@ public final class Constants {
 
     // terminal colors
     public static final String ANSI_RESET = "\u001B[0m";
-    public static final String ANSI_CYAN = "\u001B[36m";
+    public static final String ANSI_CYAN = "\u001B[96m";
+    public static final String ANSI_YELLOW = "\u001B[93m";
 
 }
