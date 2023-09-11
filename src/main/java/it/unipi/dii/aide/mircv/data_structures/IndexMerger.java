@@ -1,7 +1,6 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
 import java.io.*;
-import java.nio.CharBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
@@ -10,6 +9,7 @@ import java.util.*;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.*;
 import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.DICT_ELEM_SIZE;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.delete_tempFiles;
 
 /**
  * class to merge the InverteIndex
@@ -50,7 +50,7 @@ public class IndexMerger {
         //      finchè non è vuota la lista dei candidati
 
         int nrBlocks = DataStructureHandler.dictionaryBlockOffsets.size();    // dictionary number
-        DataStructureHandler.getBlockOffsetsFromDisk(); // 1: get offsets of dictionary blocks from disk
+        DataStructureHandler.readBlockOffsetsFromDisk(); // 1: get offsets of dictionary blocks from disk
 
         MappedByteBuffer buffer;
 
@@ -125,9 +125,9 @@ public class IndexMerger {
                 }
 
                 // get current elem of dictionary
-                currentDE = getDictionaryElemFromDisk(currentBlockOffset.get(block_id), dictChannel);
+                currentDE = readDictionaryElemFromDisk(currentBlockOffset.get(block_id), dictChannel);
                 // get current postings
-                currentPL = DataStructureHandler.readIndexElemFromDisk(currentDE.getOffsetDocId(), currentDE.getOffsetTermFreq(), term, currentDE.getDf(), docidChannel, termfreqChannel);
+                currentPL = DataStructureHandler.readPostingListFromDisk(currentDE.getOffsetDocId(), currentDE.getOffsetTermFreq(), term, currentDE.getDf(), docidChannel, termfreqChannel);
 
                 if(verbose && i < lim) {
                     System.out.println("CURR DE: " + currentDE);
@@ -179,9 +179,9 @@ public class IndexMerger {
                         if(verbose && i < lim) System.out.println("*** Writing elem to disk...");
 
                         // write DictionaryElem to disk
-                        storeDictionaryIntoDisk(tempDE, outDictionaryChannel);
+                        storeDictionaryElemIntoDisk(tempDE, outDictionaryChannel);
                         // write InvertedIndexElem to disk
-                        storePostingListToDisk(tempPL, outTermFreqChannel, outDocIdChannel);
+                        storePostingListIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);
 
                         //set temp variables values
                         tempDE = currentDE;
@@ -199,6 +199,7 @@ public class IndexMerger {
                 currentBlockOffset.set(block_id, currentBlockOffset.get(block_id) + DICT_ELEM_SIZE);
 
             }
+            delete_tempFiles();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -254,7 +255,6 @@ public class IndexMerger {
             return termComparison;
         }
     }
-
 
 
 }

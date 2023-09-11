@@ -36,6 +36,10 @@ public final class Constants {
     // variable that stipulates the behaviour for control printouts. If false there will be no printouts, if true there will be all printouts.
     public static boolean verbose = true;
 
+    private Constants() {
+        throw new UnsupportedOperationException();
+    }
+
     public static String formatTime(long start, long end) {
 
         long elapsedTime = end - start;

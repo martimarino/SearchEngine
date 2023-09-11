@@ -3,10 +3,9 @@ package it.unipi.dii.aide.mircv;
 import it.unipi.dii.aide.mircv.data_structures.*;
 
 import java.io.*;
-import java.util.HashMap;
 import java.util.Scanner;
 
-import static it.unipi.dii.aide.mircv.data_structures.DocumentElement.DOCELEM_SIZE;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.file_cleaner;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 
 
@@ -19,14 +18,15 @@ public class Main {
         while (true) {
 
             System.out.println(ANSI_CYAN + "\n********** SEARCH ENGINE **********" + ANSI_RESET);
-            System.out.println(ANSI_CYAN + "\n\tSelect an option:\n\t  i -> build the index\n\t  q -> query mode\n\t  x -> exit" + ANSI_RESET);
+            System.out.println(ANSI_CYAN + "\n\tSelect an option:\n\t  i -> build the index\n\t  l -> load from disk\n\t  q -> query mode\n\t  x -> exit" + ANSI_RESET);
             System.out.println(ANSI_CYAN + "\n***********************************\n" + ANSI_RESET);
             String mode = sc.nextLine();
+
 
             switch (mode) {
 
                 case "i":
-//                    file_cleaner();                             // delete all created files
+                    file_cleaner();                             // delete all created files
 
                     Flag.setSws(getUserChoice(sc, "stopwords removal"));
                     Flag.setCompression(getUserChoice(sc, "compression"));
@@ -36,41 +36,34 @@ public class Main {
 
                     long startTime, endTime;
 
-//                    // Do SPIMI Algorithm
-//                    System.out.println("\nIndexing...");
-//                    DataStructureHandler.SPIMIalgorithm();
+                    // Do SPIMI Algorithm
+                    System.out.println("\nIndexing...");
+                    DataStructureHandler.SPIMIalgorithm();
 
-                    DataStructureHandler.getBlockOffsetsFromDisk();
-                    IndexMerger.mergeBlocks();
+//                    DataStructureHandler.getBlockOffsetsFromDisk();
+//                    IndexMerger.mergeBlocks();
+
+                    continue;
+
+                case "l":
 
                     // Read Flags from disk
                     startTime = System.currentTimeMillis();
-                    DataStructureHandler.getFlagsFromDisk();
+                    DataStructureHandler.readFlagsFromDisk();
                     endTime = System.currentTimeMillis();
                     System.out.println(ANSI_YELLOW + "Flags loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
-
-                    //Read Document Index from disk and put into memory
-                    HashMap<Integer, DocumentElement> dt = new HashMap<Integer, DocumentElement>();         // create document table in memory
+                    //Read Document Table from disk and put into memory
                     startTime = System.currentTimeMillis();
-
-                    // for to read all DocumentElement stored into disk
-                    for(int i = 0; i < 8841823; i++) { //need to put nr of documents into collection class
-                        DocumentElement de = DataStructureHandler.getDocumentIndexFromDisk(i*DOCELEM_SIZE); // get the ith DocElem
-
-                        if(de != null)
-                            dt.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
-                    }
+                    DataStructureHandler.readDocumentTableFromDisk();
                     endTime = System.currentTimeMillis();           // end time to read Document Index from disk
                     System.out.println(ANSI_YELLOW + "Document Table loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
                     //Read Dictionary from disk
                     startTime = System.currentTimeMillis();         // start time to read Dictionary from disk
-                    Dictionary d = DataStructureHandler.getDictionaryFromDisk();
+                    DataStructureHandler.readDictionaryFromDisk();
                     endTime = System.currentTimeMillis();           // end time to read Dictionary from disk
                     System.out.println(ANSI_YELLOW + "Dictionary loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
-/*
-        DataStructureHandler.getIndexFromDisk();*/
 
                     continue;
 
@@ -103,34 +96,6 @@ public class Main {
 
     }
 
-    /**
-     * function to delete all the file except "stopwords.txt", "collection.tsv", and "msmarco-test2020-queries.tsv"
-     * that are in resources.
-     */
-    private static void file_cleaner() {
-
-        File folder = new File("./src/main/resources/");
-        File[] files = folder.listFiles();
-
-        if (files != null) {
-            for (File file : files) {
-                if (file.isFile()
-                        && !file.getName().equals("stopwords.txt")
-                        && !file.getName().equals("collection.tsv")
-                        && !file.getName().equals("msmarco-test2020-queries.tsv")) {
-                    try {
-                        if (file.delete()) {
-                            System.out.println("Deleted: " + file.getName());
-                        } else {
-                            System.err.println("Failed to delete: " + file.getName());
-                        }
-                    } catch (SecurityException e) {
-                        System.err.println("SecurityException: " + e.getMessage());
-                    }
-                }
-            }
-        }
-    }
 
     /**
      * fucntion to get the choise of the user for options, the options are pass
@@ -151,7 +116,6 @@ public class Main {
             }
         }
     }
-
 
 }
 
