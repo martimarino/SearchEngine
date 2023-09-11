@@ -58,14 +58,22 @@ public class IndexMerger {
         currentBlockOffset.addAll(dictionaryBlockOffsets);
 
         try (
+                RandomAccessFile partialDocidFile = new RandomAccessFile(PARTIAL_DOCID_FILE, "rw");
+                RandomAccessFile partialTermfreqFile = new RandomAccessFile(PARTIAL_TERMFREQ_FILE, "rw");
+                RandomAccessFile partialDictFile = new RandomAccessFile(PARTIAL_DICTIONARY_FILE, "rw");
+
+                RandomAccessFile docidFile = new RandomAccessFile(PARTIAL_DOCID_FILE, "rw");
+                RandomAccessFile termfreqFile = new RandomAccessFile(PARTIAL_TERMFREQ_FILE, "rw");
+                RandomAccessFile dictFile = new RandomAccessFile(PARTIAL_DICTIONARY_FILE, "rw");
+
                 // 2: open channels for reading the partial vocabulary file, the output index file and the output vocabulary file
-                FileChannel dictChannel = new RandomAccessFile(PARTIAL_DICTIONARY_FILE, "rw").getChannel();
-                FileChannel docidChannel = new RandomAccessFile(PARTIAL_DOCID_FILE, "rw").getChannel();
-                FileChannel termfreqChannel = new RandomAccessFile(PARTIAL_TERMFREQ_FILE, "rw").getChannel();
+                FileChannel dictChannel = partialDictFile.getChannel();
+                FileChannel docidChannel = partialDocidFile.getChannel();
+                FileChannel termfreqChannel = partialTermfreqFile.getChannel();
                 // 3: open the file in output for the index
-                FileChannel outDictionaryChannel = new RandomAccessFile(DICTIONARY_FILE, "rw").getChannel();
-                FileChannel outDocIdChannel = new RandomAccessFile(DOCID_FILE, "rw").getChannel();
-                FileChannel outTermFreqChannel = new RandomAccessFile(TERMFREQ_FILE, "rw").getChannel();
+                FileChannel outDictionaryChannel = dictFile.getChannel();
+                FileChannel outDocIdChannel = docidFile.getChannel();
+                FileChannel outTermFreqChannel = termfreqFile.getChannel();
         ) {
             //scroll all blocks
             for(int i = 0; i <  nrBlocks; i++) {
@@ -88,8 +96,6 @@ public class IndexMerger {
             DictionaryElem currentDE = new DictionaryElem();;
             PostingList currentPL = new PostingList();
 
-
-            boolean pick = true;
             int i = 0; int lim = 15;
 
             TermBlock currentTermBlock;
@@ -199,7 +205,8 @@ public class IndexMerger {
                 currentBlockOffset.set(block_id, currentBlockOffset.get(block_id) + DICT_ELEM_SIZE);
 
             }
-            delete_tempFiles();
+
+//            delete_tempFiles();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -255,6 +262,5 @@ public class IndexMerger {
             return termComparison;
         }
     }
-
 
 }

@@ -14,16 +14,34 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         Scanner sc = new Scanner(System.in);
+        long startTime, endTime;
 
         while (true) {
 
             System.out.println(ANSI_CYAN + "\n********** SEARCH ENGINE **********" + ANSI_RESET);
-            System.out.println(ANSI_CYAN + "\n\tSelect an option:\n\t  i -> build the index\n\t  l -> load from disk\n\t  q -> query mode\n\t  x -> exit" + ANSI_RESET);
+            System.out.println(ANSI_CYAN +
+                    "\n\tSelect an option:" +
+                    "\n\t  m -> try merge only" +
+                    "\n\t  i -> build the index" +
+                    "\n\t  l -> load from disk" +
+                    "\n\t  q -> query mode" +
+                    "\n\t  x -> exit"
+                    + ANSI_RESET);
             System.out.println(ANSI_CYAN + "\n***********************************\n" + ANSI_RESET);
             String mode = sc.nextLine();
 
 
             switch (mode) {
+
+                case "m":       // per debugging, prova solo il merge
+                    DataStructureHandler.readBlockOffsetsFromDisk();
+
+                    startTime = System.currentTimeMillis();
+                    IndexMerger.mergeBlocks();
+                    endTime = System.currentTimeMillis();           // end time to read Document Index from disk
+                    System.out.println(ANSI_YELLOW + "Merged in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
+
+                    continue;
 
                 case "i":
                     file_cleaner();                             // delete all created files
@@ -34,14 +52,10 @@ public class Main {
 
                     DataStructureHandler.storeFlagsIntoDisk();
 
-                    long startTime, endTime;
 
                     // Do SPIMI Algorithm
                     System.out.println("\nIndexing...");
                     DataStructureHandler.SPIMIalgorithm();
-
-//                    DataStructureHandler.getBlockOffsetsFromDisk();
-//                    IndexMerger.mergeBlocks();
 
                     continue;
 

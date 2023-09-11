@@ -3,7 +3,7 @@ package it.unipi.dii.aide.mircv.utils;
 import java.io.File;
 import java.io.RandomAccessFile;
 
-import static it.unipi.dii.aide.mircv.utils.Constants.RES;
+import static it.unipi.dii.aide.mircv.utils.Constants.*;
 
 public final class FileSystem {
 

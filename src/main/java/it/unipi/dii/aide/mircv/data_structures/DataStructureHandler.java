@@ -14,6 +14,7 @@ import java.util.HashMap;
 import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.*;
 import static it.unipi.dii.aide.mircv.data_structures.DocumentElement.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 
 /**
  * This class handles the storage and retrieval of data structures used for document indexing.
@@ -38,6 +39,13 @@ public class DataStructureHandler {
         long startTime, endTime;    // variables to show execution time
 
         try (
+                RandomAccessFile docidFile = new RandomAccessFile(PARTIAL_DOCID_FILE, "rw");
+                RandomAccessFile termfreqFile = new RandomAccessFile(PARTIAL_TERMFREQ_FILE, "rw");
+                RandomAccessFile dictFile = new RandomAccessFile(PARTIAL_DICTIONARY_FILE, "rw");
+                FileChannel docidChannel = docidFile.getChannel();
+                FileChannel termfreqChannel = termfreqFile.getChannel();
+                FileChannel dictChannel = dictFile.getChannel();
+
                 BufferedReader buffer_collection = new BufferedReader(new InputStreamReader(new FileInputStream(COLLECTION_PATH), StandardCharsets.UTF_8));
         ) {
 
@@ -92,6 +100,7 @@ public class DataStructureHandler {
                     System.out.println("********** Memory full **********");
                     //store index and dictionary to disk
                     storeIndexAndDictionaryIntoDisk();
+
                     DataStructureHandler.storeDocumentTableIntoDisk(); // store document table one document at a time for each block
                     freeMemory();
                     System.gc();
@@ -116,6 +125,8 @@ public class DataStructureHandler {
             IndexMerger.mergeBlocks();
             endTime = System.currentTimeMillis();           // end time of merge blocks
             System.out.println(ANSI_YELLOW + "\nBlocks merged in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
+
+            //delete_tempFiles();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -261,7 +272,6 @@ public class DataStructureHandler {
 
     public static void storeIndexAndDictionaryIntoDisk() {
 
-
         try (
                 RandomAccessFile docidFile = new RandomAccessFile(PARTIAL_DOCID_FILE, "rw");
                 RandomAccessFile termfreqFile = new RandomAccessFile(PARTIAL_TERMFREQ_FILE, "rw");
@@ -286,6 +296,7 @@ public class DataStructureHandler {
                 DictionaryElem dictElem = dictionary.getTermStat(term);
                 dictElem.setOffsetTermFreq(INDEX_OFFSET);
                 dictElem.setOffsetDocId(INDEX_OFFSET);
+
                 //iterate through all the postings of the posting list
                 for (Posting posting : posList) {
                     // Buffer not created
@@ -318,6 +329,7 @@ public class DataStructureHandler {
         try {
             MappedByteBuffer bufferdocid = docidChannel.map(FileChannel.MapMode.READ_WRITE, docidChannel.size(), (long) len * Integer.BYTES); // from 0 to number of postings * int dimension
             MappedByteBuffer buffertermfreq = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, termfreqChannel.size(), (long) len * Integer.BYTES); //from 0 to number of postings * int dimension
+
             for (Posting posting : pl.getPostings()) {
                 bufferdocid.putInt(posting.getDocId());
                 buffertermfreq.putInt(posting.getTermFreq());
@@ -446,9 +458,9 @@ public class DataStructureHandler {
             le.setOffsetTermFreq(buffer.getLong());
             le.setOffsetDocId(buffer.getLong());
 
-            // print of the dictionary element fields taken from the disk
-            if (verbose && (printInterval % start == 0))
-                System.out.println("Dictionary elem taken from disk -> TERM: " + le.getTerm() + " CF: " + le.getCf() + " DF: " + le.getDf() + " TERMID: " + le.getTermId() + " OFFSET: " + le.getOffsetDocId());
+//            // print of the dictionary element fields taken from the disk
+//            if (verbose && (printInterval % start == 0))
+//                System.out.println("Dictionary elem taken from disk -> TERM: " + le.getTerm() + " CF: " + le.getCf() + " DF: " + le.getDf() + " TERMID: " + le.getTermId() + " OFFSET: " + le.getOffsetDocId());
             return le;
 
         } catch (IOException e) {
