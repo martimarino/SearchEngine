@@ -96,15 +96,15 @@ public class IndexMerger {
             DictionaryElem currentDE = new DictionaryElem();;
             PostingList currentPL = new PostingList();
 
-            int i = 0; int lim = 15;
+            int i = 0; int lim = 20;
 
             TermBlock currentTermBlock;
             String term = "";
             int block_id = -1;
 
             //5: merging the posting list
-            while(!pq.isEmpty() && i < lim) {i++;
-                if (verbose) System.out.println("-----------------------------------------------------");
+            while(!pq.isEmpty()) {i++;
+                if (verbose && i < lim) System.out.println("-----------------------------------------------------");
 
                 // get first element from priority queue
                 currentTermBlock = pq.poll();        // get lowest term

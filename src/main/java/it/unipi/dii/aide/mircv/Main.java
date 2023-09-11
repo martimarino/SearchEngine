@@ -69,7 +69,7 @@ public class Main {
 
                     //Read Document Table from disk and put into memory
                     startTime = System.currentTimeMillis();
-                    DataStructureHandler.readDocumentTableFromDisk();
+                    //DataStructureHandler.readDocumentTableFromDisk();
                     endTime = System.currentTimeMillis();           // end time to read Document Index from disk
                     System.out.println(ANSI_YELLOW + "Document Table loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
@@ -78,7 +78,6 @@ public class Main {
                     DataStructureHandler.readDictionaryFromDisk();
                     endTime = System.currentTimeMillis();           // end time to read Dictionary from disk
                     System.out.println(ANSI_YELLOW + "Dictionary loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
-
                     continue;
 
                 case "q":

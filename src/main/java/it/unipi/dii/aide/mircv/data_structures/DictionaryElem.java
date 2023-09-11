@@ -7,7 +7,7 @@ import static it.unipi.dii.aide.mircv.utils.Constants.*;
  */
 public class DictionaryElem {
 
-    static final int DICT_ELEM_SIZE = TERM_DIM + 3 * Integer.BYTES + 2 * Long.BYTES;
+    static final int DICT_ELEM_SIZE = TERM_DIM + 3 * Integer.BYTES + 2 * Long.BYTES; // 20 + 12 + 16 = 48
 
     protected String term;        //32 byte
     protected int df;             // document frequency, number of documents in which there is the term

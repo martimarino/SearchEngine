@@ -9,6 +9,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 
 import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.*;
@@ -388,8 +389,8 @@ public class DataStructureHandler {
 
         de.setDocno(charBuffer.toString().split("\0")[0]); //split using end string character
         buffer.position(DOCNO_DIM); //skip docno
-        de.setDoclength(buffer.getInt());
         de.setDocid(buffer.getInt());
+        de.setDoclength(buffer.getInt());
 
         // print of the document element fields taken from the disk
         if((start % printInterval == 0) && verbose)
@@ -477,7 +478,7 @@ public class DataStructureHandler {
             long len = channel.size();
             if(verbose) System.out.println("Channel size: " + len);
             while(position < len) {
-                buffer = channel.map(FileChannel.MapMode.READ_ONLY, position, position + DICT_ELEM_SIZE);
+                buffer = channel.map(FileChannel.MapMode.READ_ONLY, position, DICT_ELEM_SIZE);
                 position += DICT_ELEM_SIZE;
 
                 DictionaryElem le = new DictionaryElem();           // create new DictionaryElem
@@ -485,21 +486,32 @@ public class DataStructureHandler {
                 CharBuffer.allocate(TERM_DIM); //allocate a charbuffer of the dimension reserved to docno
                 CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
                 if(charBuffer.toString().split("\0").length == 0)
-                    return;
+                    continue;
                 String term = charBuffer.toString().split("\0")[0];
+
+                if(term.equals("00"))
+                    System.out.println("TERM: " + term + " duplicated");
+
+
                 le.setTerm(term); //split using end string character
                 buffer.position(TERM_DIM); //skip docno
-                le.setCf(buffer.getInt());
                 le.setDf(buffer.getInt());
+                le.setCf(buffer.getInt());
                 le.setTermId(buffer.getInt());
                 le.setOffsetTermFreq(buffer.getLong());
                 le.setOffsetDocId(buffer.getLong());
                 dictionary.getTermToTermStat().put(term, le);
 
                 // print of the dictionary element fields taken from the disk
-                if((position % printInterval == 0) && verbose)
+/*
+                if(verbose && (position % 1000 == 0))
                     System.out.println("TERM: " + le.getTerm() + " CF: " + le.getCf() + " DF: " + le.getDf() + " TERMID: " + le.getTermId() + " OFFSET: " + le.getOffsetDocId());
+*/
+
             }
+
+            for(DictionaryElem de :dictionary.getTermToTermStat().values())
+                System.out.println("TERM: " + de.getTerm());
         } catch (IOException e) {
             e.printStackTrace();
         }
