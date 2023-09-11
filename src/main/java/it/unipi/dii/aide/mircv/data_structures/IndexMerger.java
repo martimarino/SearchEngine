@@ -62,9 +62,9 @@ public class IndexMerger {
                 RandomAccessFile partialTermfreqFile = new RandomAccessFile(PARTIAL_TERMFREQ_FILE, "rw");
                 RandomAccessFile partialDictFile = new RandomAccessFile(PARTIAL_DICTIONARY_FILE, "rw");
 
-                RandomAccessFile docidFile = new RandomAccessFile(PARTIAL_DOCID_FILE, "rw");
-                RandomAccessFile termfreqFile = new RandomAccessFile(PARTIAL_TERMFREQ_FILE, "rw");
-                RandomAccessFile dictFile = new RandomAccessFile(PARTIAL_DICTIONARY_FILE, "rw");
+                RandomAccessFile docidFile = new RandomAccessFile(DOCID_FILE, "rw");
+                RandomAccessFile termfreqFile = new RandomAccessFile(TERMFREQ_FILE, "rw");
+                RandomAccessFile dictFile = new RandomAccessFile(DICTIONARY_FILE, "rw");
 
                 // 2: open channels for reading the partial vocabulary file, the output index file and the output vocabulary file
                 FileChannel dictChannel = partialDictFile.getChannel();
@@ -183,6 +183,11 @@ public class IndexMerger {
                     }
                     else{    // write to disk
                         if(verbose && i < lim) System.out.println("*** Writing elem to disk...");
+
+                        if(verbose && i < lim) {
+                            System.out.println("TEMP DE: " + tempDE);
+                            System.out.println("TEMP PL: " + tempPL);
+                        }
 
                         // write DictionaryElem to disk
                         storeDictionaryElemIntoDisk(tempDE, outDictionaryChannel);

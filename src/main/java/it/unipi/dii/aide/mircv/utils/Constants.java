@@ -25,7 +25,7 @@ public final class Constants {
     public static final int TERM_DIM = 20;                      // Length of a term (in bytes)
 
     public static int N_POSTINGS = 0;                  // Number of partial postings to save in the file
-    public static long DICTIONARY_OFFSET = 0;          // Offset of the terms in the dictionary
+    public static long PARTIAL_DICTIONARY_OFFSET = 0;          // Offset of the terms in the dictionary
     public static long INDEX_OFFSET = 0;               // Offset of the termfreq and docid in index
 
     public static double MEMORY_THRESHOLD = 0.8;

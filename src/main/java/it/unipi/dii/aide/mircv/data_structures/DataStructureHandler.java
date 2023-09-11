@@ -14,7 +14,6 @@ import java.util.HashMap;
 import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.*;
 import static it.unipi.dii.aide.mircv.data_structures.DocumentElement.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
-import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 
 /**
  * This class handles the storage and retrieval of data structures used for document indexing.
@@ -261,9 +260,9 @@ public class DataStructureHandler {
             buffer.putInt(dictElem.getDf());
             buffer.putInt(dictElem.getCf());
             buffer.putInt(dictElem.getTermId());
-            buffer.putLong(DICTIONARY_OFFSET);
-            buffer.putLong(DICTIONARY_OFFSET);
-            DICTIONARY_OFFSET += DICT_ELEM_SIZE;
+            buffer.putLong(PARTIAL_DICTIONARY_OFFSET);
+            buffer.putLong(PARTIAL_DICTIONARY_OFFSET);
+            PARTIAL_DICTIONARY_OFFSET += DICT_ELEM_SIZE;
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -286,7 +285,7 @@ public class DataStructureHandler {
 
             // Sort the dictionary lexicographically
             dictionary.sort();
-            dictionaryBlockOffsets.add(DICTIONARY_OFFSET);// update of the offset of the block for the dictionary file
+            dictionaryBlockOffsets.add(PARTIAL_DICTIONARY_OFFSET);// update of the offset of the block for the dictionary file
 
             // iterate through all the terms of the dictionary ordered
             for (String term : dictionary.getTermToTermStat().keySet()) {
