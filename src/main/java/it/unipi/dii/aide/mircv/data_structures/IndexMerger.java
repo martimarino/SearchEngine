@@ -97,10 +97,10 @@ public class IndexMerger {
 
             // build temp structures
             DictionaryElem tempDE = new DictionaryElem();       // empty temporary DictionaryELem, contains the accumulated data for each term
-            PostingList tempPL = new PostingList();             // empty temporary PostingList
+            ArrayList<Posting> tempPL = new ArrayList();             // empty temporary PostingList
 
-            DictionaryElem currentDE = new DictionaryElem();;
-            PostingList currentPL = new PostingList();
+            DictionaryElem currentDE;
+            ArrayList<Posting> currentPL;
 
             int lim = 20;
 
@@ -119,8 +119,6 @@ public class IndexMerger {
 
                 if(term.equals("00"))
                     System.out.println("TERM: " + term + " BLOCK: " + block_id + " OFFSET: " + currentBlockOffset.get(block_id));
-                if(i % 100000 == 0)
-                    System.out.println("OFFSET: " + currentBlockOffset.get(block_id));
 
                 if (verbose && i < lim) System.out.println("Current term (removed from pq): " + currentTermBlock);
 
@@ -146,8 +144,8 @@ public class IndexMerger {
                 // get current elem of dictionary
                 currentDE = readDictionaryElemFromDisk(currentBlockOffset.get(block_id), dictChannel);
 
-                long endTime = System.currentTimeMillis();
-                if(i % 1000 == 0)
+                endTime = System.currentTimeMillis();
+                if(i >= 20000)
                     System.out.println(ANSI_CYAN + "\nreadDictionaryElemFromDisk in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ") for i : " + i  +"channel size: " + dictChannel.size() + ANSI_RESET);
 
                 startTime = System.currentTimeMillis();
@@ -161,7 +159,7 @@ public class IndexMerger {
                     System.out.println(ANSI_CYAN + "\nreadDictionaryElemFromDisk in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ") for i : " + i + ANSI_RESET);
                 if(verbose && i < lim) {
                     System.out.println("CURR DE: " + currentDE);
-                    System.out.println("CURR PL: " + currentPL);
+                    System.out.println("CURR PL: " + currentPL.size());
                 }
 
                 if (tempDE.getTerm().equals("")) {        // first iteration
@@ -175,12 +173,12 @@ public class IndexMerger {
 
                     if(verbose && i < lim) {
                         System.out.println("TEMP DE: " + tempDE);
-                        System.out.println("TEMP PL: " + tempPL);
+                        System.out.println("TEMP PL: " + tempPL.size());
                     }
                 } else {
                     if(verbose && i < lim) {
                         System.out.println("TEMP DE: " + tempDE);
-                        System.out.println("TEMP PL: " + tempPL);
+                        System.out.println("TEMP PL: " + tempPL.size());
                     }
 
                     if (currentDE.getTerm().equals(tempDE.getTerm())) { // same term found, temporary structures update
@@ -190,8 +188,8 @@ public class IndexMerger {
                         tempDE.addCf(currentDE.getCf());
                         tempDE.addDf(currentDE.getDf());
 
-                        // update InvertedIndex, add the current postings to the previus postings for the same term;
-                        tempPL.extend(currentPL);
+                        assert tempPL != null;
+                        tempPL.addAll(currentPL);
 
                         /****** da chiedere ******
                          * nell'estensione della postingList non si deve controllare duplicati perchè scorriamo i
@@ -214,22 +212,22 @@ public class IndexMerger {
                         }
 
                         // write DictionaryElem to disk
-                        //long startTime = System.currentTimeMillis();
+                        startTime = System.currentTimeMillis();
                         storeDictionaryElemIntoDisk(tempDE, outDictionaryChannel);
-                        //long endTime = System.currentTimeMillis();
-                        /*if(i % 1000 == 0)
+                        endTime = System.currentTimeMillis();
+                        if(i >= 20000)
                             System.out.println(ANSI_CYAN + "\nStoreDictionaryIntoDisk in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ") for i : " + i + ANSI_RESET);
-                        */
 
-                        //long startPosting = System.currentTimeMillis();
+
+                        long startPosting = System.currentTimeMillis();
 
                         // write InvertedIndexElem to disk
                         storePostingListIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);
 
-                        //long endPosting = System.currentTimeMillis();
-                        /*if (i%1000 == 0)
+                        long endPosting = System.currentTimeMillis();
+                        if (i >= 20000)
                             System.out.println(ANSI_CYAN + "\nStorePostingListIntoDisk in " + (endPosting - startPosting) + " ms (" + formatTime(startPosting, endPosting) + ") for i : " + i  + ANSI_RESET);
-                        */
+
                         //set temp variables values
 
                         tempDE = currentDE;
@@ -237,9 +235,9 @@ public class IndexMerger {
 
                         if(verbose && i < lim) {
                             System.out.println("CURR DE: " + currentDE);
-                            System.out.println("CURR PL: " + currentPL);
+                            System.out.println("CURR PL: " + currentPL.size());
                             System.out.println("TEMP DE: " + tempDE);
-                            System.out.println("TEMP PL: " + tempPL);
+                            System.out.println("TEMP PL: " + tempPL.size());
                         }
                     }
                 }

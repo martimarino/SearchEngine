@@ -49,8 +49,6 @@ public class Main {
                     Flag.setCompression(getUserChoice(sc, "compression"));
                     Flag.setScoring(getUserChoice(sc, "scoring"));
 
-                    System.out.println("Flags: " + Flag.isSwsEnabled() + ", " + Flag.isCompressionEnabled() + ", " + Flag.isScoringEnabled());
-
                     DataStructureHandler.storeFlagsIntoDisk();
 
                     // Do SPIMI Algorithm

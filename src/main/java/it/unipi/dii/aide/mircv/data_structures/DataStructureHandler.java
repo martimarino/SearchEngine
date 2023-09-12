@@ -77,9 +77,9 @@ public class DataStructureHandler {
 
                     termCounter++;         // update TermID counter
 
-                    if(addTerm(term, docCounter, 0)) {
+                    if(addTerm(term, docCounter, 0))
                         dictElem.addDf(1);
-                    }
+
                     dictElem.addCf(1);
 
                     N_POSTINGS++;
@@ -299,7 +299,7 @@ public class DataStructureHandler {
     }
 
     //store one posting list of a term into the disk
-    public static void storePostingListIntoDisk(PostingList pl, FileChannel termfreqChannel, FileChannel docidChannel) {
+    public static void storePostingListIntoDisk(ArrayList<Posting> pl, FileChannel termfreqChannel, FileChannel docidChannel) {
 
         //number of postings in the posting list
         int len = pl.getPostings().size();
@@ -445,7 +445,7 @@ public class DataStructureHandler {
             le.setOffsetTermFreq(buffer.getLong());
             le.setOffsetDocId(buffer.getLong());
 
-            if(IndexMerger.i % 1000 == 0) System.out.println("readDictionaryElemFromDisk: " + le);
+//            if(IndexMerger.i % 1000 == 0) System.out.println("readDictionaryElemFromDisk: " + le);
 
 
 //            // print of the dictionary element fields taken from the disk
@@ -532,7 +532,7 @@ public class DataStructureHandler {
                 offsetDocId += INT_BYTES;
                 offsetTermFreq += INT_BYTES;
             }
-            if(IndexMerger.i % 1000 == 0) System.out.println("readPostingListFromDisk: " + pl);
+//            if(IndexMerger.i % 1000 == 0) System.out.println("readPostingListFromDisk: " + pl);
 
             return pl;
         } catch (IOException e) {
