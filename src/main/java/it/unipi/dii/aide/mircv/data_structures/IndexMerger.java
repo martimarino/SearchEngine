@@ -122,8 +122,10 @@ public class IndexMerger {
 
                 if (verbose && i < lim) System.out.println("Current term (removed from pq): " + currentTermBlock);
 
+                long startTime = System.currentTimeMillis();
+
                 //read new element
-                if (!(currentBlockOffset.get(block_id) + DICT_ELEM_SIZE >= dictChannel.size())) {
+                if (!(currentBlockOffset.get(block_id) + DICT_ELEM_SIZE > dictChannel.size())) {
                     buffer = dictChannel.map(FileChannel.MapMode.READ_ONLY, currentBlockOffset.get(block_id) + DICT_ELEM_SIZE, TERM_DIM); // get first term of the block
                     String[] t = StandardCharsets.UTF_8.decode(buffer).toString().split("\0");      // 4: add the first term and block number to priority queue
                     if (!(t.length == 0))
@@ -131,6 +133,9 @@ public class IndexMerger {
                     if (verbose && i < lim)
                         System.out.println("New term (added to pq) -> TERM: " + Arrays.toString(t) + " - BLOCK: " + block_id);
                 }
+                long endTime = System.currentTimeMillis();
+                if(i >= 20000)
+                    System.out.println(ANSI_CYAN + "\nPick new element in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ") for i : " + i  +"channel size: " + dictChannel.size() + ANSI_RESET);
 
 
                 if (verbose && i < lim) {
@@ -139,7 +144,7 @@ public class IndexMerger {
                         System.out.println(elemento.term + " - " + elemento.block);
                     }
                 }
-                long startTime = System.currentTimeMillis();
+                startTime = System.currentTimeMillis();
 
                 // get current elem of dictionary
                 currentDE = readDictionaryElemFromDisk(currentBlockOffset.get(block_id), dictChannel);
@@ -155,8 +160,8 @@ public class IndexMerger {
 
                 endTime = System.currentTimeMillis();
 
-                if(i % 1000 == 0)
-                    System.out.println(ANSI_CYAN + "\nreadDictionaryElemFromDisk in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ") for i : " + i + ANSI_RESET);
+                if(i >= 20000)
+                    System.out.println(ANSI_CYAN + "\nreadPostingListFromDisk in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ") for i : " + i + ANSI_RESET);
                 if(verbose && i < lim) {
                     System.out.println("CURR DE: " + currentDE);
                     System.out.println("CURR PL: " + currentPL.size());
@@ -198,9 +203,9 @@ public class IndexMerger {
                          */
                         if(verbose && i < lim) {
                             System.out.println("CURR DE: " + currentDE);
-                            System.out.println("CURR PL: " + currentPL);
+                            System.out.println("CURR PL: " + currentPL.size());
                             System.out.println("TEMP DE: " + tempDE);
-                            System.out.println("TEMP PL: " + tempPL);
+                            System.out.println("TEMP PL: " + tempPL.size());
                         }
                     }
                     else{    // write to disk
@@ -208,7 +213,7 @@ public class IndexMerger {
 
                         if(verbose && i < lim) {
                             System.out.println("TEMP DE: " + tempDE);
-                            System.out.println("TEMP PL: " + tempPL);
+                            System.out.println("TEMP PL: " + tempPL.size());
                         }
 
                         // write DictionaryElem to disk

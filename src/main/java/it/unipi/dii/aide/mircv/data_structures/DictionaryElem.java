@@ -50,7 +50,7 @@ public class DictionaryElem {
     // add the quantity passed as a parameter to the current Df
     public void addDf(int n)
     {
-        setDf(getDf() + 1);
+        setDf(getDf() + n);
     }
 
     // add the quantity passed as a parameter to the current Cf

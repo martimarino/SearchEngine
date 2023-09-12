@@ -302,13 +302,14 @@ public class DataStructureHandler {
     public static void storePostingListIntoDisk(ArrayList<Posting> pl, FileChannel termfreqChannel, FileChannel docidChannel) {
 
         //number of postings in the posting list
-        int len = pl.getPostings().size();
+        //int len = pl.getPostings().size();
         // Create buffers for docid and termfreq
         try {
-            MappedByteBuffer bufferdocid = docidChannel.map(FileChannel.MapMode.READ_WRITE, docidChannel.size(), (long) len * Integer.BYTES); // from 0 to number of postings * int dimension
-            MappedByteBuffer buffertermfreq = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, termfreqChannel.size(), (long) len * Integer.BYTES); //from 0 to number of postings * int dimension
 
-            for (Posting posting : pl.getPostings()) {
+            for (Posting posting : pl) {
+                MappedByteBuffer bufferdocid = docidChannel.map(FileChannel.MapMode.READ_WRITE, docidChannel.size(), (long) Integer.BYTES); // from 0 to number of postings * int dimension
+                MappedByteBuffer buffertermfreq = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, termfreqChannel.size(), (long) Integer.BYTES); //from 0 to number of postings * int dimension
+
                 bufferdocid.putInt(posting.getDocId());
                 buffertermfreq.putInt(posting.getTermFreq());
             }
@@ -511,10 +512,9 @@ public class DataStructureHandler {
         }
     }
 
-    public static PostingList readPostingListFromDisk(long offsetDocId, long offsetTermFreq, String term, int posting_size, FileChannel docidChannel, FileChannel termfreqChannel) {
+    public static ArrayList<Posting> readPostingListFromDisk(long offsetDocId, long offsetTermFreq, String term, int posting_size, FileChannel docidChannel, FileChannel termfreqChannel) {
 
-        PostingList pl = new PostingList(term);
-        pl.setPostings(new ArrayList<>());
+        ArrayList<Posting> pl = new ArrayList<>();
 
         try {
             for (int i = 0; i < posting_size; i++) {
@@ -526,7 +526,7 @@ public class DataStructureHandler {
                 int docid = docidBuffer.getInt();           // read the DocID
                 int termfreq = termfreqBuffer.getInt();     // read the TermFrequency
                 //System.out.println("TERM: " + term + " TERMFREQ: " + termfreq + " DOCID: " + docid);
-                pl.addPosting(new Posting(docid, termfreq)); // add the posting to the posting list
+                pl.add(new Posting(docid, termfreq)); // add the posting to the posting list
 //                if(verbose)
 //                    System.out.println(String.format("Posting list taken from disk -> TERM: " + term + " - TERMFREQ: " + termfreq + " - DOCID: " + docid));
                 offsetDocId += INT_BYTES;
