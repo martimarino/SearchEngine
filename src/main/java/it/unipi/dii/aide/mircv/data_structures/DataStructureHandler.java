@@ -160,6 +160,7 @@ public class DataStructureHandler {
         }
     }
 
+
     private static void storeDocumentTableIntoDisk() {
 
 

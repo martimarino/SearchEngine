@@ -134,15 +134,24 @@ public class IndexMerger {
                         System.out.println("New term (added to pq) -> TERM: " + Arrays.toString(t) + " - BLOCK: " + block_id);
                 }
 
+
                 if (verbose && i < lim) {
                     System.out.println("ACTUAL PQ: ");
                     for (TermBlock elemento : pq) {
                         System.out.println(elemento.term + " - " + elemento.block);
                     }
                 }
+                long startTime = System.currentTimeMillis();
 
                 // get current elem of dictionary
                 currentDE = readDictionaryElemFromDisk(currentBlockOffset.get(block_id), dictChannel);
+
+                long endTime = System.currentTimeMillis();
+                if(i % 1000 == 0)
+                    System.out.println(ANSI_CYAN + "\nreadDictionaryElemFromDisk in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ") for i : " + i  +"channel size: " + dictChannel.size() + ANSI_RESET);
+
+                startTime = System.currentTimeMillis();
+
                 // get current postings
                 currentPL = readPostingListFromDisk(currentDE.getOffsetDocId(), currentDE.getOffsetTermFreq(), term, currentDE.getDf(), docidChannel, termfreqChannel);
 
@@ -217,7 +226,12 @@ public class IndexMerger {
                         // write InvertedIndexElem to disk
                         storePostingListIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);
 
+                        //long endPosting = System.currentTimeMillis();
+                        /*if (i%1000 == 0)
+                            System.out.println(ANSI_CYAN + "\nStorePostingListIntoDisk in " + (endPosting - startPosting) + " ms (" + formatTime(startPosting, endPosting) + ") for i : " + i  + ANSI_RESET);
+                        */
                         //set temp variables values
+
                         tempDE = currentDE;
                         tempPL = currentPL;
 
