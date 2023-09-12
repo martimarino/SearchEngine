@@ -1,6 +1,6 @@
 package it.unipi.dii.aide.mircv;
 
-public class Flag {
+public final class Flag {
 
     private static boolean sws_flag = false;
     private static boolean compression_flag = false;

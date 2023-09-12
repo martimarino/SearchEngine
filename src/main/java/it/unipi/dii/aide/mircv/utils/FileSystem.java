@@ -1,9 +1,13 @@
 package it.unipi.dii.aide.mircv.utils;
 
 import java.io.File;
-import java.io.RandomAccessFile;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
+
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
 
 public final class FileSystem {
 
@@ -17,49 +21,31 @@ public final class FileSystem {
      */
     public static void file_cleaner() {
 
-        File folder = new File(RES);
-        File[] files = folder.listFiles();
+        try {
+            File partial_folder = new File(PARTIAL_FOLDER);
+            FileUtils.cleanDirectory(partial_folder);
+            File merged_folder = new File(MERGED_FOLDER);
+            FileUtils.cleanDirectory(merged_folder);
 
-        if (files != null) {
-            for (File file : files) {
-                if (file.isFile()
-                        && !file.getName().equals("stopwords.txt")
-                        && !file.getName().equals("collection.tsv")
-                        && !file.getName().equals("msmarco-test2020-queries.tsv")) {
-                    try {
-                        if (file.delete()) {
-                            System.out.println("Deleted: " + file.getName());
-                        } else {
-                            System.err.println("Failed to delete: " + file.getName());
-                        }
-                    } catch (SecurityException e) {
-                        System.err.println("SecurityException: " + e.getMessage());
-                    }
-                }
-            }
+            File flags = new File(FLAGS_FILE);
+            if(flags.exists())
+                FileUtils.delete(flags);
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
     }
 
     public static void delete_tempFiles() {
 
-        File folder = new File(RES);
-        File[] files = folder.listFiles();
-
-        if (files != null) {
-            for (File file : files) {
-                if (file.isFile() && file.getName().startsWith("partial_")) {
-                    try {
-                        if (file.delete()) {
-                            System.out.println("Deleted: " + file.getName());
-                        } else {
-                            System.err.println("Failed to delete: " + file.getName());
-                        }
-                    } catch (SecurityException e) {
-                        System.err.println("SecurityException: " + e.getMessage());
-                    }
-                }
-            }
+        File partial_directory = new File(PARTIAL_FOLDER);
+        try {
+            FileUtils.cleanDirectory(partial_directory);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
     }
 
 }

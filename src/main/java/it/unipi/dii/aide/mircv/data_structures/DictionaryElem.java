@@ -47,16 +47,6 @@ public class DictionaryElem {
         this.setTerm(term);
     }
 
-    public DictionaryElem(String term) {
-        this.setDf(1);                // set to 1
-        this.setCf(1);                // set to 1
-        this.setTerm(term);
-    }
-
-    public static int getDictElemSize() {
-        return DICT_ELEM_SIZE;
-    }
-
     // add the quantity passed as a parameter to the current Df
     public void addDf(int n)
     {

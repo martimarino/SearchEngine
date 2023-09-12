@@ -2,7 +2,6 @@ package it.unipi.dii.aide.mircv;
 
 import it.unipi.dii.aide.mircv.data_structures.*;
 
-import java.io.*;
 import java.util.Scanner;
 
 import static it.unipi.dii.aide.mircv.utils.FileSystem.file_cleaner;
@@ -11,7 +10,7 @@ import static it.unipi.dii.aide.mircv.utils.Constants.*;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
 
         Scanner sc = new Scanner(System.in);
         long startTime, endTime;
@@ -50,22 +49,31 @@ public class Main {
                     Flag.setCompression(getUserChoice(sc, "compression"));
                     Flag.setScoring(getUserChoice(sc, "scoring"));
 
-                    DataStructureHandler.storeFlagsIntoDisk();
+                    System.out.println("Flags: " + Flag.isSwsEnabled() + ", " + Flag.isCompressionEnabled() + ", " + Flag.isScoringEnabled());
 
+                    DataStructureHandler.storeFlagsIntoDisk();
 
                     // Do SPIMI Algorithm
                     System.out.println("\nIndexing...");
+                    startTime = System.currentTimeMillis();         // start time to SPIMI Algorithm
                     DataStructureHandler.SPIMIalgorithm();
+                    endTime = System.currentTimeMillis();           // end time of SPIMI algorithm
+                    System.out.println(ANSI_YELLOW + "\nSPIMI Algorithm done in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
+
+//                    DataStructureHandler.readBlockOffsetsFromDisk();
+
+                    // merge blocks into disk
+                    startTime = System.currentTimeMillis();         // start time to merge blocks
+                    IndexMerger.mergeBlocks();
+                    endTime = System.currentTimeMillis();           // end time of merge blocks
+                    System.out.println(ANSI_YELLOW + "\nBlocks merged in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
                     continue;
 
                 case "l":
 
                     // Read Flags from disk
-                    startTime = System.currentTimeMillis();
                     DataStructureHandler.readFlagsFromDisk();
-                    endTime = System.currentTimeMillis();
-                    System.out.println(ANSI_YELLOW + "Flags loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
                     //Read Document Table from disk and put into memory
                     startTime = System.currentTimeMillis();
