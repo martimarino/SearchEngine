@@ -302,13 +302,13 @@ public class DataStructureHandler {
     public static void storePostingListIntoDisk(ArrayList<Posting> pl, FileChannel termfreqChannel, FileChannel docidChannel) {
 
         //number of postings in the posting list
-        //int len = pl.getPostings().size();
+        int len = pl.size();
         // Create buffers for docid and termfreq
         try {
+            MappedByteBuffer bufferdocid = docidChannel.map(FileChannel.MapMode.READ_WRITE, docidChannel.size(), (long) len*Integer.BYTES); // from 0 to number of postings * int dimension
+            MappedByteBuffer buffertermfreq = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, termfreqChannel.size(), (long) len*Integer.BYTES); //from 0 to number of postings * int dimension
 
             for (Posting posting : pl) {
-                MappedByteBuffer bufferdocid = docidChannel.map(FileChannel.MapMode.READ_WRITE, docidChannel.size(), (long) Integer.BYTES); // from 0 to number of postings * int dimension
-                MappedByteBuffer buffertermfreq = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, termfreqChannel.size(), (long) Integer.BYTES); //from 0 to number of postings * int dimension
 
                 bufferdocid.putInt(posting.getDocId());
                 buffertermfreq.putInt(posting.getTermFreq());
@@ -485,7 +485,7 @@ public class DataStructureHandler {
                 if(charBuffer.toString().split("\0").length == 0)
                     continue;
                 String term = charBuffer.toString().split("\0")[0];
-                if(term.equals("00"))
+                if(term.equals("epstein"))
                     System.out.println("TERM: " + term + " duplicated");
 
                 le.setTerm(term); //split using end string character
@@ -512,15 +512,15 @@ public class DataStructureHandler {
         }
     }
 
-    public static ArrayList<Posting> readPostingListFromDisk(long offsetDocId, long offsetTermFreq, String term, int posting_size, FileChannel docidChannel, FileChannel termfreqChannel) {
+    public static ArrayList<Posting> readPostingListFromDisk(long offsetDocId, long offsetTermFreq, int posting_size, FileChannel docidChannel, FileChannel termfreqChannel) {
 
         ArrayList<Posting> pl = new ArrayList<>();
 
         try {
-            for (int i = 0; i < posting_size; i++) {
-                MappedByteBuffer docidBuffer = docidChannel.map(FileChannel.MapMode.READ_WRITE, offsetDocId, Integer.BYTES);
-                MappedByteBuffer termfreqBuffer = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, offsetTermFreq, Integer.BYTES);
+            MappedByteBuffer docidBuffer = docidChannel.map(FileChannel.MapMode.READ_WRITE, offsetDocId, posting_size*Integer.BYTES);
+            MappedByteBuffer termfreqBuffer = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, offsetTermFreq, posting_size*Integer.BYTES);
 
+            for (int i = 0; i < posting_size; i++) {
                 //while nr of postings read are less than the number of postings to read (all postings of the term)
                 //System.out.println("TERM: " + term + " TERMFREQ: " + termfreqBuffer.getInt() + " DOCID: " + docidBuffer.getInt());
                 int docid = docidBuffer.getInt();           // read the DocID
@@ -529,8 +529,8 @@ public class DataStructureHandler {
                 pl.add(new Posting(docid, termfreq)); // add the posting to the posting list
 //                if(verbose)
 //                    System.out.println(String.format("Posting list taken from disk -> TERM: " + term + " - TERMFREQ: " + termfreq + " - DOCID: " + docid));
-                offsetDocId += INT_BYTES;
-                offsetTermFreq += INT_BYTES;
+                /*offsetDocId += INT_BYTES;
+                offsetTermFreq += INT_BYTES;*/
             }
 //            if(IndexMerger.i % 1000 == 0) System.out.println("readPostingListFromDisk: " + pl);
 
