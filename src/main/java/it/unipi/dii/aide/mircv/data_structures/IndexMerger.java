@@ -36,23 +36,6 @@ public class IndexMerger {
 
         System.out.println("Merging partial files...");
 
-        // 1. get blocks of dictionary from file
-        // 2. open all files in read for each block (leggo da offset 1 elemento; nell'ultimo fino a channel.size())
-        // 3. open one file in output for the index (risultato finale) scriviamo informazioni da lista di c
-        // 4. pick all the first terms of each block and order them basing on the lexicographic order and block index
-        //    -> si mette nella lista di candidati, si dovrà mantenere informazione per ogni termine in quale blocco lo
-        //       si è letto (per aggiornamenti futuri della posizione di lettura)
-        // 5.  merge delle posting list degli indici parziali dei termini nel relativo blocco
-        //    -> (avremo lista con candidati senza ripetizioni di termini)
-        // 6. prendo dalla lista candidati(ordinata) primo term in ordine lessicografico e scrivo nel file output
-        //      (se tutto ordinato correttamente si avrà certezza che term sarà con valori finali e non ci sarà da aggiornarlo
-        // 7. aggiorno posizione in lettura nel buffer dei blocchi da cui si è letto il primo termine della lista candidati (passo sopra)
-        // 7.1. aggiorno lista candidati, tolgo il primo termine.
-        // 7.2. aggiorno il vocabolario per quel termine e scrivo su file
-        // 8. rieseguo dal punto 4. :
-        //      finchè non è terminata la lettura di tutti i blocchi (terminata la lettura del buffer)
-        //      finchè non è vuota la lista dei candidati
-
         int nrBlocks = DataStructureHandler.dictionaryBlockOffsets.size();    // dictionary number
         DataStructureHandler.readBlockOffsetsFromDisk(); // 1: get offsets of dictionary blocks from disk
 
@@ -80,6 +63,7 @@ public class IndexMerger {
                 FileChannel outDocIdChannel = docidFile.getChannel();
                 FileChannel outTermFreqChannel = termfreqFile.getChannel();
         ) {
+            int lim = 20;
 
             //scroll all blocks
             for(int i = 0; i <  nrBlocks; i++) {
@@ -97,12 +81,9 @@ public class IndexMerger {
 
             // build temp structures
             DictionaryElem tempDE = new DictionaryElem();       // empty temporary DictionaryELem, contains the accumulated data for each term
-            ArrayList<Posting> tempPL = new ArrayList();             // empty temporary PostingList
-
+            ArrayList<Posting> tempPL = new ArrayList<>();             // empty temporary PostingList
             DictionaryElem currentDE;
             ArrayList<Posting> currentPL;
-
-            int lim = 20;
 
             TermBlock currentTermBlock;
             String term = "";
@@ -117,16 +98,10 @@ public class IndexMerger {
                 term = currentTermBlock.getTerm();
                 block_id = currentTermBlock.getBlock();
 
-                if(term.equals("00"))
-                    System.out.println("TERM: " + term + " BLOCK: " + block_id + " OFFSET: " + currentBlockOffset.get(block_id));
-
                 if (verbose && i < lim) System.out.println("Current term (removed from pq): " + currentTermBlock);
 
-                long startTime = System.currentTimeMillis();
-
-                if (currentBlockOffset.get(block_id) + DICT_ELEM_SIZE  < (block_id == (currentBlockOffset.size()-1) ? dictChannel.size() : dictionaryBlockOffsets.get(block_id +1))){
                 //( if read one more element is less than file size and last block) or (read one more element of that block is less than next block start) -> read new element
-                //if (((currentBlockOffset.get(block_id) + DICT_ELEM_SIZE < dictChannel.size()) && (block_id == currentBlockOffset.size()-1)) || (currentBlockOffset.get(block_id) + DICT_ELEM_SIZE < dictionaryBlockOffsets.get(block_id +1))) {
+                if (currentBlockOffset.get(block_id) + DICT_ELEM_SIZE  < (block_id == (currentBlockOffset.size()-1) ? dictChannel.size() : dictionaryBlockOffsets.get(block_id +1))){
                     buffer = dictChannel.map(FileChannel.MapMode.READ_ONLY, currentBlockOffset.get(block_id) + DICT_ELEM_SIZE, TERM_DIM); // get first term of the block
                     String[] t = StandardCharsets.UTF_8.decode(buffer).toString().split("\0");      // 4: add the first term and block number to priority queue
                     if (!(t.length == 0))
@@ -134,11 +109,6 @@ public class IndexMerger {
                     if (verbose && i < lim)
                         System.out.println("New term (added to pq) -> TERM: " + Arrays.toString(t) + " - BLOCK: " + block_id);
                 }
-                long endTime = System.currentTimeMillis();
-/*
-                if(i >= 20000)
-                    System.out.println(ANSI_CYAN + "\nPick new element in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ") for i : " + i  +"channel size: " + dictChannel.size() + ANSI_RESET);
-*/
 
                 if (verbose && i < lim) {
                     System.out.println("ACTUAL PQ: ");
@@ -146,26 +116,12 @@ public class IndexMerger {
                         System.out.println(elemento.term + " - " + elemento.block);
                     }
                 }
-                startTime = System.currentTimeMillis();
 
                 // get current elem of dictionary
                 currentDE = readDictionaryElemFromDisk(currentBlockOffset.get(block_id), dictChannel);
-
-                endTime = System.currentTimeMillis();
-/*
-                if(i >= 20000)
-                    System.out.println(ANSI_CYAN + "\nreadDictionaryElemFromDisk in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ") for i : " + i  +"channel size: " + dictChannel.size() + ANSI_RESET);
-*/
-
-                startTime = System.currentTimeMillis();
-
                 // get current postings
                 currentPL = readPostingListFromDisk(currentDE.getOffsetDocId(), currentDE.getOffsetTermFreq(), currentDE.getDf(), docidChannel, termfreqChannel);
 
-                endTime = System.currentTimeMillis();
-
-                /*if(i >= 20000)
-                    System.out.println(ANSI_CYAN + "\nreadPostingListFromDisk in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ") for i : " + i + ANSI_RESET);*/
                 if(verbose && i < lim) {
                     System.out.println("CURR DE: " + currentDE);
                     System.out.println("CURR PL: " + currentPL.size());
@@ -200,14 +156,7 @@ public class IndexMerger {
                         assert tempPL != null;
                         tempPL.addAll(currentPL);
 
-                        /****** da chiedere ******
-                         * nell'estensione della postingList non si deve controllare duplicati perchè scorriamo i
-                         * documenti quindi in blocchi diversi ci saranno dati da documenti diversi quindi in blocchi
-                         * diversi dell'inverted index ci saranno postings contenenti docID diversi
-                         */
                         if(verbose && i < lim) {
-                            System.out.println("CURR DE: " + currentDE);
-                            System.out.println("CURR PL: " + currentPL.size());
                             System.out.println("TEMP DE: " + tempDE);
                             System.out.println("TEMP PL: " + tempPL.size());
                         }
@@ -219,45 +168,25 @@ public class IndexMerger {
                             System.out.println("TEMP DE: " + tempDE);
                             System.out.println("TEMP PL: " + tempPL.size());
                         }
-                        if (tempDE.getTerm() == "00")
-                            System.out.println("term 00");
+
                         // write DictionaryElem to disk
-                        startTime = System.currentTimeMillis();
                         storeDictionaryElemIntoDisk(tempDE, outDictionaryChannel);
-                        endTime = System.currentTimeMillis();
-/*
-                        if(i >= 20000)
-                            System.out.println(ANSI_CYAN + "\nStoreDictionaryIntoDisk in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ") for i : " + i + ANSI_RESET);
-
-*/
-
-                        long startPosting = System.currentTimeMillis();
-
                         // write InvertedIndexElem to disk
                         storePostingListIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);
 
-                        long endPosting = System.currentTimeMillis();
-/*
-                        if (i >= 20000)
-                            System.out.println(ANSI_CYAN + "\nStorePostingListIntoDisk in " + (endPosting - startPosting) + " ms (" + formatTime(startPosting, endPosting) + ") for i : " + i  + ANSI_RESET);
-*/
-
                         //set temp variables values
-
                         tempDE = currentDE;
                         tempPL = currentPL;
 
                         if(verbose && i < lim) {
-                            System.out.println("CURR DE: " + currentDE);
-                            System.out.println("CURR PL: " + currentPL.size());
                             System.out.println("TEMP DE: " + tempDE);
                             System.out.println("TEMP PL: " + tempPL.size());
                         }
                     }
                 }
-
                 currentBlockOffset.set(block_id, currentBlockOffset.get(block_id) + DICT_ELEM_SIZE);
-                System.out.println("i: " + i);
+
+                if (verbose && (i % 1000000 == 0)) System.out.println("i: " + i);
                 i++;
             }
 
@@ -275,14 +204,6 @@ public class IndexMerger {
 
         public TermBlock(String term, int block) {
             this.term = term;
-            this.block = block;
-        }
-
-        public void setTerm(String term) {
-            this.term = term;
-        }
-
-        public void setBlock(int block) {
             this.block = block;
         }
 

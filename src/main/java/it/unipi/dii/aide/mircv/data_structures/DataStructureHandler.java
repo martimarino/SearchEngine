@@ -48,8 +48,8 @@ public class DataStructureHandler {
             // scan all documents in the collection
             while ((record = buffer_collection.readLine()) != null) {
 
-                int separator = record.indexOf("\t");
                 // malformed line, no \t
+                int separator = record.indexOf("\t");
                 if (record.isBlank() || separator == -1) { // empty string or composed by whitespace characters or malformed
                     continue;
                 }
@@ -137,8 +137,6 @@ public class DataStructureHandler {
         }
     }
 
-
-
     // -- start of store functions --
 
     public static void storeFlagsIntoDisk() {
@@ -146,14 +144,14 @@ public class DataStructureHandler {
         System.out.println("Storing flags into disk...");
 
         try (
-                RandomAccessFile Flags_raf  = new RandomAccessFile(FLAGS_FILE,"rw");
-                FileChannel channel = Flags_raf.getChannel();
+                RandomAccessFile raf = new RandomAccessFile(FLAGS_FILE, "rw");
+                FileChannel channel = raf.getChannel()
         ) {
-            MappedByteBuffer FlagsBuffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, (INT_BYTES * 3));
+            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, (long) INT_BYTES * 3); //offset_size (size of dictionary offset) * number of blocks
 
-            FlagsBuffer.putInt(Flag.isSwsEnabled() ? 1 : 0);
-            FlagsBuffer.putInt(Flag.isScoringEnabled() ? 1 : 0);
-            FlagsBuffer.putInt(Flag.isCompressionEnabled() ? 1 : 0);
+            buffer.putInt(Flag.isSwsEnabled() ? 1 : 0);
+            buffer.putInt(Flag.isCompressionEnabled() ? 1 : 0);
+            buffer.putInt(Flag.isScoringEnabled() ? 1 : 0);
 
         } catch (IOException ioe) {
             ioe.printStackTrace();
@@ -241,8 +239,6 @@ public class DataStructureHandler {
             buffer.putLong(PARTIAL_DICTIONARY_OFFSET);
             PARTIAL_DICTIONARY_OFFSET += DICT_ELEM_SIZE;
 
-//            if(IndexMerger.i % 1000 == 0) System.out.println("storeDictionaryElemIntoDisk: " + dictElem);
-
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -291,7 +287,7 @@ public class DataStructureHandler {
 
             }
 
-            System.out.println(dictionary.getTermToTermStat().size() + " terms stored in block " + dictionaryBlockOffsets.size());
+            System.out.println(dictionary.getTermToTermStat().size() + " terms stored in block " + (dictionaryBlockOffsets.size()-1));
 
         } catch (IOException ioException) {
             ioException.printStackTrace();
@@ -313,8 +309,6 @@ public class DataStructureHandler {
                 bufferdocid.putInt(posting.getDocId());
                 buffertermfreq.putInt(posting.getTermFreq());
             }
-
-//            if(IndexMerger.i % 1000 == 0) System.out.println("storePostingListIntoDisk: " + pl);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -339,15 +333,15 @@ public class DataStructureHandler {
 
             // Get flag values from buffer
             int isSwsEnabled = flagsBuffer.getInt();
-            int isScoringEnabled = flagsBuffer.getInt();
             int isCompressionEnabled = flagsBuffer.getInt();
+            int isScoringEnabled = flagsBuffer.getInt();
 
             // Set flag values with values read
             Flag.setSws(isSwsEnabled == 1);
-            Flag.setScoring(isScoringEnabled == 1);
             Flag.setCompression(isCompressionEnabled == 1);
+            Flag.setScoring(isScoringEnabled == 1);
 
-            if(verbose) System.out.println("*** Flags read -> sws: " + isSwsEnabled + ", scoring: " + isScoringEnabled + ", compression: " + isCompressionEnabled);
+            System.out.println("*** Flags read -> sws: " + isSwsEnabled + ", compression: " + isCompressionEnabled + ", scoring: " + isScoringEnabled);
 
         } catch (IOException ioe) {
             ioe.printStackTrace();
@@ -416,8 +410,7 @@ public class DataStructureHandler {
             for(int i = 0; i < channel.size()/ LONG_BYTES; i++){
                 dictionaryBlockOffsets.add(buffer.getLong());
                 buffer.position((i+1)*LONG_BYTES); //skip to position of the data of the next block to read
-                //if(verbose)
-                    System.out.println("OFFSET BLOCK " + i + ": " + dictionaryBlockOffsets.get(i));
+                System.out.println("OFFSET BLOCK " + i + ": " + dictionaryBlockOffsets.get(i));
             }
 
             System.out.println(dictionaryBlockOffsets.size() + " blocks loaded");
@@ -445,9 +438,6 @@ public class DataStructureHandler {
             le.setTermId(buffer.getInt());
             le.setOffsetTermFreq(buffer.getLong());
             le.setOffsetDocId(buffer.getLong());
-
-//            if(IndexMerger.i % 1000 == 0) System.out.println("readDictionaryElemFromDisk: " + le);
-
 
 //            // print of the dictionary element fields taken from the disk
 //            if (verbose && (printInterval % start == 0))
@@ -496,13 +486,6 @@ public class DataStructureHandler {
                 le.setOffsetTermFreq(buffer.getLong());
                 le.setOffsetDocId(buffer.getLong());
                 dictionary.getTermToTermStat().put(term, le);
-
-                // print of the dictionary element fields taken from the disk
-/*
-                if(verbose && (position % 1000 == 0))
-                    System.out.println("TERM: " + le.getTerm() + " CF: " + le.getCf() + " DF: " + le.getDf() + " TERMID: " + le.getTermId() + " OFFSET: " + le.getOffsetDocId());
-*/
-
             }
 
             for(DictionaryElem de :dictionary.getTermToTermStat().values())
@@ -517,31 +500,23 @@ public class DataStructureHandler {
         ArrayList<Posting> pl = new ArrayList<>();
 
         try {
-            MappedByteBuffer docidBuffer = docidChannel.map(FileChannel.MapMode.READ_WRITE, offsetDocId, posting_size*Integer.BYTES);
-            MappedByteBuffer termfreqBuffer = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, offsetTermFreq, posting_size*Integer.BYTES);
+            MappedByteBuffer docidBuffer = docidChannel.map(FileChannel.MapMode.READ_WRITE, offsetDocId, (long) posting_size *Integer.BYTES);
+            MappedByteBuffer termfreqBuffer = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, offsetTermFreq, (long) posting_size *Integer.BYTES);
 
+            //while nr of postings read are less than the number of postings to read (all postings of the term)
             for (int i = 0; i < posting_size; i++) {
-                //while nr of postings read are less than the number of postings to read (all postings of the term)
-                //System.out.println("TERM: " + term + " TERMFREQ: " + termfreqBuffer.getInt() + " DOCID: " + docidBuffer.getInt());
                 int docid = docidBuffer.getInt();           // read the DocID
                 int termfreq = termfreqBuffer.getInt();     // read the TermFrequency
-                //System.out.println("TERM: " + term + " TERMFREQ: " + termfreq + " DOCID: " + docid);
                 pl.add(new Posting(docid, termfreq)); // add the posting to the posting list
 //                if(verbose)
 //                    System.out.println(String.format("Posting list taken from disk -> TERM: " + term + " - TERMFREQ: " + termfreq + " - DOCID: " + docid));
-                /*offsetDocId += INT_BYTES;
-                offsetTermFreq += INT_BYTES;*/
             }
-//            if(IndexMerger.i % 1000 == 0) System.out.println("readPostingListFromDisk: " + pl);
-
             return pl;
         } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
     }
-
-
 
     // method to free memory by deleting the information in document table, dictionary,and inverted index
     public static void freeMemory(){
