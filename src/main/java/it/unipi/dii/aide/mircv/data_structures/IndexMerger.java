@@ -38,7 +38,7 @@ public class IndexMerger {
         ArrayList<Long> currentBlockOffset = new ArrayList<>(nrBlocks);
         currentBlockOffset.addAll(dictionaryBlockOffsets);
 
-        int lim = 20;   // var which indicates the upper limit for control prints, above which no prints will be shown
+        int lim = 200;   // var which indicates the upper limit for control prints, above which no prints will be shown
         int stepProgressionPrint = 100000;  // var which indicates the steps of 'i' progression print during merge
 
         // open file and create channels for reading the partial dictionary and index file and write the complete index and dictionary file
@@ -143,7 +143,7 @@ public class IndexMerger {
                     tempPL = currentPL;
 
                     if(verbose && i < lim) {
-                        System.out.println("*** First iteration");
+                        System.out.println("*** First iteration ***");
                         System.out.println("TEMP DE: " + tempDE);
                         System.out.println("TEMP PL: " + tempPL.size());
                     }
@@ -156,7 +156,7 @@ public class IndexMerger {
                     // same term found (respect the previous iteration), temporary structures update
                     if (currentDE.getTerm().equals(tempDE.getTerm())) {
                         if(verbose && i < lim)
-                            System.out.println("*** Same term of previous one -> accumulate on temp variables");
+                            System.out.println("*** Same term of previous one -> accumulate on temp variables ***");
 
                         // update DictionaryElem
                         tempDE.addCf(currentDE.getCf());        // update Cf
@@ -172,7 +172,8 @@ public class IndexMerger {
                     }
                     else{    // different term found (respect the previous iteration), write to disk the complete data of the previous term
                         if(verbose && i < lim) {
-                            System.out.println("*** Writing elem to disk...");
+                            System.out.println("*** Writing elem to disk... ***");
+                            System.out.println("Temp variables status (with the elem to be written)");
                             System.out.println("TEMP DE: " + tempDE);
                             System.out.println("TEMP PL: " + tempPL.size());
                         }
@@ -187,6 +188,7 @@ public class IndexMerger {
                         tempPL = currentPL;
 
                         if(verbose && i < lim) {
+                            System.out.println("Temp variables status after writing and update");
                             System.out.println("TEMP DE: " + tempDE);
                             System.out.println("TEMP PL: " + tempPL.size());
                         }
@@ -199,6 +201,8 @@ public class IndexMerger {
                     System.out.println("i: " + i);
                 i++;                                    // increment the counter
             }
+            if (verbose)      // print to visualize the total number of iterations
+                System.out.println("Merge ended, total number of iterations (i) is: " + i);
 //            delete_tempFiles();
         } catch (IOException e) {
             e.printStackTrace();
