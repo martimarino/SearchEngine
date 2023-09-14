@@ -36,7 +36,7 @@ public class DataStructureHandler {
 
         long memoryAvailable = (long) (Runtime.getRuntime().maxMemory() * MEMORY_THRESHOLD);
         int docCounter = 1;
-        int termCounter = 1;        //for term id
+        int termCounter = 0;        //for term id
         int totDocLen = 0;
 
         try (
@@ -63,19 +63,18 @@ public class DataStructureHandler {
 
                 DocumentElement de = new DocumentElement(docno, docCounter, preprocessed.size());
                 documentTable.put(docCounter, de);
-                docCounter++;              // update DocID counter
                 totDocLen += preprocessed.size();
-
-
                 for (String term : preprocessed) {
 
                     // Dictionary build
                     if(term.length() > TERM_DIM)
                         term = term.substring(0,TERM_DIM);
 
-                    DictionaryElem dictElem = dictionary.getOrCreateTerm(term, termCounter);
+                    if (!dictionary.getTermToTermStat().containsKey(term))
+                        termCounter++;   // update TermID counter
 
-                    termCounter++;         // update TermID counter
+                    assert !term.equals("");
+                    DictionaryElem dictElem = dictionary.getOrCreateTerm(term,termCounter);
 
                     if(addTerm(term, docCounter, 0))
                         dictElem.addDf(1);
@@ -83,6 +82,7 @@ public class DataStructureHandler {
 
                     N_POSTINGS++;
                 }
+                docCounter++;       // update DocID counter
 
                 if(Runtime.getRuntime().totalMemory() > memoryAvailable) {
                     System.out.println("********** Memory full **********");
@@ -120,7 +120,6 @@ public class DataStructureHandler {
             invertedIndex.put(term, new ArrayList<>());
 
         int size = invertedIndex.get(term).size();
-
 
         // Check if the posting list is empty or if the last posting is for a different document
         if (invertedIndex.get(term).isEmpty() || invertedIndex.get(term).get(size - 1).getDocId() != docId) {
@@ -447,8 +446,6 @@ public class DataStructureHandler {
 //                System.out.println("Dictionary elem taken from disk -> TERM: " + le.getTerm() + " CF: " + le.getCf() + " DF: " + le.getDf() + " TERMID: " + le.getTermId() + " OFFSET: " + le.getOffsetDocId());
             return le;
 
-
-
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -491,8 +488,9 @@ public class DataStructureHandler {
                 dictionary.getTermToTermStat().put(term, le);
             }
 
-            for(DictionaryElem de :dictionary.getTermToTermStat().values())
-                System.out.println("TERM: " + de.getTerm());
+/*            for(DictionaryElem de : dictionary.getTermToTermStat().values())
+                System.out.println("TERM: " + de.getTerm());*/
+            System.out.println("vocabulary size: " + dictionary.getTermToTermStat().size());
         } catch (IOException e) {
             e.printStackTrace();
         }
