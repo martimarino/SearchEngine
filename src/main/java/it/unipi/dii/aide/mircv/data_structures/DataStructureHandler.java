@@ -79,7 +79,6 @@ public class DataStructureHandler {
 
                     if(addTerm(term, docCounter, 0))
                         dictElem.addDf(1);
-
                     dictElem.addCf(1);
 
                     N_POSTINGS++;
@@ -107,6 +106,11 @@ public class DataStructureHandler {
         }
     }
 
+    /***
+     * Add the current term to the inverted index
+     * @return false if the term has been already encountered in the current document,
+     *         true if the term has been encountered for the first time in the current document or if the term was for the first time encountered
+     * ***/
     public static boolean addTerm(String term, int docId, int tf) {
         // Initialize term frequency to 1 if tf is not provided (tf = 0 during index construction)
         int termFreq = (tf != 0) ? tf : 1;
@@ -131,8 +135,7 @@ public class DataStructureHandler {
             return true; // Increment df only if it's a new document
         } else {
             // Increment the term frequency for the current document
-            int lastTermFreq = invertedIndex.get(term).get(size - 1).getTermFreq();
-            invertedIndex.get(term).get(size - 1).setTermFreq(lastTermFreq + 1);
+            invertedIndex.get(term).get(size - 1).addTermFreq(1);
             return false; // No need to increment df
         }
     }

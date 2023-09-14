@@ -8,7 +8,7 @@ public class Posting {
     /**
      * Create a posting with a specified document ID.
      *
-     * @param docId The documensit ID associated with the posting.
+     * @param docId The document ID associated with the posting.
      * @param termFreq the occurrence of term in the document associated with the posting.
      */
     public Posting(int docId, int termFreq) {
@@ -25,10 +25,6 @@ public class Posting {
     public int getDocId() { return docId; }
 
     public int getTermFreq() { return termFreq; }
-
-    public void setTermFreq(int termFreq){
-        this.termFreq = termFreq;
-    }
 
     @Override
     public String toString() {

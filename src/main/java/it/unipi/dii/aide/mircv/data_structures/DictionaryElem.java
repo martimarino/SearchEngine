@@ -16,18 +16,7 @@ public class DictionaryElem {
     protected long offsetTermFreq;// starting point of the posting list of the term in the term freq file
     protected long offsetDocId;   // starting point of the posting list of the term in the docid file
 
-    // constructor with all parameters
-    public DictionaryElem (String term, int df, int cf, int termId, long offsetTermFreq, long offsetDocId) {
-        this.setTerm(term);
-        this.setDf(df);
-        this.setCf(cf);
-        this.setTermId(termId);
-        this.setTerm(term);
-        this.setOffsetTermFreq(offsetTermFreq);
-        this.setOffsetDocId(offsetDocId);
-    }
-
-    // constructor without parameters
+       // constructor without parameters
     public DictionaryElem() {
         this.setDf(0);
         this.setCf(0);
@@ -41,8 +30,8 @@ public class DictionaryElem {
         once in the collection for these set df and cf to 1.
      */
     public DictionaryElem(int termId, String term) {
-        this.setDf(1);                // set to 1
-        this.setCf(1);                // set to 1
+        this.setDf(0);
+        this.setCf(0);
         this.setTermId(termId);
         this.setTerm(term);
     }
