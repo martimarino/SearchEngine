@@ -5,7 +5,7 @@ import it.unipi.dii.aide.mircv.data_structures.*;
 import java.io.IOException;
 import java.util.Scanner;
 
-import static it.unipi.dii.aide.mircv.utils.FileSystem.file_cleaner;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 
 
@@ -34,6 +34,9 @@ public class Main {
             switch (mode) {
 
                 case "m":       // per debugging, prova solo il merge
+
+                    delete_mergedFiles();
+
                     DataStructureHandler.readBlockOffsetsFromDisk();
 
                     startTime = System.currentTimeMillis();

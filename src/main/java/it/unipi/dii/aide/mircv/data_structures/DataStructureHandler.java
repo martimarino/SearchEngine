@@ -488,8 +488,6 @@ public class DataStructureHandler {
                 dictionary.getTermToTermStat().put(term, le);
             }
 
-/*            for(DictionaryElem de : dictionary.getTermToTermStat().values())
-                System.out.println("TERM: " + de.getTerm());*/
             System.out.println("vocabulary size: " + dictionary.getTermToTermStat().size());
         } catch (IOException e) {
             e.printStackTrace();
@@ -501,16 +499,16 @@ public class DataStructureHandler {
         ArrayList<Posting> pl = new ArrayList<>();
 
         try {
-            MappedByteBuffer docidBuffer = docidChannel.map(FileChannel.MapMode.READ_WRITE, offsetDocId, (long) posting_size *Integer.BYTES);
-            MappedByteBuffer termfreqBuffer = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, offsetTermFreq, (long) posting_size *Integer.BYTES);
+            MappedByteBuffer docidBuffer = docidChannel.map(FileChannel.MapMode.READ_ONLY, offsetDocId, (long) posting_size * Integer.BYTES);
+            MappedByteBuffer termfreqBuffer = termfreqChannel.map(FileChannel.MapMode.READ_ONLY, offsetTermFreq, (long) posting_size * Integer.BYTES);
 
             //while nr of postings read are less than the number of postings to read (all postings of the term)
             for (int i = 0; i < posting_size; i++) {
                 int docid = docidBuffer.getInt();           // read the DocID
                 int termfreq = termfreqBuffer.getInt();     // read the TermFrequency
                 pl.add(new Posting(docid, termfreq)); // add the posting to the posting list
-//                if(verbose)
-//                    System.out.println(String.format("Posting list taken from disk -> TERM: " + term + " - TERMFREQ: " + termfreq + " - DOCID: " + docid));
+                if(verbose)
+                    System.out.println("Posting list taken from disk -> " + pl);
             }
             return pl;
         } catch (IOException e) {

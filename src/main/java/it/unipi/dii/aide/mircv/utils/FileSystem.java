@@ -48,4 +48,21 @@ public final class FileSystem {
 
     }
 
+    public static void delete_mergedFiles() {
+
+        File dict = new File(DICTIONARY_FILE);
+        File docid = new File(DOCID_FILE);
+        File termfreq = new File(TERMFREQ_FILE);
+        if(dict.exists() && docid.exists() && termfreq.exists()) {
+            try {
+                FileUtils.delete(dict);
+                FileUtils.delete(docid);
+                FileUtils.delete(termfreq);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
 }
