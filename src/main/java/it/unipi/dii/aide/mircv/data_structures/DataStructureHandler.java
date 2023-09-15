@@ -89,6 +89,7 @@ public class DataStructureHandler {
                     //store index and dictionary to disk
                     storeIndexAndDictionaryIntoDisk();
                     storeDocumentTableIntoDisk(); // store document table one document at a time for each block
+
                     freeMemory();
                     System.gc();
                     System.out.println("********** Free memory **********");
@@ -237,8 +238,8 @@ public class DataStructureHandler {
             buffer.putInt(dictElem.getDf());
             buffer.putInt(dictElem.getCf());
             buffer.putInt(dictElem.getTermId());
-            buffer.putLong(PARTIAL_DICTIONARY_OFFSET);
-            buffer.putLong(PARTIAL_DICTIONARY_OFFSET);
+            buffer.putLong(dictElem.getOffsetTermFreq());
+            buffer.putLong(dictElem.getOffsetDocId());
             PARTIAL_DICTIONARY_OFFSET += DICT_ELEM_SIZE;
 
         } catch (IOException e) {
@@ -256,22 +257,26 @@ public class DataStructureHandler {
                 FileChannel termfreqChannel = termfreqFile.getChannel();
                 FileChannel dictChannel = dictFile.getChannel()
         ) {
-            // Create buffers for docid and termfreq
-            MappedByteBuffer buffer_docid = docidChannel.map(FileChannel.MapMode.READ_WRITE, 0, (long) N_POSTINGS * INT_BYTES); // from 0 to number of postings * int dimension
-            MappedByteBuffer buffer_termfreq = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, 0, (long) N_POSTINGS * INT_BYTES); //from 0 to number of postings * int dimension
-
             // Sort the dictionary lexicographically
             dictionary.sort();
             dictionaryBlockOffsets.add(PARTIAL_DICTIONARY_OFFSET);// update of the offset of the block for the dictionary file
 
             // iterate through all the terms of the dictionary ordered
             for (String term : dictionary.getTermToTermStat().keySet()) {
+
                 //get posting list of the term
                 ArrayList<Posting> posList = invertedIndex.get(term);
+
                 //create dictionary element for the term
                 DictionaryElem dictElem = dictionary.getTermStat(term);
                 dictElem.setOffsetTermFreq(INDEX_OFFSET);
                 dictElem.setOffsetDocId(INDEX_OFFSET);
+                if(term.equals("0000"))
+                    System.out.println(ANSI_CYAN + "term: 0000 " + dictionary.getTermToTermStat().get("0000") +  " block " + (dictionaryBlockOffsets.size()-1) + " size: " + posList.size() +ANSI_RESET);
+
+                // Create buffers for docid and termfreq
+                MappedByteBuffer buffer_docid = docidChannel.map(FileChannel.MapMode.READ_WRITE, docidChannel.size(), (long) posList.size() * INT_BYTES); // from 0 to number of postings * int dimension
+                MappedByteBuffer buffer_termfreq = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, termfreqChannel.size(), (long) posList.size() * INT_BYTES); //from 0 to number of postings * int dimension
 
                 //iterate through all the postings of the posting list
                 for (Posting posting : posList) {
@@ -281,6 +286,8 @@ public class DataStructureHandler {
 
                     buffer_docid.putInt(posting.getDocId());         // write DocID
                     buffer_termfreq.putInt(posting.getTermFreq());   // write TermFrequency
+                    if(term.equals("0000"))
+                        System.out.println(ANSI_YELLOW + "docId " + posting.getDocId() +  " termfreq " + posting.getTermFreq() + ANSI_RESET);
                     INDEX_OFFSET += INT_BYTES;
                 }
 
@@ -435,8 +442,8 @@ public class DataStructureHandler {
                 le.setTerm(charBuffer.toString().split("\0")[0]);
 
             buffer.position(TERM_DIM);
-            le.setCf(buffer.getInt());
             le.setDf(buffer.getInt());
+            le.setCf(buffer.getInt());
             le.setTermId(buffer.getInt());
             le.setOffsetTermFreq(buffer.getLong());
             le.setOffsetDocId(buffer.getLong());

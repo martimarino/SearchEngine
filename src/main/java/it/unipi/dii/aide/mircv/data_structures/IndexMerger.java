@@ -115,6 +115,10 @@ public class IndexMerger {
                     if (verbose && i < lim)
                         System.out.println("New term (added to pq) -> TERM: " + Arrays.toString(t) + " - FROM BLOCK: " + block_id);
                 }
+                else
+                {
+                    System.out.println("current block offset " + currentBlockOffset.get(block_id) + "block "+ block_id);
+                }
 
                 // print the current element in the priority queue
                 if (verbose && i < lim) {
