@@ -22,12 +22,11 @@ public class DataStructureHandler {
 
     // Data structures initialization
     private static final HashMap<Integer, DocumentElement> documentTable = new HashMap<>();     // hash table DocID to related DocElement
-    private static final Dictionary dictionary = new Dictionary();
-    private static final HashMap<String, ArrayList<Posting>> invertedIndex = new HashMap<>();
+    private static final Dictionary dictionary = new Dictionary();      // dictionary in memory
+    private static final HashMap<String, ArrayList<Posting>> invertedIndex = new HashMap<>();   // hash table Term to related Posting list
 
-    public static ArrayList<Long> dictionaryBlockOffsets = new ArrayList<>();    // Offsets of the dictionary blocks
-    public static CollectionStatistics collection = new CollectionStatistics();
-
+    public static ArrayList<Long> dictionaryBlockOffsets = new ArrayList<>();       // Offsets of the dictionary blocks
+    public static CollectionStatistics collection = new CollectionStatistics();     //
 
     /**
      * Implements the SPIMI algorithm for indexing large collections.
@@ -35,20 +34,19 @@ public class DataStructureHandler {
     public static void SPIMIalgorithm() {
 
         long memoryAvailable = (long) (Runtime.getRuntime().maxMemory() * MEMORY_THRESHOLD);
-        int docCounter = 1;
-        int termCounter = 0;        //for term id
-        int totDocLen = 0;
+        int docCounter = 1;         // counter for DocID
+        int termCounter = 0;        // counter for TermID
+        int totDocLen = 0;          // variable for the sum of the lengths of all documents
 
         try (
                 BufferedReader buffer_collection = new BufferedReader(new InputStreamReader(new FileInputStream(COLLECTION_PATH), StandardCharsets.UTF_8));
         ) {
-
-            String record;
+            String record;          // string to contain the document
 
             // scan all documents in the collection
             while ((record = buffer_collection.readLine()) != null) {
 
-                // malformed line, no \t
+                // check for malformed line, no \t
                 int separator = record.indexOf("\t");
                 if (record.isBlank() || separator == -1) { // empty string or composed by whitespace characters or malformed
                     continue;
@@ -57,24 +55,27 @@ public class DataStructureHandler {
                 ArrayList<String> preprocessed = TextProcessor.preprocessText(record); // Preprocessing of document text
                 String docno = preprocessed.remove(0);      // get the DocNO of the current document
 
+                // check if document is empty
                 if (preprocessed.isEmpty() || (preprocessed.size() == 1 && preprocessed.get(0).equals("")))  {
-                    continue;              // Empty documents, skip to next while iteration
+                    continue;              // skip to next while iteration (next document)
                 }
 
-                DocumentElement de = new DocumentElement(docno, docCounter, preprocessed.size());
-                documentTable.put(docCounter, de);
-                totDocLen += preprocessed.size();
+                DocumentElement de = new DocumentElement(docno, docCounter, preprocessed.size());   // create new Document element
+                documentTable.put(docCounter, de);      // add current Document into Document Table in memory
+                totDocLen += preprocessed.size();       // add current document length
+                // scan all term in the current document
                 for (String term : preprocessed) {
-
-                    // Dictionary build
+                    // control check if the length of the current term is greater than the maximum allowed
                     if(term.length() > TERM_DIM)
-                        term = term.substring(0,TERM_DIM);
+                        term = term.substring(0,TERM_DIM);                  // truncate term
 
+                    // control check if the current term has already been found or is the first time
                     if (!dictionary.getTermToTermStat().containsKey(term))
-                        termCounter++;   // update TermID counter
+                        termCounter++;                  // update TermID counter
 
                     assert !term.equals("");
-                    DictionaryElem dictElem = dictionary.getOrCreateTerm(term,termCounter);
+
+                    DictionaryElem dictElem = dictionary.getOrCreateTerm(term,termCounter);     // Dictionary build
 
                     if(addTerm(term, docCounter, 0))
                         dictElem.addDf(1);
@@ -86,8 +87,8 @@ public class DataStructureHandler {
 
                 if(Runtime.getRuntime().totalMemory() > memoryAvailable) {
                     System.out.println("********** Memory full **********");
-                    //store index and dictionary to disk
-                    storeIndexAndDictionaryIntoDisk();
+
+                    storeIndexAndDictionaryIntoDisk();  //store index and dictionary to disk
                     storeDocumentTableIntoDisk(); // store document table one document at a time for each block
 
                     freeMemory();
@@ -99,8 +100,8 @@ public class DataStructureHandler {
 
             storeBlockOffsetsIntoDisk();
 
-            collection.setnDocs(docCounter);
-            collection.setTotDocLen(totDocLen);
+            collection.setnDocs(docCounter);        // set total number of Document in the collection
+            collection.setTotDocLen(totDocLen);     // set the sum of the all document length in the collection
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -140,10 +141,9 @@ public class DataStructureHandler {
         }
     }
 
-    // -- start of store functions --
-
+    // -------- start: functions to store into disk --------
+    // function to store the user's choices for the flags
     public static void storeFlagsIntoDisk() {
-
         System.out.println("Storing flags into disk...");
 
         try (
@@ -152,18 +152,17 @@ public class DataStructureHandler {
         ) {
             MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, (long) INT_BYTES * 3); //offset_size (size of dictionary offset) * number of blocks
 
-            buffer.putInt(Flag.isSwsEnabled() ? 1 : 0);
-            buffer.putInt(Flag.isCompressionEnabled() ? 1 : 0);
-            buffer.putInt(Flag.isScoringEnabled() ? 1 : 0);
+            buffer.putInt(Flag.isSwsEnabled() ? 1 : 0);             // write stop words removal user's choice
+            buffer.putInt(Flag.isCompressionEnabled() ? 1 : 0);     // write compression user's choice
+            buffer.putInt(Flag.isScoringEnabled() ? 1 : 0);         // write scoring user's choice
 
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
     }
 
-
+    // function to store the whole document table into disk
     private static void storeDocumentTableIntoDisk() {
-
 
         try (RandomAccessFile raf = new RandomAccessFile(DOCTABLE_FILE, "rw");
              FileChannel channel = raf.getChannel()) {
@@ -173,7 +172,7 @@ public class DataStructureHandler {
             // Buffer not created
             if(buffer == null)
                 return;
-
+            // scan all document elements of the Document Table
             for(DocumentElement de: documentTable.values()) {
                 //allocate bytes for docno
                 CharBuffer charBuffer = CharBuffer.allocate(DOCNO_DIM);
@@ -193,8 +192,8 @@ public class DataStructureHandler {
 
     }
 
+    // function to store offset of the blocks into disk
     private static void storeBlockOffsetsIntoDisk() {
-
         System.out.println("\nStoring block offsets into disk...");
 
         try (
@@ -207,6 +206,7 @@ public class DataStructureHandler {
             if(buffer == null)
                 return;
 
+            // scan all block and for each one write offset into disk
             for (int i = 0; i < dictionaryBlockOffsets.size(); i++) {
                 if(verbose)
                     System.out.println("OFFSET BLOCK " + i + ": " + dictionaryBlockOffsets.get(i));
@@ -221,6 +221,12 @@ public class DataStructureHandler {
 
     }
 
+    /**
+     * function to store one dictionary elem into disk
+     *
+     * @param dictElem  Element of the dictionary that contains the value to write into disk
+     * @param channel   indicate the file where to write
+     */
     public static void storeDictionaryElemIntoDisk(DictionaryElem dictElem, FileChannel channel){
         try {
             MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), DICT_ELEM_SIZE);
@@ -234,19 +240,20 @@ public class DataStructureHandler {
             for(int i = 0; i < dictElem.getTerm().length(); i++)
                 charBuffer.put(i, dictElem.getTerm().charAt(i));
             // write docno, docid and doclength into document file
-            buffer.put(StandardCharsets.UTF_8.encode(charBuffer));
-            buffer.putInt(dictElem.getDf());
-            buffer.putInt(dictElem.getCf());
-            buffer.putInt(dictElem.getTermId());
-            buffer.putLong(dictElem.getOffsetTermFreq());
-            buffer.putLong(dictElem.getOffsetDocId());
-            PARTIAL_DICTIONARY_OFFSET += DICT_ELEM_SIZE;
+            buffer.put(StandardCharsets.UTF_8.encode(charBuffer));      // write term
+            buffer.putInt(dictElem.getDf());                            // write Df
+            buffer.putInt(dictElem.getCf());                            // write Cf
+            buffer.putInt(dictElem.getTermId());                        // write TermID
+            buffer.putLong(dictElem.getOffsetTermFreq());               // write offset Tf
+            buffer.putLong(dictElem.getOffsetDocId());                  // write offset DID
+            PARTIAL_DICTIONARY_OFFSET += DICT_ELEM_SIZE;        // update offset
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    // function to store Dictionary and Inverted Index into disk
     public static void storeIndexAndDictionaryIntoDisk() {
 
         try (
@@ -257,8 +264,7 @@ public class DataStructureHandler {
                 FileChannel termfreqChannel = termfreqFile.getChannel();
                 FileChannel dictChannel = dictFile.getChannel()
         ) {
-            // Sort the dictionary lexicographically
-            dictionary.sort();
+            dictionary.sort();              // Sort the dictionary lexicographically
             dictionaryBlockOffsets.add(PARTIAL_DICTIONARY_OFFSET);// update of the offset of the block for the dictionary file
 
             // iterate through all the terms of the dictionary ordered
@@ -278,7 +284,7 @@ public class DataStructureHandler {
                 MappedByteBuffer buffer_docid = docidChannel.map(FileChannel.MapMode.READ_WRITE, docidChannel.size(), (long) posList.size() * INT_BYTES); // from 0 to number of postings * int dimension
                 MappedByteBuffer buffer_termfreq = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, termfreqChannel.size(), (long) posList.size() * INT_BYTES); //from 0 to number of postings * int dimension
 
-                //iterate through all the postings of the posting list
+                // iterate through all the postings of the posting list
                 for (Posting posting : posList) {
                     // Buffer not created
                     if (buffer_docid == null || buffer_termfreq == null)
@@ -293,7 +299,6 @@ public class DataStructureHandler {
 
                 // store dictionary entry to disk
                 storeDictionaryElemIntoDisk(dictElem, dictChannel);
-
             }
 
             System.out.println(dictionary.getTermToTermStat().size() + " terms stored in block " + (dictionaryBlockOffsets.size()-1));
@@ -303,7 +308,7 @@ public class DataStructureHandler {
         }
     }
 
-    //store one posting list of a term into the disk
+    // store one posting list of a term into the disk
     public static void storePostingListIntoDisk(ArrayList<Posting> pl, FileChannel termfreqChannel, FileChannel docidChannel) {
 
         //number of postings in the posting list
@@ -323,9 +328,10 @@ public class DataStructureHandler {
             e.printStackTrace();
         }
     }
+    // -------- end: functions to store into disk --------
 
-    // -- start of get functions --
-
+    // -------- start: functions to read from disk --------
+    // function to read the user's choices for the flags
     public static void readFlagsFromDisk() {
 
         System.out.println("Loading flags from disk...");
@@ -341,9 +347,9 @@ public class DataStructureHandler {
             flagsBuffer.rewind();
 
             // Get flag values from buffer
-            int isSwsEnabled = flagsBuffer.getInt();
-            int isCompressionEnabled = flagsBuffer.getInt();
-            int isScoringEnabled = flagsBuffer.getInt();
+            int isSwsEnabled = flagsBuffer.getInt();            // read stop words removal user's choice
+            int isCompressionEnabled = flagsBuffer.getInt();    // read compression user's choice
+            int isScoringEnabled = flagsBuffer.getInt();        // scoring user's choice
 
             // Set flag values with values read
             Flag.setSws(isSwsEnabled == 1);
@@ -358,7 +364,11 @@ public class DataStructureHandler {
     }
 
     /**
-     * @param start   offset of the document reading from document file
+     * function to read one Document Element from disk
+     *
+     * @param start     offset of the document reading from document file
+     * @param channel   indicate the file from which to read
+     * @return a DocumentElement with the value read from disk
      */
     public static DocumentElement readDocumentElementFromDisk(int start, FileChannel channel) throws IOException {
 
@@ -376,7 +386,7 @@ public class DataStructureHandler {
             return null;
 
         de.setDocno(charBuffer.toString().split("\0")[0]); //split using end string character
-        buffer.position(DOCNO_DIM); //skip docno
+        buffer.position(DOCNO_DIM);             //skip docno
         de.setDocid(buffer.getInt());
         de.setDoclength(buffer.getInt());
 
@@ -387,6 +397,7 @@ public class DataStructureHandler {
         return de;
     }
 
+    // function to read all document table from disk and put it in memory (HashMap documentTable)
     public static void readDocumentTableFromDisk() throws IOException {
         System.out.println("Loading document table from disk...");
         try (RandomAccessFile docTableRaf = new RandomAccessFile(DOCTABLE_FILE, "r");
@@ -401,6 +412,7 @@ public class DataStructureHandler {
         }
     }
 
+    // function to read offset of the block from disk
     public static void readBlockOffsetsFromDisk(){
 
         System.out.println("\nLoading block offsets from disk...");
@@ -419,7 +431,8 @@ public class DataStructureHandler {
             for(int i = 0; i < channel.size()/ LONG_BYTES; i++){
                 dictionaryBlockOffsets.add(buffer.getLong());
                 buffer.position((i+1)*LONG_BYTES); //skip to position of the data of the next block to read
-                System.out.println("OFFSET BLOCK " + i + ": " + dictionaryBlockOffsets.get(i));
+                if (verbose)
+                    System.out.println("OFFSET BLOCK " + i + ": " + dictionaryBlockOffsets.get(i));
             }
 
             System.out.println(dictionaryBlockOffsets.size() + " blocks loaded");
@@ -430,23 +443,30 @@ public class DataStructureHandler {
 
     }
 
+    /**
+     * function to read one Dictionary Element from disk
+     *
+     * @param start     offset of the document reading from document file
+     * @param channel   indicate the file from which to read
+     * @return a DictionaryElem with the value read from disk
+     */
     public static DictionaryElem readDictionaryElemFromDisk(long start, FileChannel channel){
 
         try {
             MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, start,  DICT_ELEM_SIZE); // get first term of the block
             DictionaryElem le = new DictionaryElem();           // create new DictionaryElem
-            CharBuffer.allocate(TERM_DIM); //allocate a charbuffer of the dimension reserved to docno
+            CharBuffer.allocate(TERM_DIM);              //allocate a charbuffer of the dimension reserved to docno
             CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
 
             if(!(charBuffer.toString().split("\0").length == 0))
-                le.setTerm(charBuffer.toString().split("\0")[0]);
+                le.setTerm(charBuffer.toString().split("\0")[0]);   // read term
 
-            buffer.position(TERM_DIM);
-            le.setDf(buffer.getInt());
-            le.setCf(buffer.getInt());
-            le.setTermId(buffer.getInt());
-            le.setOffsetTermFreq(buffer.getLong());
-            le.setOffsetDocId(buffer.getLong());
+            buffer.position(TERM_DIM);                  // skip over term position
+            le.setDf(buffer.getInt());                  // read Df
+            le.setCf(buffer.getInt());                  // read Cf
+            le.setTermId(buffer.getInt());              // read TermID
+            le.setOffsetTermFreq(buffer.getLong());     // read offset Tf
+            le.setOffsetDocId(buffer.getLong());        // read offset DID
 
 //            // print of the dictionary element fields taken from the disk
 //            if (verbose && (printInterval % start == 0))
@@ -459,40 +479,45 @@ public class DataStructureHandler {
         return null;
     }
 
+    // function to read whole Dictionary from disk
     public static void readDictionaryFromDisk(){
-
         System.out.println("Loading dictionary from disk...");
 
-        long position = 0;
+        long position = 0;      // indicate the position where read at each iteration
 
-        MappedByteBuffer buffer; // get first term of the block
+        MappedByteBuffer buffer;    // get first term of the block
         try (
                 FileChannel channel = new RandomAccessFile(DICTIONARY_FILE, "rw").getChannel()
         ) {
-            long len = channel.size();
+            long len = channel.size();          // size of the dictionary saved into disk
 
+            // scan all Dictionary Element saved into disk
             while(position < len) {
-                buffer = channel.map(FileChannel.MapMode.READ_ONLY, position, DICT_ELEM_SIZE);
-                position += DICT_ELEM_SIZE;
+                buffer = channel.map(FileChannel.MapMode.READ_ONLY, position, DICT_ELEM_SIZE);// read one DictionaryElem
+                position += DICT_ELEM_SIZE;                     // update read position
 
-                DictionaryElem le = new DictionaryElem();           // create new DictionaryElem
+                DictionaryElem le = new DictionaryElem();       // create new DictionaryElem
 
                 CharBuffer.allocate(TERM_DIM); //allocate a charbuffer of the dimension reserved to docno
                 CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
+                // control check of the term size
                 if(charBuffer.toString().split("\0").length == 0)
                     continue;
-                String term = charBuffer.toString().split("\0")[0];
+
+                String term = charBuffer.toString().split("\0")[0];     // read term
+
                 if(term.equals("epstein"))
                     System.out.println("TERM: " + term + " duplicated");
 
-                le.setTerm(term); //split using end string character
-                buffer.position(TERM_DIM); //skip docno
-                le.setDf(buffer.getInt());
-                le.setCf(buffer.getInt());
-                le.setTermId(buffer.getInt());
-                le.setOffsetTermFreq(buffer.getLong());
-                le.setOffsetDocId(buffer.getLong());
-                dictionary.getTermToTermStat().put(term, le);
+                le.setTerm(term);                           //split using end string character
+                buffer.position(TERM_DIM);                  //skip docno
+                le.setDf(buffer.getInt());                  // read and set Df
+                le.setCf(buffer.getInt());                  // read and set Cf
+                le.setTermId(buffer.getInt());              // read and set TermId
+                le.setOffsetTermFreq(buffer.getLong());     // read and set offset Tf
+                le.setOffsetDocId(buffer.getLong());        // read and set offset DID
+
+                dictionary.getTermToTermStat().put(term, le);   // add DictionaryElem into memory
             }
 
             System.out.println("vocabulary size: " + dictionary.getTermToTermStat().size());
@@ -501,6 +526,16 @@ public class DataStructureHandler {
         }
     }
 
+    /**
+     * function to read and return a posting list from disk
+     *
+     * @param offsetDocId       offset of the DocID
+     * @param offsetTermFreq    offset of the Term Frequency
+     * @param posting_size      size of the posting list
+     * @param docidChannel      file where read DocID values
+     * @param termfreqChannel   file where read Term Frequency values
+     * @return the posting lists read from disk
+     */
     public static ArrayList<Posting> readPostingListFromDisk(long offsetDocId, long offsetTermFreq, int posting_size, FileChannel docidChannel, FileChannel termfreqChannel) {
 
         ArrayList<Posting> pl = new ArrayList<>();
@@ -523,6 +558,7 @@ public class DataStructureHandler {
         }
         return null;
     }
+    // -------- end: functions to read from disk --------
 
     // method to free memory by deleting the information in document table, dictionary,and inverted index
     public static void freeMemory(){
@@ -531,4 +567,39 @@ public class DataStructureHandler {
         invertedIndex.clear();
     }
 
+    // -------- start: function to manage the file in disk --------
+
+    /**
+     * Function that check if there are all .txt files in "/resources/merged" folder
+     * The file that controls are: dictionary.txt, docId.txt, documentTable.txt, termFreq.txt
+     *
+     * @return  true -> there are all merged files into disk
+     *          false -> there aren't all merged files into disk
+     */
+    public static boolean areThereAllMergedFiles()
+    {
+        // define all file
+        File docTable = new File(DOCTABLE_FILE);        // documentTable.txt
+        File dict = new File(DICTIONARY_FILE);          // dictionary.txt"
+        File docDID = new File(DOCID_FILE);             // docId.txt
+        File docTF = new File(TERMFREQ_FILE);           // termFreq.txt
+
+        return docTable.exists() && dict.exists() && docDID.exists() && docTF.exists();
+    }
+
+    /**
+     * Function that check if there is the 'flags.txt' file in "/resources" folder
+     *
+     * @return  true -> there is
+     *          false -> there isn't
+     */
+    public static boolean isThereFlagsFile()
+    {
+        // define file
+        File docFlags = new File(FLAGS_FILE);        // flags.txt
+
+        return docFlags.exists();
+    }
+
+    // -------- end: function to manage the file in disk --------
 }

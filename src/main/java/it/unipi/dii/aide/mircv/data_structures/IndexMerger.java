@@ -61,7 +61,7 @@ public class IndexMerger {
                 FileChannel outDocIdChannel = docidFile.getChannel();
                 FileChannel outTermFreqChannel = termfreqFile.getChannel();
         ) {
-            //scroll all blocks and add the first term of each block to priority queue
+            // scroll all blocks and add the first term of each block to priority queue
             for(int i = 0; i <  nrBlocks; i++) {
                 buffer = dictChannel.map(FileChannel.MapMode.READ_ONLY, currentBlockOffset.get(i), TERM_DIM); //map current block in memory
                 String term = StandardCharsets.UTF_8.decode(buffer).toString().split("\0")[0];  // get first term of the block
@@ -85,10 +85,7 @@ public class IndexMerger {
             String term = "";   // var that contain the Term of the TermBlock extract from pq in the current iteration
             int block_id = -1;  // var that contain the blockID of the TermBlock extract from pq in the current iteration
 
-            // Merging the posting list.
-            // As long as the priority queue is not empty, extract the first term (in lexicographic order) and merge it.
-            // After each extraction, the new first term of the block (from which it was previously taken) is taken and
-            // put in the priority queue.
+            // Merging the posting list -> SEE NOTE 1
             while(!pq.isEmpty()) {
                 if (verbose && i < lim)     // print to divide the control print of each iteration
                     System.out.println("-----------------------------------------------------");
@@ -101,12 +98,7 @@ public class IndexMerger {
                 if (verbose && i < lim)
                     System.out.println("Current term (removed from pq): " + currentTermBlock);
 
-                // If there are other elements to be processed in the block identified by block_id (block containing the
-                // term taken from the queue in the current iteration) take the next term and add it to the priority queue.
-                // If condition divided whether the block considered is the last one or not
-                // last block -> check if reading one more element is less than file size
-                // not the last block -> check if reading one more element of that block is less than next block start
-                // if condition is satisfied -> read new element
+                // If condition to verify if there are other elements -> SEE NOTE 2
                 if (currentBlockOffset.get(block_id) + DICT_ELEM_SIZE  < (block_id == (currentBlockOffset.size()-1) ? dictChannel.size() : dictionaryBlockOffsets.get(block_id +1))){
                     buffer = dictChannel.map(FileChannel.MapMode.READ_ONLY, currentBlockOffset.get(block_id) + DICT_ELEM_SIZE, TERM_DIM); // get first element of the block
                     String[] t = StandardCharsets.UTF_8.decode(buffer).toString().split("\0");      // get the term of element
@@ -260,3 +252,18 @@ public class IndexMerger {
         }
     }
 }
+
+/*
+ * NOTE
+ * 1) While explanation:
+ *    As long as the priority queue is not empty, extract the first term (in lexicographic order) and merge it.
+ *    After each extraction, the new first term of the block (from which it was previously taken) is taken and
+ *    put in the priority queue.
+ * 2) If condition explanation:
+ *    If there are other elements to be processed in the block identified by block_id (block containing the
+ *    term taken from the queue in the current iteration) take the next term and add it to the priority queue.
+ *    If condition divided whether the block considered is the last one or not
+ *    last block -> check if reading one more element is less than file size
+ *    not the last block -> check if reading one more element of that block is less than next block start
+ *    if condition is satisfied -> read new element
+ */

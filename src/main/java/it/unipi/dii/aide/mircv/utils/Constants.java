@@ -46,7 +46,7 @@ public final class Constants {
     // variable that indicates after how many iterations to make a control printout (used in various methods)
     public static int printInterval = 1000000;
     // variable that stipulates the behaviour for control printouts. If false there will be no printouts, if true there will be all printouts.
-    public static boolean verbose = false;
+    public static boolean verbose = true;
 
     public static String formatTime(long start, long end) {
 
@@ -59,8 +59,9 @@ public final class Constants {
     }
 
     // terminal colors
-    public static final String ANSI_RESET = "\u001B[0m";
-    public static final String ANSI_CYAN = "\u001B[96m";
-    public static final String ANSI_YELLOW = "\u001B[93m";
+    public static final String ANSI_RESET = "\u001B[0m";        // reset the colour of the print
+    public static final String ANSI_CYAN = "\u001B[96m";        // cyan print
+    public static final String ANSI_YELLOW = "\u001B[93m";      // yellow print
+    public static final String ANSI_RED = "\033[0;31m";         // red print
 
 }
