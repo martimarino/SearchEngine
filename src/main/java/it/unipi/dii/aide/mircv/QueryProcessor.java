@@ -5,8 +5,7 @@ import it.unipi.dii.aide.mircv.data_structures.Posting;
 
 import javax.xml.crypto.Data;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 
@@ -16,7 +15,7 @@ import static it.unipi.dii.aide.mircv.utils.Constants.*;
 public class QueryProcessor {
 
     // HashMap for containing the DocID and sum of Term Frequency related. DID -> sTermFreq
-    private static final HashMap<Integer, Integer> tableDAAT = new HashMap<>();
+    private static final HashMap<Integer, Double> tableDAAT = new HashMap<>();
 
     /**
      * fuction to manage the query request. Prepare and execute the query and return the results.
@@ -51,9 +50,7 @@ public class QueryProcessor {
 
             DAATAlgorithm(processedQuery,isConjunctive, isDisjunctive);        // apply DAAT, result in tableDAAT
 
-            // apply scoring function
-
-            // ranked result
+            rankedResults = getRankedResults(numberOfResults);          // get ranked results
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -70,6 +67,7 @@ public class QueryProcessor {
      */
     public static boolean queryStartControl()
     {
+        // -- control for file into disk
         // check if there are all merged files into disk
         if(!DataStructureHandler.areThereAllMergedFiles())
         {
@@ -81,6 +79,21 @@ public class QueryProcessor {
         if (!DataStructureHandler.isThereFlagsFile())
         {
             System.out.println(ANSI_RED + "Error: there isn't the file for user's choices of flags." + ANSI_RESET);  // mex of error
+            return false;
+        }
+
+        // check if there is the file for the statistics of the collection
+        if (!DataStructureHandler.isThereStatsFile())
+        {
+            System.out.println(ANSI_RED + "Error: there isn't the file for the collection statistics." + ANSI_RESET);  // mex of error
+            return false;
+        }
+
+        // -- control for structures in memory
+        // check if dictionary in memory is set
+        if (!DataStructureHandler.dictionaryIsSet())
+        {
+            System.out.println(ANSI_RED + "Error: dictionary in memory isn't set." + ANSI_RESET);  // mex of error
             return false;
         }
 
@@ -96,46 +109,210 @@ public class QueryProcessor {
      */
     private static void DAATAlgorithm(ArrayList<String> ProcessedQuery,boolean isConjunctive, boolean isDisjunctive)
     {
-        ArrayList<Posting>[] postings = new ArrayList[ProcessedQuery.size()];   //
+        // ordered list of the DocID present in the all posting lists of the term present in the query
+        ArrayList<Integer> ordListDID;
+        ArrayList<Posting>[] postingLists;      // contains all the posting lists for each term of the query
+        Posting currentP;                       // support var
+        int currentDID = 0;                     // DID of the current doc processed in algorithm
+        double partialScore = 0;                   // var that contain partial score
+
+        postingLists = retrieveAllPostListsFromQuery(ProcessedQuery);   // take all posting lists of query terms
+        // control check for empty posting lists (the terms are not present in the document collection)
+        if (postingLists.length == 0)
+        {
+            System.out.println(ANSI_CYAN + "The term in query there aren't in collection." + ANSI_RESET);
+            return;     // exit to function
+        }
+
+        ordListDID = DIDOrderedListOfQuery(postingLists);               // take ordered list of DocID
+
+        // scan all Doc retrieved and calculate score TFIDF
+        for (int i = 0; i < ordListDID.size(); i++)
+        {
+            currentDID = ordListDID.get(i);     // update the DID, document of which to calculate the score
+            partialScore = 0;                   // reset var
+
+            if (isConjunctive)          // query is conjunctive
+            {
+                // must take only the document in which there are all term (DID that compare in all posting lists of the terms)
+
+                // 1 - controllo che tutte le prime posizioni abbino stesso DID
+                // 1.1 - se si allora calcolo lo scoring e poi passo avanti
+                // 1.2 - se no allora aggiorno le posizioni in cui è presente quel DID e passo a prossima iterazione senza chiamare scoring
+
+                continue;       // go next iteration
+            }
+            else if (isDisjunctive)     // query is isDisjunctive
+            {
+                // take all values and calculating the scores in the posting related to currentDID
+                for (int j = 0; j < postingLists.length; j++)
+                {
+                    // check if the posting lists of j-th is empty
+                    if (!postingLists[j].isEmpty())
+                    {
+                        // check if the j-th term of the query is present in the doc identify by currentDID
+                        if (postingLists[j].get(0).getDocId() == currentDID)
+                        {
+                            currentP = postingLists[j].remove(0);               // take and remove posting
+                            //System.out.println("DAAT, prescoring -- df = " + DataStructureHandler.postingListLengthFromTerm(ProcessedQuery.get(j)));
+
+                            // calculate TFIDF for this term and currentDID and sum to partial score
+                            partialScore += ScoringTFIDF(currentP.getTermFreq(), DataStructureHandler.postingListLengthFromTerm(ProcessedQuery.get(j)));
+
+                            //if (verbose)
+                            System.out.println("DAAT: posting del termine: " + ProcessedQuery.get(j) + " in array pos: " + j + " ha DID: " + currentDID + " and partialScore: " + partialScore);
+                        }
+                    }
+
+                }
+            }
+
+            // save score
+            if (partialScore != 0)
+            {
+                tableDAAT.put(currentDID,partialScore);     // add DID and related score to HashMap
+                //if (verbose)
+                System.out.println("Final TFIDF scoring for DID = " + currentDID + " is: " + tableDAAT.get(currentDID));
+            }
+
+        }
+    }
+
+    /**
+     * function to calculate TFIDF for one term and one document
+     *
+     * @param termFreq
+     * @param postListLength
+     * @return
+     */
+    private static Double ScoringTFIDF(int termFreq, int postListLength)
+    {
+        double TFweight;
+        double IDFweight;
+        double scoreTFIDF;
+
+        // control to avoid log and division to 0
+        if (termFreq == 0 || postListLength == 0)
+            return (double) 0;
+
+        TFweight = (1 + Math.log10(termFreq));
+        IDFweight = Math.log10(((double) DataStructureHandler.collection.getnDocs() / postListLength));
+        scoreTFIDF = TFweight * IDFweight;
+
+        System.out.println("ScoringTFIDF - TFweight = " + TFweight + " IDFweight = " + IDFweight + " scoreTFIDF = " + scoreTFIDF);
+
+        return scoreTFIDF;
+    }
+
+    // -------- start: utilities function --------
+
+    /**
+     * function to elaborate all docs and related scores to obtain the ranked list of results
+     *
+     * @param numResults
+     * @return
+     */
+    private static ArrayList<Integer> getRankedResults(int numResults)
+    {
+        ArrayList<Integer> rankedResults = new ArrayList<>();
+        ArrayList<Double> orederedList = new ArrayList<>();
+
+        //control check
+        if (numResults < 0 || tableDAAT.isEmpty())
+            return rankedResults;
+
+        //if(verbose)
+        System.out.println("HashMAp: " + tableDAAT);
+
+        // take ranked list of DocID
+        for (Map.Entry<Integer, Double> entry : tableDAAT.entrySet()) {
+            orederedList.add(entry.getValue());
+        }
+        orederedList.sort(Collections.reverseOrder());
+        for (double num : orederedList) {
+            for (Map.Entry<Integer, Double> entry : tableDAAT.entrySet()) {
+                if (entry.getValue() == num && !rankedResults.contains(entry.getKey())) {
+                    rankedResults.add(entry.getKey());
+                }
+            }
+        }
+        System.out.println("Total ranked results: " + rankedResults);
+
+        // if the ranked results are more than numResults, cut the last results
+        if (rankedResults.size() > numResults)
+        {
+            List<Integer> ord = rankedResults.subList(0,numResults);    // retrieve only the first numResults DocID
+            rankedResults = new ArrayList<>(ord);
+            System.out.println("Cut ranked results: " + rankedResults);
+        }
+        return rankedResults;
+    }
+
+    /**
+     * function to retrieve all the posting lists for each term of the query passed as parameter
+     *
+     * @param ProcessedQuery
+     * @return
+     */
+    private static ArrayList<Posting>[] retrieveAllPostListsFromQuery(ArrayList<String> ProcessedQuery)
+    {
+        // array of arrayList (posting list) that contain all the posting lists for each term iin the query
+        ArrayList<Posting>[] postingLists = new ArrayList[ProcessedQuery.size()];
         int iterator = 0;               // iterator for saving posting lists term in correct position
 
         // take posting list for each term in query
         for (String term : ProcessedQuery)
         {
-            // TO DO +++++++++++++++++            // take posting list related term
-            //postings[iterator] =
-            iterator++;                 // update iterator
             if (verbose)
                 System.out.println("DAAT: retrieve posting list of  " + term);
+            postingLists[iterator] = DataStructureHandler.getPostingListFromTerm(term); // take posting list related term
+            iterator++;                 // update iterator
         }
-        iterator = 0;       // reset iterator
 
-        // read and sum TermFrequency for each document in the posting list
-        // iterate until there are no more postings to analyse
-        while(true)
-        {
-            if (isConjunctive)          // query is conjunctive
-            {
-
-            }
-            else if (isDisjunctive)     // query is isDisjunctive
-            {
-
-            }
-            break;
-        }
+        return postingLists;
     }
 
-    // function to scoring and retrieve the ranked results from values obtained by DAAT algorithm
-    private static ArrayList<Integer> ScoringTFIDF()
+    /**
+     * function that given the posting lists of each term in a given query returns an ordered list of the DocIDs
+     * present in the all posting lists
+     *
+     * @param postingLists
+     * @return
+     */
+    private static ArrayList<Integer> DIDOrderedListOfQuery(ArrayList<Posting>[] postingLists)
     {
-        ArrayList<Integer> rankedResults = new ArrayList<>();
+        // ordered list of the DocID present in the all posting lists of the term present in the query
+        ArrayList<Integer> orderedList = new ArrayList<>();
+        int currentDocID = 0;                                   //
 
-        return rankedResults;
+        // scan all posting lists passed as parameters
+        for (int i = 0; i < postingLists.length; i++)
+        {
+            // scan all DocID in the i-th posting list
+            for (Posting p : postingLists[i])
+            {
+                currentDocID = p.getDocId();            // take DocID in the current posting
+                // control check for duplicate DocID, do only after first posting list
+                if (!orderedList.contains(currentDocID))
+                {
+                    orderedList.add(currentDocID);      // add DocID
+                }
+            }
+        }
+
+        Collections.sort(orderedList);          // order the list of DocID
+
+        System.out.println("Ordered List of DocID for the query:  " + orderedList);     // print orderedList
+
+        return orderedList;
     }
+
+    // -------- end: utilities function --------
 }
 
 /**
+ * in memoria si ha la document table e il dizionario
+ *
  * implementazione (ranked retrieval)
  * 1) Conjunctive (AND) vs. Disjunctive (OR)
  * 2.1) Term At Time: scorro la postings di ogni termine e segno il punteggio di ogni documento

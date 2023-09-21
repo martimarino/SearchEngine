@@ -9,6 +9,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.*;
@@ -103,6 +104,8 @@ public class DataStructureHandler {
             collection.setnDocs(docCounter);        // set total number of Document in the collection
             collection.setTotDocLen(totDocLen);     // set the sum of the all document length in the collection
 
+            storeCollectionStatsIntoDisk();         // store collection statistics into disk
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -155,6 +158,24 @@ public class DataStructureHandler {
             buffer.putInt(Flag.isSwsEnabled() ? 1 : 0);             // write stop words removal user's choice
             buffer.putInt(Flag.isCompressionEnabled() ? 1 : 0);     // write compression user's choice
             buffer.putInt(Flag.isScoringEnabled() ? 1 : 0);         // write scoring user's choice
+
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+    // function to store the collection statistics into disk
+    public static void storeCollectionStatsIntoDisk() {
+        System.out.println("Storing collection statistics into disk...");
+
+        try (
+                RandomAccessFile docStats = new RandomAccessFile(STATS_FILE, "rw");
+                FileChannel channel = docStats.getChannel()
+        ) {
+            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, (long) (INT_BYTES * 1 + DOUBLE_BYTES * 1)); // integer size * number of int to store (1) + double size * number of double to store (1)
+
+            buffer.putInt(collection.getnDocs());           // write total number of document in collection
+            buffer.putDouble(collection.getTotDocLen());    // write sum of the all document length in the collection
 
         } catch (IOException ioe) {
             ioe.printStackTrace();
@@ -363,6 +384,32 @@ public class DataStructureHandler {
         }
     }
 
+    // function to read the collection statistics from disk
+    public static void readCollectionStatsFromDisk() {
+
+        System.out.println("Loading collection statistics from disk...");
+
+        try (RandomAccessFile statsRAF = new RandomAccessFile(new File(STATS_FILE), "rw")) {
+            ByteBuffer statsBuffer = ByteBuffer.allocate(INT_BYTES * 1 + DOUBLE_BYTES * 1);   // bytes to read from disk
+            statsRAF.getChannel().position(0);
+
+            statsRAF.getChannel().read(statsBuffer);            // Read flag values from file
+            statsBuffer.rewind();                               // Move to the beginning of file for reading
+
+            // Get collection statistic values from buffer
+            int nDocs = statsBuffer.getInt();               // read number of documents in the collection
+            double totDocLen = statsBuffer.getDouble();     // read sum of the all document length in the collection
+
+            // Set collection statistics values with values read
+            collection.setnDocs(nDocs);
+            collection.setTotDocLen(totDocLen);
+
+            System.out.println("*** Collection statistics read -> nDocs: " + nDocs + ", totDocLen: " + totDocLen);
+
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
     /**
      * function to read one Document Element from disk
      *
@@ -558,6 +605,41 @@ public class DataStructureHandler {
         }
         return null;
     }
+
+    /**
+     * function to obtain the complete posting list (stored into disk) related the term passed by parameter
+     *
+     * @param term
+     * @return
+     */
+    public static ArrayList<Posting> getPostingListFromTerm(String term)
+    {
+        ArrayList<Posting> postingList = new ArrayList<>();     // contain the posting list of term
+        DictionaryElem de;
+
+        try (
+                // open complete files to read the postingList
+                RandomAccessFile docidFile = new RandomAccessFile(DOCID_FILE, "rw");
+                RandomAccessFile termfreqFile = new RandomAccessFile(TERMFREQ_FILE, "rw");
+                // FileChannel
+                FileChannel docIdChannel = docidFile.getChannel();
+                FileChannel termFreqChannel = termfreqFile.getChannel();
+        ) {
+            // check if the term is the term is present in the dictionary hashmap
+            if (dictionary.getTermToTermStat().containsKey(term))
+            {
+                de = dictionary.getTermToTermStat().get(term);      // take DictionaryElem related term
+                // take the postingList of term
+                postingList = readPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(),de.getDf(),docIdChannel,termFreqChannel);
+                printPostingList(postingList);          // print posting list
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return postingList;
+    }
     // -------- end: functions to read from disk --------
 
     // method to free memory by deleting the information in document table, dictionary,and inverted index
@@ -565,6 +647,15 @@ public class DataStructureHandler {
         documentTable.clear();
         dictionary.getTermToTermStat().clear();
         invertedIndex.clear();
+    }
+
+    // method to return the length of the posting list related to the term passed as parameter
+    public static int postingListLengthFromTerm (String term)
+    {
+        if (dictionary.getTermToTermStat().containsKey(term))
+            return dictionary.getTermToTermStat().get(term).getDf();
+        else
+            return 0;
     }
 
     // -------- start: function to manage the file in disk --------
@@ -601,5 +692,47 @@ public class DataStructureHandler {
         return docFlags.exists();
     }
 
+    /**
+     * Function that check if there is the 'collectionStatistics.txt' file in "/resources" folder
+     *
+     * @return  true -> there is
+     *          false -> there isn't
+     */
+    public static boolean isThereStatsFile()
+    {
+        // define file
+        File docStats = new File(STATS_FILE);        // collectionStatistics.txt
+
+        return docStats.exists();
+    }
+
     // -------- end: function to manage the file in disk --------
+
+    // -------- start: function to check if the structures in memory are set --------
+
+    // function that return if the dictionary in memory is set or not
+    public static boolean dictionaryIsSet()
+    {
+        return dictionary.getTermToTermStat().size() != 0;  // the hash map in dictionary is empty, the dictionary isn't set
+    }
+
+    // -------- end: function to check if the structures in memory are set --------
+
+    // -------- start: utility function and function useful for testing
+
+    // function to show in console a posting list passed by parameter
+    public static void printPostingList(ArrayList<Posting> pl)
+    {
+        int position = 0;       // var that indicate the position of current posting in the posting list
+
+        System.out.println("printPostingList: ");
+        // iterate through all posting in the posting list
+        for (Posting p : pl)
+        {
+            System.out.println("Posting #:" + position + " DocID: " + p.getDocId() + " Tf: " + p.getTermFreq());
+            position++;         // update iterator
+        }
+    }
+    // -------- start: utility function and function useful for testing
+
 }

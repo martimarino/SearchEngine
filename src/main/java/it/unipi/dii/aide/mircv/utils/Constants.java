@@ -24,11 +24,13 @@ public final class Constants {
 
     public static final String BLOCKOFFSETS_FILE = PARTIAL_FOLDER + "blocks.txt"; // file containing the offset of each vocabulary block
     public static final String FLAGS_FILE = RES_FOLDER + "flags.txt"; // file in which flags are stored
+    public static final String STATS_FILE = RES_FOLDER + "collectionStatistics.txt"; // file in which collection statistics are stored
 
     // -------------------------------- Constants for variable bytes -------------------------------------------
 
     public static final int INT_BYTES = Integer.BYTES;
     public static final int LONG_BYTES = Long.BYTES;
+    public static final int DOUBLE_BYTES = Double.BYTES;
 
     public static final int TERM_DIM = 20;                      // Length of a term (in bytes)
 
@@ -46,7 +48,7 @@ public final class Constants {
     // variable that indicates after how many iterations to make a control printout (used in various methods)
     public static int printInterval = 1000000;
     // variable that stipulates the behaviour for control printouts. If false there will be no printouts, if true there will be all printouts.
-    public static boolean verbose = true;
+    public static boolean verbose = false;
 
     public static String formatTime(long start, long end) {
 

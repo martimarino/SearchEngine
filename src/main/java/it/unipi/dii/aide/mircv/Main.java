@@ -73,13 +73,16 @@ public class Main {
                     // Read Flags from disk
                     DataStructureHandler.readFlagsFromDisk();
 
-                    //Read Document Table from disk and put into memory
+                    // Read collection statistics from disk
+                    DataStructureHandler.readCollectionStatsFromDisk();
+
+                    // Read Document Table from disk and put into memory
                     startTime = System.currentTimeMillis();             // start time to read Document Table from disk
                     DataStructureHandler.readDocumentTableFromDisk();   // read Document Table
                     endTime = System.currentTimeMillis();               // end time to read Document Table from disk
                     System.out.println(ANSI_YELLOW + "Document Table loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
-                    //Read Dictionary from disk
+                    // Read Dictionary from disk
                     startTime = System.currentTimeMillis();         // start time to read Dictionary from disk
                     DataStructureHandler.readDictionaryFromDisk();  // read dictionary
                     endTime = System.currentTimeMillis();           // end time to read Dictionary from disk
@@ -118,7 +121,7 @@ public class Main {
                                 isDisjunctive = true;           // set isDisjunctive
                             }
                         } catch (NumberFormatException nfe) {
-                            System.out.println(ANSI_CYAN + "Insert a valid character." + ANSI_RESET);
+                            System.out.println(ANSI_RED + "Insert a valid character." + ANSI_RESET);
                         }
                     } while (!(isConjunctive || isDisjunctive));  // continues until isConjunctive or isDisjunctive is set
 
@@ -130,7 +133,7 @@ public class Main {
                             numberOfResults = Integer.parseInt(sc.nextLine());    // take the int inserted by user
                             validN = (numberOfResults > 0) ? 1 : 0;               // validity check of the int
                         } catch (NumberFormatException nfe) {
-                            System.out.println(ANSI_CYAN + "Insert a valid positive number" + ANSI_RESET);
+                            System.out.println(ANSI_RED + "Insert a valid positive number" + ANSI_RESET);
                         }
                     } while (validN == 0);  // continues until a valid number is entered
 
@@ -184,7 +187,7 @@ public class Main {
             System.out.println(ANSI_CYAN + "Query results:" + ANSI_RESET);
             for (int i = 0; i < rankedResults.size(); i++)
             {
-                System.out.print(ANSI_CYAN + (i + 1) + " - " + rankedResults.get(i) + ANSI_RESET);
+                System.out.println(ANSI_CYAN + (i + 1) + " - " + rankedResults.get(i) + ANSI_RESET);
             }
         }
         else                                // there aren't results
