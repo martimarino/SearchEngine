@@ -51,6 +51,7 @@ public class QueryProcessor {
             DAATAlgorithm(processedQuery,isConjunctive, isDisjunctive);        // apply DAAT, result in tableDAAT
 
             rankedResults = getRankedResults(numberOfResults);          // get ranked results
+            tableDAAT.clear();                                          // clear HashMap
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -132,38 +133,31 @@ public class QueryProcessor {
             currentDID = ordListDID.get(i);     // update the DID, document of which to calculate the score
             partialScore = 0;                   // reset var
 
-            if (isConjunctive)          // query is conjunctive
+            // default case is query Disjunctive
+            // take all values and calculating the scores in the posting related to currentDID
+            for (int j = 0; j < postingLists.length; j++)
             {
-                // must take only the document in which there are all term (DID that compare in all posting lists of the terms)
-
-                // 1 - controllo che tutte le prime posizioni abbino stesso DID
-                // 1.1 - se si allora calcolo lo scoring e poi passo avanti
-                // 1.2 - se no allora aggiorno le posizioni in cui è presente quel DID e passo a prossima iterazione senza chiamare scoring
-
-                continue;       // go next iteration
-            }
-            else if (isDisjunctive)     // query is isDisjunctive
-            {
-                // take all values and calculating the scores in the posting related to currentDID
-                for (int j = 0; j < postingLists.length; j++)
+                // check if the posting lists of j-th is empty AND if the j-th term of the query is present in the doc identify by currentDID
+                if (!postingLists[j].isEmpty() && (postingLists[j].get(0).getDocId() == currentDID))
                 {
-                    // check if the posting lists of j-th is empty
-                    if (!postingLists[j].isEmpty())
-                    {
-                        // check if the j-th term of the query is present in the doc identify by currentDID
-                        if (postingLists[j].get(0).getDocId() == currentDID)
-                        {
-                            currentP = postingLists[j].remove(0);               // take and remove posting
-                            //System.out.println("DAAT, prescoring -- df = " + DataStructureHandler.postingListLengthFromTerm(ProcessedQuery.get(j)));
+                    currentP = postingLists[j].remove(0);               // take and remove posting
+                    //System.out.println("DAAT, prescoring -- df = " + DataStructureHandler.postingListLengthFromTerm(ProcessedQuery.get(j)));
 
-                            // calculate TFIDF for this term and currentDID and sum to partial score
-                            partialScore += ScoringTFIDF(currentP.getTermFreq(), DataStructureHandler.postingListLengthFromTerm(ProcessedQuery.get(j)));
+                    // calculate TFIDF for this term and currentDID and sum to partial score
+                    partialScore += ScoringTFIDF(currentP.getTermFreq(), DataStructureHandler.postingListLengthFromTerm(ProcessedQuery.get(j)));
 
-                            //if (verbose)
-                            System.out.println("DAAT: posting del termine: " + ProcessedQuery.get(j) + " in array pos: " + j + " ha DID: " + currentDID + " and partialScore: " + partialScore);
-                        }
-                    }
-
+                    //if (verbose)
+                    System.out.println("DAAT: posting del termine: " + ProcessedQuery.get(j) + " in array pos: " + j + " ha DID: " + currentDID + " and partialScore: " + partialScore);
+                }
+                else if (isConjunctive)
+                {
+                    // must take only the document in which there are all term (DID that compare in all posting lists of the terms)
+                    partialScore = 0;       // reset the partial score
+                    // if one posting lists is empty the next documents in the posting lists cannot contain all the terms in the query
+                    if (postingLists[j].isEmpty())
+                        return;             // exit from function
+                    else
+                        break;              // exit from the for and go to next Document
                 }
             }
 
@@ -310,24 +304,10 @@ public class QueryProcessor {
     // -------- end: utilities function --------
 }
 
-/**
+/*
+ * Specification
  * in memoria si ha la document table e il dizionario
  *
- * implementazione (ranked retrieval)
- * 1) Conjunctive (AND) vs. Disjunctive (OR)
- * 2.1) Term At Time: scorro la postings di ogni termine e segno il punteggio di ogni documento
- * 2.2) Doc At Time: altra strategia è attraversare in parallelo le posting list dei vari termini in contemporanea.
- *      prendo il documento con il DID più piccolo, guardo in tutte le posting list e per quel documento calcolo il
- *      punteggio totale, finale.
- * Usare coda prioritaria per mettere doc con punteggio e poi prenderli (ci saranno casi di parità, gestirli)
- * ) Scoring function: TFIDF -> Wtd = (1 + log (tf_td)) * log(N/df_t)  se tf_td > 0  sennò 0
- *      dove TFtd = term frequency del term t in document d
- *      dove N = numero totale dei documenti    e   df_t = numero dei documenti che contengono t
- */
-
-
-/**
- * Specification
  * - Obbligatorie:
  * -- query deve durare meno di 1", una volta fatta la query devo avere subito i risultati
  * -- deve utilizzare qualcosa di simile alla semplice interfaccia presentata nella classe, basata sulle operazioni openList(),
@@ -338,12 +318,4 @@ public class QueryProcessor {
  *
  * - Punto opzionale
  * -- Implementare il BM25 o altre funzioni di scoring, come ad es. quelle basate sui modelli linguistici.
- */
-
-/**
- * Note:
- * For calculate scores:
- * - TAAT: pros -> simple, cache-friendly       cons -> a lot of memory for partial scores, difficult in boolean or phrasal query
- * - DAAT: pros -> requires smaller memory than TAAT, support boolean and phrasal query
- *         cons -> lesser cache-friendly than TAAT
  */

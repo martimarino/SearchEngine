@@ -631,7 +631,7 @@ public class DataStructureHandler {
                 de = dictionary.getTermToTermStat().get(term);      // take DictionaryElem related term
                 // take the postingList of term
                 postingList = readPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(),de.getDf(),docIdChannel,termFreqChannel);
-                printPostingList(postingList);          // print posting list
+                printPostingList(postingList,term);          // print posting list
             }
         }
         catch (IOException e) {
@@ -721,11 +721,11 @@ public class DataStructureHandler {
     // -------- start: utility function and function useful for testing
 
     // function to show in console a posting list passed by parameter
-    public static void printPostingList(ArrayList<Posting> pl)
+    public static void printPostingList(ArrayList<Posting> pl,String term)
     {
         int position = 0;       // var that indicate the position of current posting in the posting list
 
-        System.out.println("printPostingList: ");
+        System.out.println("printPostingList of " + term + ": ");
         // iterate through all posting in the posting list
         for (Posting p : pl)
         {
