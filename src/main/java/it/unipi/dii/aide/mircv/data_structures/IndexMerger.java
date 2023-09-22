@@ -8,21 +8,21 @@ import java.util.*;
 
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.*;
 import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.DICT_ELEM_SIZE;
+import static it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
-import static it.unipi.dii.aide.mircv.utils.FileSystem.delete_tempFiles;
 
 /**
  * class to merge the InverteIndex
  */
-public class IndexMerger {
+public final class IndexMerger {
     // Priority queue which will contain the first term (in lexicographic order) of each block. Used for merge and to
     // take from all the blocks the terms in the right order.
-    private static PriorityQueue<TermBlock> pq = new PriorityQueue<>(dictionaryBlockOffsets.size() == 0 ? 1 : dictionaryBlockOffsets.size(), new CompareTerm());
+    private static final PriorityQueue<TermBlock> pq = new PriorityQueue<>(dictionaryBlockOffsets.size() == 0 ? 1 : dictionaryBlockOffsets.size(), new CompareTerm());
 
-    // constructor without parameters
-    public IndexMerger() {
-
+    private IndexMerger() {
+        throw new UnsupportedOperationException();
     }
+
 
     static int i = 0;       // counter used only for control prints
     /**
@@ -31,15 +31,15 @@ public class IndexMerger {
     public static void mergeBlocks() {
         System.out.println("Merging partial files...");                     // print of the merging start
 
-        int nrBlocks = DataStructureHandler.dictionaryBlockOffsets.size();  // dictionary number
+        int nrBlocks = dictionaryBlockOffsets.size();           // dictionary number
         DataStructureHandler.readBlockOffsetsFromDisk();        // get offsets of dictionary blocks from disk
         MappedByteBuffer buffer;
         // array containing the current read offset for each block
         ArrayList<Long> currentBlockOffset = new ArrayList<>(nrBlocks);
         currentBlockOffset.addAll(dictionaryBlockOffsets);
 
-        int lim = 200;   // var which indicates the upper limit for control prints, above which no prints will be shown
-        int stepProgressionPrint = 100000;  // var which indicates the steps of 'i' progression print during merge
+        int lim = 20;                           // var which indicates the upper limit for control prints, above which no prints will be shown
+        int stepProgressionPrint = 100000;       // var which indicates the steps of 'i' progression print during merge
 
         // open file and create channels for reading the partial dictionary and index file and write the complete index and dictionary file
         try (
@@ -68,17 +68,10 @@ public class IndexMerger {
                 pq.add(new TermBlock(term, i));     // add to the priority queue a TermBlock element (term + its blocks number)
             }
 
-            if(verbose){
-                System.out.println("\nINITIAL PQ: ");
-                for (TermBlock elemento : pq) {
-                    System.out.println(elemento.term + " - " + elemento.block);
-                }
-            }
-
             // build temp structures
             DictionaryElem tempDE = new DictionaryElem();       // empty temporary DictionaryELem, contains the accumulated data for each term
             ArrayList<Posting> tempPL = new ArrayList<>();      // empty temporary PostingList, contains the accumulated data for each term
-            DictionaryElem currentDE;       // current DictionaryElem, contains the data taken from the queue in the current iteration
+            DictionaryElem currentDE = new DictionaryElem();       // current DictionaryElem, contains the data taken from the queue in the current iteration
             ArrayList<Posting> currentPL;   // current PostingList, contains the data taken from the queue in the current iteration
 
             TermBlock currentTermBlock;     // var that contain the TermBlock extract from pq in the current iteration
@@ -87,16 +80,16 @@ public class IndexMerger {
 
             // Merging the posting list -> SEE NOTE 1
             while(!pq.isEmpty()) {
-                if (verbose && i < lim)     // print to divide the control print of each iteration
-                    System.out.println("-----------------------------------------------------");
+                if (i < lim)     // print to divide the control print of each iteration
+                    printDebug("-----------------------------------------------------");
 
                 // get first element from priority queue
                 currentTermBlock = pq.poll();               // get lowest term from priority queue
                 term = currentTermBlock.getTerm();          // get the term
                 block_id = currentTermBlock.getBlock();     // get the blockID
 
-                if (verbose && i < lim)
-                    System.out.println("Current term (removed from pq): " + currentTermBlock);
+                if (i < lim)
+                    printDebug("Current term (removed from pq): " + currentTermBlock);
 
                 // If condition to verify if there are other elements -> SEE NOTE 2
                 if (currentBlockOffset.get(block_id) + DICT_ELEM_SIZE  < (block_id == (currentBlockOffset.size()-1) ? dictChannel.size() : dictionaryBlockOffsets.get(block_id +1))){
@@ -104,31 +97,20 @@ public class IndexMerger {
                     String[] t = StandardCharsets.UTF_8.decode(buffer).toString().split("\0");      // get the term of element
                     if (!(t.length == 0))           // control check if term is not empty
                         pq.add(new TermBlock(t[0], block_id));  //add to the priority queue a term block element (term + its blocks number)
-                    if (verbose && i < lim)
-                        System.out.println("New term (added to pq) -> TERM: " + Arrays.toString(t) + " - FROM BLOCK: " + block_id);
                 }
                 else
                 {
                     System.out.println("current block offset " + currentBlockOffset.get(block_id) + "block "+ block_id);
                 }
 
-                // print the current element in the priority queue
-                if (verbose && i < lim) {
-                    System.out.println("ACTUAL PQ: ");
-                    for (TermBlock elemento : pq) {
-                        System.out.println(elemento.term + " - " + elemento.block);
-                    }
-                }
-
                 // get current elem of dictionary
-                currentDE = readDictionaryElemFromDisk(currentBlockOffset.get(block_id), dictChannel);
+                currentDE.readDictionaryElemFromDisk(currentBlockOffset.get(block_id), dictChannel);
                 // get current posting list
                 currentPL = readPostingListFromDisk(currentDE.getOffsetDocId(), currentDE.getOffsetTermFreq(), currentDE.getDf(), docidChannel, termfreqChannel);
 
-                if(verbose && i < lim) {
-                    System.out.println("CURR DE: " + currentDE);
-                    System.out.println("CURR PL: " + currentPL.size());
-                }
+                if(i < lim)
+                    printDebug("CURR DE: " + currentDE + "\nCURR PL: " + currentPL.size());
+
 
                 if (tempDE.getTerm().equals("")) {        // first iteration
 
@@ -138,20 +120,17 @@ public class IndexMerger {
                     tempDE.setOffsetDocId(outDocIdChannel.size());
                     tempPL = currentPL;
 
-                    if(verbose && i < lim) {
-                        System.out.println("*** First iteration ***");
-                        System.out.println("TEMP DE: " + tempDE);
-                        System.out.println("TEMP PL: " + tempPL.size());
+                    if(i < lim) {
+                        printDebug("*** First iteration ***");
+                        printDebug("CURR DE: " + tempDE + "\nCURR PL: " + tempPL.size());
                     }
                 } else {                                // is not the first iteration
-                    if(verbose && i < lim) {
-                        System.out.println("TEMP DE: " + tempDE);
-                        System.out.println("TEMP PL: " + tempPL.size());
-                    }
+                    if(i < lim)
+                        printDebug("CURR DE: " + tempDE + "\nCURR PL: " + tempPL.size());
 
                     // same term found (respect the previous iteration), temporary structures update
                     if (currentDE.getTerm().equals(tempDE.getTerm())) {
-                        if(verbose && i < lim)
+                        if(i < lim)
                             System.out.println("*** Same term of previous one -> accumulate on temp variables ***");
 
                         // update DictionaryElem
@@ -161,21 +140,17 @@ public class IndexMerger {
                         assert tempPL != null;
                         tempPL.addAll(currentPL);               // add all new postings
 
-                        if(verbose && i < lim) {
-                            System.out.println("TEMP DE: " + tempDE);
-                            System.out.println("TEMP PL: " + tempPL.size());
-                        }
+                        if(i < lim)
+                            printDebug("TEMP DE: " + tempDE + "\nTEMP PL: " + tempPL.size());
                     }
                     else{    // different term found (respect the previous iteration), write to disk the complete data of the previous term
-                        if(verbose && i < lim) {
-                            System.out.println("*** Writing elem to disk... ***");
-                            System.out.println("Temp variables status (with the elem to be written)");
-                            System.out.println("TEMP DE: " + tempDE);
-                            System.out.println("TEMP PL: " + tempPL.size());
+                        if(i < lim) {
+                            printDebug("*** Writing elem to disk... ***\nTemp variables status (with the elem to be written)");
+                            printDebug("TEMP DE: " + tempDE + "\nTEMP PL: " + tempPL.size());
                         }
 
                         // write DictionaryElem to disk
-                        storeDictionaryElemIntoDisk(tempDE, outDictionaryChannel);
+                        tempDE.storeDictionaryElemIntoDisk(outDictionaryChannel);
                         // write InvertedIndexElem to disk
                         storePostingListIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);
 
@@ -183,23 +158,22 @@ public class IndexMerger {
                         tempDE = currentDE;
                         tempPL = currentPL;
 
-                        if(verbose && i < lim) {
-                            System.out.println("Temp variables status after writing and update");
-                            System.out.println("TEMP DE: " + tempDE);
-                            System.out.println("TEMP PL: " + tempPL.size());
+                        if(i < lim) {
+                            printDebug("Temp variables status after writing and update");
+                            printDebug("TEMP DE: " + tempDE + "\nTEMP PL: " + tempPL.size());
                         }
                     }
                 }
+                currentDE = new DictionaryElem();
+                i++;
+
                 // update the offset of next element to read from the block read in this iteration
                 currentBlockOffset.set(block_id, currentBlockOffset.get(block_id) + DICT_ELEM_SIZE);
-
-                if (verbose && (i % stepProgressionPrint == 0))      // print to visualize the progression of the merge
-                    System.out.println("i: " + i);
-                i++;                                    // increment the counter
             }
-            if (verbose)      // print to visualize the total number of iterations
-                System.out.println("Merge ended, total number of iterations (i) is: " + i);
-//            delete_tempFiles();
+            printDebug("Merge ended, total number of iterations (i) is: " + i);
+
+//            delete_tempFiles();                                                                       !!!!!!!!!!!!!!!!
+
         } catch (IOException e) {
             e.printStackTrace();
         }

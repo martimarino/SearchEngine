@@ -1,13 +1,11 @@
 package it.unipi.dii.aide.mircv.utils;
 
 import java.io.File;
+import org.apache.commons.io.FileUtils;
+import java.io.IOException;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 
-import org.apache.commons.io.FileUtils;
-
-import java.io.File;
-import java.io.IOException;
 
 public final class FileSystem {
 
@@ -62,7 +60,24 @@ public final class FileSystem {
                 e.printStackTrace();
             }
         }
+    }
 
+    /**
+     * Function that check if there are all .txt files in "/resources/merged" folder
+     * The file that controls are: dictionary.txt, docId.txt, documentTable.txt, termFreq.txt
+     *
+     * @return  true -> there are all merged files into disk
+     *          false -> there aren't all merged files into disk
+     */
+    public static boolean areThereAllMergedFiles()
+    {
+        // define all file
+        File docTable = new File(DOCTABLE_FILE);        // documentTable.txt
+        File dict = new File(DICTIONARY_FILE);          // dictionary.txt"
+        File docDID = new File(DOCID_FILE);             // docId.txt
+        File docTF = new File(TERMFREQ_FILE);           // termFreq.txt
+
+        return docTable.exists() && dict.exists() && docDID.exists() && docTF.exists();
     }
 
 }

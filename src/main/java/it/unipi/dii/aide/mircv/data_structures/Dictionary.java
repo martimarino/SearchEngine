@@ -1,10 +1,19 @@
 
 package it.unipi.dii.aide.mircv.data_structures;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.CharBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.DICT_ELEM_SIZE;
+import static it.unipi.dii.aide.mircv.utils.Constants.*;
 
 public class Dictionary {
 

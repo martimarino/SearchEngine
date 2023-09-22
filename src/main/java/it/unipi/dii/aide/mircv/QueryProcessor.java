@@ -1,10 +1,11 @@
 package it.unipi.dii.aide.mircv;
-import it.unipi.dii.aide.mircv.data_structures.DataStructureHandler;
-import it.unipi.dii.aide.mircv.data_structures.DocumentElement;
-import it.unipi.dii.aide.mircv.data_structures.Posting;
+import it.unipi.dii.aide.mircv.data_structures.*;
+import it.unipi.dii.aide.mircv.data_structures.Dictionary;
+import it.unipi.dii.aide.mircv.utils.FileSystem;
 
-import javax.xml.crypto.Data;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
 import java.util.*;
 
 import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.readCollectionStatsFromDisk;
@@ -14,12 +15,15 @@ import static it.unipi.dii.aide.mircv.utils.Constants.*;
 /**
  * Class to manage and execute query
  */
-public class QueryProcessor {
+public final class QueryProcessor {
 
     // used for the test
-    private static boolean ordereAllHashMAp = false;        // indicate whether order all or only first "numberOfResults" results from hash table
+    private static boolean orderAllHashMap = false;        // indicate whether order all or only first "numberOfResults" results from hash table
     // HashMap for containing the DocID and sum of Term Frequency related. DID -> sTermFreq
     private static final HashMap<Integer, Double> tableDAAT = new HashMap<>();
+
+    public static HashMap<Integer, DocumentElement> documentTable = new HashMap<>();                       // hash table DocID to related DocElement
+    static it.unipi.dii.aide.mircv.data_structures.Dictionary dictionary = new Dictionary();        // dictionary in memory
 
     /**
      * fuction to manage the query request. Prepare and execute the query and return the results.
@@ -38,19 +42,18 @@ public class QueryProcessor {
         DictionaryElem de;// array list for containing the query term
 
         // take user's choices that affecting the query execution
-        DataStructureHandler.readFlagsFromDisk();           // take from disk
-        boolean ScoringFunc = Flag.isScoringEnabled();      // take user's choice about using scoring function ...
+        boolean ScoringFunc = Flags.isScoringEnabled();      // take user's choice about using scoring function ...
 
         try{
             // processed the query to obtain the term
-            System.out.println("Query before processed: " + query);
+            printDebug("Query before processed: " + query);
             processedQuery = TextProcessor.preprocessText(query); // Preprocessing of document text
-            System.out.println("Query after processed: " + processedQuery);
+            printDebug("Query after processed: " + processedQuery);
 
             // control for correct form
             if ( (isConjunctive && isDisjunctive) || !(isConjunctive || isDisjunctive))     // query is Conjunctive or Disjunctive cannot be both or neither
             {
-                System.out.println(ANSI_RED + "Error: query is Conjunctive or Disjunctive cannot be both or neither." + ANSI_RESET);  // mex of error
+                printError("Error: query is Conjunctive or Disjunctive cannot be both or neither.");  // mex of error
                 return rankedResults;
             }
 
@@ -72,33 +75,20 @@ public class QueryProcessor {
      * @return  true -> if all checks are passed,then can proceed with the execution of a query
      *          false -> if at least one check is failed (one file missed), then can't proceed with the execution of a query
      */
-    public static boolean queryStartControl()
-    {
+    public static boolean queryStartControl() throws IOException {
         // -- control for file into disk
-        // check if there are all merged files into disk
-        if(!DataStructureHandler.areThereAllMergedFiles())
-        {
-            System.out.println(ANSI_RED + "Error: there aren't all files in 'Merged' folder." + ANSI_RESET);  // mex of error
+        if (!FileSystem.areThereAllMergedFiles() ||
+                !Flags.isThereFlagsFile() ||
+                !CollectionStatistics.isThereStatsFile()) {
+            printError("Error: missing required files.");
             return false;
         }
 
-        // check if there is the file for user choices of flags
-        if (!DataStructureHandler.isThereFlagsFile())
-        {
-            System.out.println(ANSI_RED + "Error: there isn't the file for user's choices of flags." + ANSI_RESET);  // mex of error
-            return false;
-        }
+        readFlagsFromDisk();
+        readCollectionStatsFromDisk();
 
-        // check if there is the file for the statistics of the collection
-        if (!DataStructureHandler.isThereStatsFile())
-        {
-            System.out.println(ANSI_RED + "Error: there isn't the file for the collection statistics." + ANSI_RESET);  // mex of error
-            return false;
-        }
-
-        // -- control for structures in memory
-        // check if dictionary in memory is set
-        if (!DataStructureHandler.dictionaryIsSet())
+        // -- control for structures in memory - if not load them from disk
+        if (!dictionary.dictionaryIsSet())
         {
             long startTime = System.currentTimeMillis();
             dictionary.readDictionaryFromDisk();
@@ -136,7 +126,7 @@ public class QueryProcessor {
         // control check for empty posting lists (the terms are not present in the document collection)
         if (postingLists.length == 0)
         {
-            System.out.println(ANSI_CYAN + "The term in query there aren't in collection." + ANSI_RESET);
+            printUI("The term in query there aren't in collection.");
             return;     // exit to function
         }
 
@@ -159,10 +149,11 @@ public class QueryProcessor {
                     //System.out.println("DAAT, prescoring -- df = " + DataStructureHandler.postingListLengthFromTerm(ProcessedQuery.get(j)));
 
                     // calculate TFIDF for this term and currentDID and sum to partial score
-                    partialScore += ScoringTFIDF(currentP.getTermFreq(), DataStructureHandler.postingListLengthFromTerm(ProcessedQuery.get(j)));
+                    String term = ProcessedQuery.get(j);
+                    int df = dictionary.getTermToTermStat().get(term).getDf();
+                    partialScore += ScoringTFIDF(currentP.getTermFreq(), df);
 
-                    //if (verbose)
-                    System.out.println("DAAT: posting del termine: " + ProcessedQuery.get(j) + " in array pos: " + j + " ha DID: " + currentDID + " and partialScore: " + partialScore);
+                    printDebug("DAAT: posting del termine: " + ProcessedQuery.get(j) + " in array pos: " + j + " ha DID: " + currentDID + " and partialScore: " + partialScore);
                 }
                 else if (isConjunctive)
                 {
@@ -180,10 +171,8 @@ public class QueryProcessor {
             if (partialScore != 0)
             {
                 tableDAAT.put(currentDID,partialScore);     // add DID and related score to HashMap
-                //if (verbose)
-                System.out.println("Final TFIDF scoring for DID = " + currentDID + " is: " + tableDAAT.get(currentDID));
+                printDebug("Final TFIDF scoring for DID = " + currentDID + " is: " + tableDAAT.get(currentDID));
             }
-
         }
     }
 
@@ -206,11 +195,10 @@ public class QueryProcessor {
             return (double) 0;
 
         TFweight = (1 + Math.log10(termFreq));
-        IDFweight = Math.log10(((double) DataStructureHandler.collection.getnDocs() / postListLength));
+        IDFweight = Math.log10(((double) CollectionStatistics.getNDocs() / postListLength));
         scoreTFIDF = TFweight * IDFweight;
 
-        //if(verbose)
-        System.out.println("ScoringTFIDF - TFweight = " + TFweight + " IDFweight = " + IDFweight + " scoreTFIDF = " + scoreTFIDF);
+        printDebug("ScoringTFIDF - TFweight = " + TFweight + " IDFweight = " + IDFweight + " scoreTFIDF = " + scoreTFIDF);
 
         return scoreTFIDF;
     }
@@ -232,8 +220,7 @@ public class QueryProcessor {
         if (numResults < 0 || tableDAAT.isEmpty())
             return rankedResults;
 
-        //if(verbose)
-        System.out.println("HashMAp: " + tableDAAT);
+        printDebug("HashMAp: " + tableDAAT);
 
         // take ranked list of DocID
         for (Map.Entry<Integer, Double> entry : tableDAAT.entrySet()) {
@@ -242,7 +229,7 @@ public class QueryProcessor {
         orederedList.sort(Collections.reverseOrder());
 
         // true in testing phase -> order and show all results (required long time)
-        if (ordereAllHashMAp)
+        if (orderAllHashMap)
         {
             long startTime = System.currentTimeMillis();         // start time of hash map ordering
             for (double num : orederedList) {
@@ -254,7 +241,7 @@ public class QueryProcessor {
             }
             long endTime = System.currentTimeMillis();           // end time of hash map ordering
             // shows query execution time
-            System.out.println(ANSI_YELLOW + "\n*** TOTAL HashMap ordered in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
+            printTime("\n*** TOTAL HashMap ordered in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
 
             System.out.println("Total ranked results: " + rankedResults);
 
@@ -283,7 +270,7 @@ public class QueryProcessor {
             }
             long endTime = System.currentTimeMillis();           // end time of hash map ordering
             // shows query execution time
-            System.out.println(ANSI_YELLOW + "\n*** PARTIAL HashMap ordered in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
+            printTime("\n*** PARTIAL HashMap ordered in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
         }
 
         return rankedResults;
@@ -358,7 +345,7 @@ public class QueryProcessor {
 
         Collections.sort(orderedList);          // order the list of DocID
 
-         System.out.println("Ordered List of DocID for the query:  " + orderedList);     // print orderedList
+        printDebug("Ordered List of DocID for the query:  " + orderedList);     // print orderedList
 
         return orderedList;
     }

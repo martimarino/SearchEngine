@@ -1,5 +1,6 @@
 package it.unipi.dii.aide.mircv;
 
+import it.unipi.dii.aide.mircv.data_structures.Flags;
 import org.tartarus.snowball.ext.PorterStemmer;
 
 import java.io.IOException;
@@ -26,7 +27,7 @@ public class TextProcessor {
         tokenList = tokenizeText(input); // Tokenize the cleaned text into individual words
 
         /* Remove stop-words and perform stemming */
-        if (Flag.isSwsEnabled()) { // Check if the filtering flag is enabled
+        if (Flags.isSwsEnabled()) { // Check if the filtering flag is enabled
             tokenList = removeStopwords(tokenList); // Remove common stopwords
             tokenList = applyStemming(tokenList); // Perform stemming on the remaining words
         }
