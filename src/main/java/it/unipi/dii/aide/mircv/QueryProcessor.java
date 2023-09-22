@@ -10,10 +10,12 @@ import java.util.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 
 /**
- * This class
+ * Class to manage and execute query
  */
 public class QueryProcessor {
 
+    // used for the test
+    private static boolean ordereAllHashMAp = false;        // indicate whether order all or only first "numberOfResults" results from hash table
     // HashMap for containing the DocID and sum of Term Frequency related. DID -> sTermFreq
     private static final HashMap<Integer, Double> tableDAAT = new HashMap<>();
 
@@ -175,9 +177,10 @@ public class QueryProcessor {
     /**
      * function to calculate TFIDF for one term and one document
      *
-     * @param termFreq
-     * @param postListLength
-     * @return
+     * @param termFreq          term frequency of the term in the document
+     * @param postListLength    number of documents in which the term occurs
+     * @return  the TFIDF score for one term and one document. The total score for a document will be the sum of the
+     *          result of this function for each term that is both in the document and in the query
      */
     private static Double ScoringTFIDF(int termFreq, int postListLength)
     {
@@ -193,6 +196,7 @@ public class QueryProcessor {
         IDFweight = Math.log10(((double) DataStructureHandler.collection.getnDocs() / postListLength));
         scoreTFIDF = TFweight * IDFweight;
 
+        //if(verbose)
         System.out.println("ScoringTFIDF - TFweight = " + TFweight + " IDFweight = " + IDFweight + " scoreTFIDF = " + scoreTFIDF);
 
         return scoreTFIDF;
@@ -203,8 +207,8 @@ public class QueryProcessor {
     /**
      * function to elaborate all docs and related scores to obtain the ranked list of results
      *
-     * @param numResults
-     * @return
+     * @param numResults    number of result(DocID) to return to the user
+     * @return  an ordered ArrayList that represent the top numResults results for the query
      */
     private static ArrayList<Integer> getRankedResults(int numResults)
     {
@@ -223,30 +227,61 @@ public class QueryProcessor {
             orederedList.add(entry.getValue());
         }
         orederedList.sort(Collections.reverseOrder());
-        for (double num : orederedList) {
-            for (Map.Entry<Integer, Double> entry : tableDAAT.entrySet()) {
-                if (entry.getValue() == num && !rankedResults.contains(entry.getKey())) {
-                    rankedResults.add(entry.getKey());
+
+        // true in testing phase -> order and show all results (required long time)
+        if (ordereAllHashMAp)
+        {
+            long startTime = System.currentTimeMillis();         // start time of hash map ordering
+            for (double num : orederedList) {
+                for (Map.Entry<Integer, Double> entry : tableDAAT.entrySet()) {
+                    if (entry.getValue() == num && !rankedResults.contains(entry.getKey())) {
+                        rankedResults.add(entry.getKey());
+                    }
                 }
             }
-        }
-        System.out.println("Total ranked results: " + rankedResults);
+            long endTime = System.currentTimeMillis();           // end time of hash map ordering
+            // shows query execution time
+            System.out.println(ANSI_YELLOW + "\n*** TOTAL HashMap ordered in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
-        // if the ranked results are more than numResults, cut the last results
-        if (rankedResults.size() > numResults)
-        {
-            List<Integer> ord = rankedResults.subList(0,numResults);    // retrieve only the first numResults DocID
-            rankedResults = new ArrayList<>(ord);
-            System.out.println("Cut ranked results: " + rankedResults);
+            System.out.println("Total ranked results: " + rankedResults);
+
+            // if the ranked results are more than numResults, cut the last results
+            if (rankedResults.size() > numResults)
+            {
+                List<Integer> ord = rankedResults.subList(0,numResults);    // retrieve only the first numResults DocID
+                rankedResults = new ArrayList<>(ord);
+                System.out.println("Cut ranked results: " + rankedResults);
+            }
         }
+        else
+        {
+            int iterator = 1;                   // iterator to stop the ordering
+            long startTime = System.currentTimeMillis();         // start time of hash map ordering
+            for (double num : orederedList) {
+                for (Map.Entry<Integer, Double> entry : tableDAAT.entrySet()) {
+                    if (entry.getValue() == num && !rankedResults.contains(entry.getKey())) {
+                        rankedResults.add(entry.getKey());
+                        if (iterator < numResults)
+                            iterator++;
+                        else
+                            return rankedResults;
+                    }
+                }
+            }
+            long endTime = System.currentTimeMillis();           // end time of hash map ordering
+            // shows query execution time
+            System.out.println(ANSI_YELLOW + "\n*** PARTIAL HashMap ordered in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
+        }
+
         return rankedResults;
     }
 
     /**
      * function to retrieve all the posting lists for each term of the query passed as parameter
      *
-     * @param ProcessedQuery
-     * @return
+     * @param ProcessedQuery    ArrayList of the processed ter of the query
+     * @return  an array of posting lists (ArrayList of posting). the array has length equal to the number of terms,
+     *          and the i-th position in the array contains the posting list of the i-th term in the ProcessedQuery
      */
     private static ArrayList<Posting>[] retrieveAllPostListsFromQuery(ArrayList<String> ProcessedQuery)
     {
@@ -270,8 +305,8 @@ public class QueryProcessor {
      * function that given the posting lists of each term in a given query returns an ordered list of the DocIDs
      * present in the all posting lists
      *
-     * @param postingLists
-     * @return
+     * @param postingLists  the posting lists of each term in the query
+     * @return  an ordered ArrayList of the DocIDs in the posting lists
      */
     private static ArrayList<Integer> DIDOrderedListOfQuery(ArrayList<Posting>[] postingLists)
     {
@@ -296,7 +331,7 @@ public class QueryProcessor {
 
         Collections.sort(orderedList);          // order the list of DocID
 
-        System.out.println("Ordered List of DocID for the query:  " + orderedList);     // print orderedList
+         System.out.println("Ordered List of DocID for the query:  " + orderedList);     // print orderedList
 
         return orderedList;
     }

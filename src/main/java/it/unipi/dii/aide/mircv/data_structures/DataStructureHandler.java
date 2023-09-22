@@ -631,6 +631,7 @@ public class DataStructureHandler {
                 de = dictionary.getTermToTermStat().get(term);      // take DictionaryElem related term
                 // take the postingList of term
                 postingList = readPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(),de.getDf(),docIdChannel,termFreqChannel);
+                //if(verbose)
                 printPostingList(postingList,term);          // print posting list
             }
         }
