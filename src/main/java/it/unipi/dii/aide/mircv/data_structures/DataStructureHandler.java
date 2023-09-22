@@ -447,14 +447,21 @@ public class DataStructureHandler {
     // function to read all document table from disk and put it in memory (HashMap documentTable)
     public static void readDocumentTableFromDisk() throws IOException {
         System.out.println("Loading document table from disk...");
-        try (RandomAccessFile docTableRaf = new RandomAccessFile(DOCTABLE_FILE, "r");
-             FileChannel channel = docTableRaf.getChannel()) {
+
+        try (
+             RandomAccessFile docTableRaf = new RandomAccessFile(DOCTABLE_FILE, "r");
+             FileChannel channel = docTableRaf.getChannel()
+        ) {
+
+            DocumentElement de = new DocumentElement();
 
             // for to read all DocumentElement stored into disk
             for (int i = 0; i < channel.size(); i += DOCELEM_SIZE) {
-                DocumentElement de = DataStructureHandler.readDocumentElementFromDisk(i, channel); // get the ith DocElem
-                if (de != null)
-                    documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
+                de.readDocumentElementFromDisk(i, channel); // get the ith DocElem
+                if(indexBuilding)
+                    PartialIndexBuilder.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
+                else
+                    QueryProcessor.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
             }
         }
     }

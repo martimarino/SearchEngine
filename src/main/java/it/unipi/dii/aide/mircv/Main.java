@@ -68,6 +68,7 @@ public class Main {
                     System.out.println(ANSI_YELLOW + "\nBlocks merged in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
                     continue;                           // go next while iteration
 
+/*
                 case "l":
 
                     // Read Flags from disk
@@ -88,6 +89,7 @@ public class Main {
                     endTime = System.currentTimeMillis();           // end time to read Dictionary from disk
                     System.out.println(ANSI_YELLOW + "Dictionary loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
                     continue;                           // go next while iteration
+*/
 
                 case "q":       // query
                     ArrayList<Integer> rankedResults;       // ArrayList that contain the ranked results of query

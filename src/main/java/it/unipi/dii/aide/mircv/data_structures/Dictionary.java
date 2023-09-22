@@ -42,4 +42,58 @@ public class Dictionary {
                         LinkedHashMap::new
                 ));
     }
+
+    // function that return if the dictionary in memory is set or not
+    public boolean dictionaryIsSet()
+    {
+        return termToTermStat.size() != 0;  // the hash map in dictionary is empty, the dictionary isn't set
+    }
+
+    // function to read whole Dictionary from disk
+    public void readDictionaryFromDisk(){
+        System.out.println("Loading dictionary from disk...");
+
+        long position = 0;      // indicate the position where read at each iteration
+
+        MappedByteBuffer buffer;    // get first term of the block
+        try (
+                FileChannel channel = new RandomAccessFile(DICTIONARY_FILE, "rw").getChannel()
+        ) {
+            long len = channel.size();          // size of the dictionary saved into disk
+
+            // scan all Dictionary Element saved into disk
+            while(position < len) {
+                buffer = channel.map(FileChannel.MapMode.READ_ONLY, position, DICT_ELEM_SIZE);// read one DictionaryElem
+                position += DICT_ELEM_SIZE;                     // update read position
+
+                DictionaryElem dictElem = new DictionaryElem();       // create new DictionaryElem
+
+                CharBuffer.allocate(TERM_DIM); //allocate a charbuffer of the dimension reserved to docno
+                CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
+                // control check of the term size
+                if(charBuffer.toString().split("\0").length == 0)
+                    continue;
+
+                String term = charBuffer.toString().split("\0")[0];     // read term
+
+                if(term.equals("epstein"))
+                    printDebug("TERM: " + term + " duplicated");
+
+                dictElem.setTerm(term);                           //split using end string character
+                buffer.position(TERM_DIM);                  //skip docno
+                dictElem.setDf(buffer.getInt());                  // read and set Df
+                dictElem.setCf(buffer.getInt());                  // read and set Cf
+                dictElem.setTermId(buffer.getInt());              // read and set TermId
+                dictElem.setOffsetTermFreq(buffer.getLong());     // read and set offset Tf
+                dictElem.setOffsetDocId(buffer.getLong());        // read and set offset DID
+
+                termToTermStat.put(term, dictElem);   // add DictionaryElem into memory
+            }
+
+            System.out.println("vocabulary size: " + termToTermStat.size());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

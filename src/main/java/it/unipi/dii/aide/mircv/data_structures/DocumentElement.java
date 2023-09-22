@@ -1,5 +1,13 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
+import java.io.IOException;
+import java.nio.CharBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
+
+import static it.unipi.dii.aide.mircv.utils.Constants.*;
+
 public class DocumentElement {
 
     public static final int DOCNO_DIM = 10;                     // Length of docno (in bytes)
@@ -50,4 +58,33 @@ public class DocumentElement {
         this.docid = docid;
     }
 
+
+    /**
+     * function to read one Document Element from disk
+     *
+     * @param start     offset of the document reading from document file
+     * @param channel   indicate the file from which to read
+     * @return a DocumentElement with the value read from disk
+     */
+    public void readDocumentElementFromDisk(int start, FileChannel channel) throws IOException {
+
+        MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, start, DOCELEM_SIZE);
+
+        if(buffer == null)      // Buffer not created
+            return;
+
+        CharBuffer.allocate(DOCNO_DIM); //allocate a charbuffer of the dimension reserved to docno
+        CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
+
+        if(charBuffer.toString().split("\0").length == 0)
+            return;
+
+        docno =  charBuffer.toString().split("\0")[0]; //split using end string character
+        buffer.position(DOCNO_DIM);             //skip docno
+        docid = buffer.getInt();
+        doclength = buffer.getInt();
+
+        if(start % printInterval == 0)
+            printDebug("DOCNO: " + getDocno() + " DOCID: " + getDocid() + " DOCLENGTH: " + getDoclength());
+    }
 }

@@ -7,8 +7,10 @@ import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.util.*;
 
+import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.readCollectionStatsFromDisk;
+import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readPostingListFromDisk;
+import static it.unipi.dii.aide.mircv.data_structures.Flags.readFlagsFromDisk;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
-
 /**
  * Class to manage and execute query
  */
@@ -31,7 +33,9 @@ public class QueryProcessor {
     public static ArrayList<Integer> queryManager(String query, boolean isConjunctive, boolean isDisjunctive, int numberOfResults)
     {
         ArrayList<Integer> rankedResults = new ArrayList<>();   // ArrayList that contain the ranked results of query
-        ArrayList<String> processedQuery;                       // array list for containing the query term
+        ArrayList<String> processedQuery;
+        ArrayList<Posting> postingList = new ArrayList<>();     // contain the posting list of term
+        DictionaryElem de;// array list for containing the query term
 
         // take user's choices that affecting the query execution
         DataStructureHandler.readFlagsFromDisk();           // take from disk
@@ -66,7 +70,7 @@ public class QueryProcessor {
      * function that checks whether all files and resources required to execute the query are available
      *
      * @return  true -> if all checks are passed,then can proceed with the execution of a query
-     *          false -> if at least one check is failed, then can't proceed with the execution of a query
+     *          false -> if at least one check is failed (one file missed), then can't proceed with the execution of a query
      */
     public static boolean queryStartControl()
     {
@@ -96,11 +100,20 @@ public class QueryProcessor {
         // check if dictionary in memory is set
         if (!DataStructureHandler.dictionaryIsSet())
         {
-            System.out.println(ANSI_RED + "Error: dictionary in memory isn't set." + ANSI_RESET);  // mex of error
-            return false;
+            long startTime = System.currentTimeMillis();
+            dictionary.readDictionaryFromDisk();
+            long endTime = System.currentTimeMillis();
+            printTime( "Dictionary loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+        }
+        if(documentTable.isEmpty())
+        {
+            long startTime = System.currentTimeMillis();
+            DataStructureHandler.readDocumentTableFromDisk(false);
+            long endTime = System.currentTimeMillis();
+            printTime("Document Table loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
         }
 
-        return true;        // there are all
+        return true;
     }
 
     /**
@@ -110,7 +123,7 @@ public class QueryProcessor {
      * @param isConjunctive     indicates whether the query is of conjunctive type
      * @param isDisjunctive     indicates whether the query is of disjunctive type
      */
-    private static void DAATAlgorithm(ArrayList<String> ProcessedQuery,boolean isConjunctive, boolean isDisjunctive)
+    private static void DAATAlgorithm(ArrayList<String> ProcessedQuery, boolean isConjunctive, boolean isDisjunctive)
     {
         // ordered list of the DocID present in the all posting lists of the term present in the query
         ArrayList<Integer> ordListDID;
@@ -285,20 +298,34 @@ public class QueryProcessor {
      */
     private static ArrayList<Posting>[] retrieveAllPostListsFromQuery(ArrayList<String> ProcessedQuery)
     {
+
         // array of arrayList (posting list) that contain all the posting lists for each term iin the query
         ArrayList<Posting>[] postingLists = new ArrayList[ProcessedQuery.size()];
         int iterator = 0;               // iterator for saving posting lists term in correct position
+        try(
+        // open complete files to read the postingList
+        RandomAccessFile docidFile = new RandomAccessFile(DOCID_FILE, "rw");
+        RandomAccessFile termfreqFile = new RandomAccessFile(TERMFREQ_FILE, "rw");
+        // FileChannel
+        FileChannel docIdChannel = docidFile.getChannel();
+        FileChannel termFreqChannel = termfreqFile.getChannel();) {
+            // take posting list for each term in query
+            for (String term : ProcessedQuery) {
+                DictionaryElem de = dictionary.getTermToTermStat().get(term);
+                if (dictionary.getTermToTermStat().containsKey(term))
+                {
+                    // take the postingList of term
+                    postingLists[iterator] = readPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(),de.getDf(),docIdChannel,termFreqChannel);
+                }
+                printDebug("DAAT: retrieve posting list of  " + term);
+                //postingLists[iterator] = DataStructureHandler.getPostingListFromTerm(term, docIdChannel, termFreqChannel); // take posting list related term
+                iterator++;                 // update iterator
+            }
 
-        // take posting list for each term in query
-        for (String term : ProcessedQuery)
-        {
-            if (verbose)
-                System.out.println("DAAT: retrieve posting list of  " + term);
-            postingLists[iterator] = DataStructureHandler.getPostingListFromTerm(term); // take posting list related term
-            iterator++;                 // update iterator
+            return postingLists;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-
-        return postingLists;
     }
 
     /**
