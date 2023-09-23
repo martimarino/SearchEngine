@@ -100,7 +100,7 @@ public final class IndexMerger {
                 }
                 else
                 {
-                    System.out.println("current block offset " + currentBlockOffset.get(block_id) + "block "+ block_id);
+                    printDebug("current block offset " + currentBlockOffset.get(block_id) + "block "+ block_id);
                 }
 
                 // get current elem of dictionary
@@ -131,7 +131,7 @@ public final class IndexMerger {
                     // same term found (respect the previous iteration), temporary structures update
                     if (currentDE.getTerm().equals(tempDE.getTerm())) {
                         if(i < lim)
-                            System.out.println("*** Same term of previous one -> accumulate on temp variables ***");
+                            printDebug("*** Same term of previous one -> accumulate on temp variables ***");
 
                         // update DictionaryElem
                         tempDE.addCf(currentDE.getCf());        // update Cf

@@ -118,8 +118,8 @@ public final class DataStructureHandler {
 
                     buffer_docid.putInt(posting.getDocId());         // write DocID
                     buffer_termfreq.putInt(posting.getTermFreq());   // write TermFrequency
-                    if(term.equals("0000"))
-                        printDebug("docId " + posting.getDocId() +  " termfreq " + posting.getTermFreq());
+//                    if(term.equals("0000"))
+//                        printDebug("docId " + posting.getDocId() +  " termfreq " + posting.getTermFreq());
                     INDEX_OFFSET += INT_BYTES;
                 }
 
