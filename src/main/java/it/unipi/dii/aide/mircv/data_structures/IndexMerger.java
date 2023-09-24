@@ -1,5 +1,8 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
+import it.unipi.dii.aide.mircv.data_structures.Flags;
+import it.unipi.dii.aide.mircv.compression.Unary;
+
 import java.io.*;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -151,8 +154,10 @@ public final class IndexMerger {
 
                         // write DictionaryElem to disk
                         tempDE.storeDictionaryElemIntoDisk(outDictionaryChannel);
-                        // write InvertedIndexElem to disk
-                        storePostingListIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);
+                        if(Flags.isCompressionEnabled())
+                            Unary.storeCompressedTermFreqIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);//store index with compression - unary compression for termfreq
+                        else
+                            storePostingListIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);  // write InvertedIndexElem to disk
 
                         //set temp variables values
                         tempDE = currentDE;

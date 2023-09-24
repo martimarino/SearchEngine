@@ -1,5 +1,6 @@
 package it.unipi.dii.aide.mircv;
 
+import it.unipi.dii.aide.mircv.compression.Unary;
 import it.unipi.dii.aide.mircv.data_structures.*;
 
 import java.io.IOException;
