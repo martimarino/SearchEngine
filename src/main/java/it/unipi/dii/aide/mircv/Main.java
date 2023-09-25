@@ -33,12 +33,14 @@ public class Main {
                     "\n\t  x -> exit" +
                     "\n***********************************\n");
             String mode = sc.nextLine();        // take user's choice
+            setCompression(true);  // take user preferences on the compression
 
             // switch to run user's choice
             switch (mode) {
 
                 case "m":       // per debugging, prova solo il merge
                     delete_mergedFiles();
+                    //setCompression(true);  // take user preferences on the compression
 
                     DataStructureHandler.readBlockOffsetsFromDisk();
 
@@ -69,16 +71,15 @@ public class Main {
                     endTime = System.currentTimeMillis();           // end time of merge blocks
                     printTime("\nBlocks merged in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
                     continue;                           // go next while iteration
-                case "l":
+/*                case "l":
                     ArrayList<Integer> a = new ArrayList<>();
                     a.add(193);
                     a.add(67822);
                     a.add(180);
                     a.add(284);
 
-                    byte[] b = VariableBytes.fromLongToVariableBytes(a);
-                    VariableBytes.fromVariableBytesToLong(b);
                     continue;
+ */
 /*
 
 
@@ -102,6 +103,7 @@ public class Main {
                 case "q":       // query
                     ArrayList<Integer> rankedResults;       // ArrayList that contain the ranked results of query
                     int numberOfResults = 0;    // take the integer entered by users that indicate the number of results wanted for query
+                    setCompression(true);  // take user preferences on the compression
 
                     // control check that all the files and resources required to execute a query are present
                     if (!QueryProcessor.queryStartControl()) {

@@ -7,6 +7,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
+import static it.unipi.dii.aide.mircv.utils.Constants.printDebug;
 import static it.unipi.dii.aide.mircv.utils.Constants.verbose;
 
 // compression of the field term frequency of the index using Unary
@@ -27,7 +28,7 @@ public class Unary {
 
         for (int i = 0; i < termFreqToCompress.size(); i++) {
             int num = termFreqToCompress.get(i);
-            System.out.println("num: " + num);
+            //System.out.println("num: " + num);
             for (int j = 0; j < num-1; j++) {
                 //set correspondent bit to 1 using OR bit a bit
                 compressedResult[byteToWrite] = (byte) (compressedResult[byteToWrite] | (1 << bitToWrite));
@@ -50,10 +51,10 @@ public class Unary {
             }
 
         }
-
+/*
         for (byte b : compressedResult) {
            System.out.print(Integer.toBinaryString(b & 0xFF) + " ");
-        }
+        }*/
         //unaryToInt(compressedResult);
         integerArrayDecompression(compressedResult, 3);
         return compressedResult;
@@ -66,7 +67,7 @@ public class Unary {
         int currentValue = 0;
         int nIntegers = 0;
         int currentByte = 0;
-        System.out.println("size: " + totNum);
+        //System.out.println("size: " + totNum);
         for (int i = 0; i < compressedArray.length; i++) {
 
             byte currentByteValue = compressedArray[i];
@@ -85,9 +86,9 @@ public class Unary {
                     currentValue = 0; // Resetta il valore corrente
                     nIntegers++;
                     if(nIntegers == totNum) {
-                        for (Integer integ : decompressedList)
+   /*                     for (Integer integ : decompressedList)
                             System.out.println("int: " + integ);
-                        System.out.println("end");
+                        System.out.println("end");*/
                         return decompressedList;
                     }
                 }
@@ -105,24 +106,28 @@ public class Unary {
         return decompressedList;
     }
 
-    public static void storeCompressedTermFreqIntoDisk(ArrayList<Posting> pl, FileChannel termfreqChannel, FileChannel docidChannel){
+    public static void storeCompressedPostingIntoDisk(ArrayList<Posting> pl, FileChannel termfreqChannel, FileChannel docidChannel){
 
         ArrayList<Integer> tf = new ArrayList<>();
+        ArrayList<Integer> docid  = new ArrayList<>();
         //number of postings in the posting list
-        int len = pl.size();
-
         for(Posting ps : pl) {
             tf.add(ps.getTermFreq());
+            docid.add(ps.getDocId());
         }
 
         byte[] compressedTf = Unary.intToUnary(tf);
+        byte[] compressedDocId = VariableBytes.IntegersCompression(docid);
         // Create buffers for docid and termfreq
         try {
             MappedByteBuffer buffertermfreq = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, termfreqChannel.size(), compressedTf.length); //from 0 to number of postings * int dimension
+            MappedByteBuffer bufferdocid = docidChannel.map(FileChannel.MapMode.READ_WRITE, docidChannel.size(), compressedDocId.length); //from 0 to number of postings * int dimension
 
-            for(int i = 0; i < len; i++)
+            for(int i = 0; i < compressedTf.length; i++)
                 buffertermfreq.put(compressedTf[i]);
 
+            for(int i = 0; i < compressedDocId.length; i++)
+                bufferdocid.put(compressedDocId[i]);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -134,6 +139,8 @@ public class Unary {
     public static ArrayList<Posting> readCompressedPostingListFromDisk(long offsetDocId, long offsetTermFreq, int posting_size, FileChannel docidChannel, FileChannel termfreqChannel) {
 
         ArrayList<Posting> uncompressed = new ArrayList<>();
+        byte[] docids = new byte[posting_size];
+        byte[] tf = new byte[posting_size];
 
         try {
             MappedByteBuffer docidBuffer = docidChannel.map(FileChannel.MapMode.READ_ONLY, offsetDocId, posting_size);
@@ -141,11 +148,18 @@ public class Unary {
 
             //while nr of postings read are less than the number of postings to read (all postings of the term)
             for (int i = 0; i < posting_size; i++) {
-                int docid = docidBuffer.getInt();           // read the DocID
-                int termfreq = termfreqBuffer.getInt();     // read the TermFrequency
-                uncompressed.add(new Posting(docid, termfreq)); // add the posting to the posting list
+                byte docid = docidBuffer.get();           // read the DocID
+                byte termfreq = termfreqBuffer.get();     // read the TermFrequency
+                docids[i] = docid;
+                tf[i] = termfreq;
                 if(verbose)
                     System.out.println("Posting list taken from disk -> " + uncompressed);
+            }
+            ArrayList<Integer> uncompressedTf = Unary.integerArrayDecompression(tf, posting_size);
+            ArrayList<Integer> uncompressedDocid = VariableBytes.IntegersDecompression(docids);
+            for(int i = 0; i < uncompressedDocid.size(); i++) {
+                System.out.println("docid: " + uncompressedDocid.get(i) + " tf: " + uncompressedTf.get(i));
+                uncompressed.add(new Posting(uncompressedDocid.get(i), uncompressedTf.get(i))); // add the posting to the posting list
             }
             return uncompressed;
         } catch (IOException e) {

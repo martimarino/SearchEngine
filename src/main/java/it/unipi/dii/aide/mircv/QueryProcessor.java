@@ -1,4 +1,5 @@
 package it.unipi.dii.aide.mircv;
+import it.unipi.dii.aide.mircv.compression.Unary;
 import it.unipi.dii.aide.mircv.data_structures.*;
 import it.unipi.dii.aide.mircv.data_structures.Dictionary;
 import it.unipi.dii.aide.mircv.utils.FileSystem;
@@ -130,7 +131,7 @@ public final class QueryProcessor {
         {
             printUI("The term in query there aren't in collection.");
             return;     // exit to function
-        } // non entri mai in questo if
+        }
 
         ordListDID = DIDOrderedListOfQuery(postingLists);               // take ordered list of DocID
 
@@ -377,11 +378,17 @@ public final class QueryProcessor {
                 printDebug("DAAT: retrieve posting list of  " + term);
                 DictionaryElem de = dictionary.getTermToTermStat().get(term);
                 if (dictionary.getTermToTermStat().containsKey(term))
-                    // take the postingList of term
-                    postingLists[iterator] = readPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(),de.getDf(),docIdChannel,termFreqChannel);
+                    System.out.println("FLAG: " + Flags.isCompressionEnabled());
+                    Flags.setCompression(true);
+                    if(Flags.isCompressionEnabled())
+                        postingLists[iterator] = Unary.readCompressedPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(),de.getDf(),docIdChannel,termFreqChannel);
+                    else // take the postingList of term
+                        postingLists[iterator] = readPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(),de.getDf(),docIdChannel,termFreqChannel);
 
                 iterator++;                 // update iterator
             }
+            System.out.println("uncompressed pl: " + postingLists[0].contains(49));
+
             return postingLists;
         } catch (IOException e) {
             throw new RuntimeException(e);

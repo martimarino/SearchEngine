@@ -1,5 +1,6 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
+import it.unipi.dii.aide.mircv.compression.VariableBytes;
 import it.unipi.dii.aide.mircv.data_structures.Flags;
 import it.unipi.dii.aide.mircv.compression.Unary;
 
@@ -154,8 +155,13 @@ public final class IndexMerger {
 
                         // write DictionaryElem to disk
                         tempDE.storeDictionaryElemIntoDisk(outDictionaryChannel);
-                        if(Flags.isCompressionEnabled())
-                            Unary.storeCompressedTermFreqIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);//store index with compression - unary compression for termfreq
+                        if(tempDE.getTerm().equals("home")) {
+                            System.out.println("posting: " + tempPL.get(0));
+                            System.out.println("+++++++++++++++++++++++++++++++++");
+                        }
+                        if(Flags.isCompressionEnabled()) {
+                            Unary.storeCompressedPostingIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);//store index with compression - unary compression for termfreq
+                        }
                         else
                             storePostingListIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);  // write InvertedIndexElem to disk
 
