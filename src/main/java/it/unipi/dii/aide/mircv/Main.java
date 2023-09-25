@@ -1,6 +1,7 @@
 package it.unipi.dii.aide.mircv;
 
 import it.unipi.dii.aide.mircv.compression.Unary;
+import it.unipi.dii.aide.mircv.compression.VariableBytes;
 import it.unipi.dii.aide.mircv.data_structures.*;
 
 import java.io.IOException;
@@ -68,9 +69,18 @@ public class Main {
                     endTime = System.currentTimeMillis();           // end time of merge blocks
                     printTime("\nBlocks merged in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
                     continue;                           // go next while iteration
-
-/*
                 case "l":
+                    ArrayList<Integer> a = new ArrayList<>();
+                    a.add(193);
+                    a.add(67822);
+                    a.add(180);
+                    a.add(284);
+
+                    byte[] b = VariableBytes.fromLongToVariableBytes(a);
+                    VariableBytes.fromVariableBytesToLong(b);
+                    continue;
+/*
+
 
                     readFlagsFromDisk();
                     readCollectionStatsFromDisk();

@@ -130,7 +130,7 @@ public final class QueryProcessor {
         {
             printUI("The term in query there aren't in collection.");
             return;     // exit to function
-        }
+        } // non entri mai in questo if
 
         ordListDID = DIDOrderedListOfQuery(postingLists);               // take ordered list of DocID
 
@@ -369,7 +369,7 @@ public final class QueryProcessor {
             RandomAccessFile termfreqFile = new RandomAccessFile(TERMFREQ_FILE, "rw");
             // FileChannel
             FileChannel docIdChannel = docidFile.getChannel();
-            FileChannel termFreqChannel = termfreqFile.getChannel();) {
+            FileChannel termFreqChannel = termfreqFile.getChannel()) {
 
             // take posting list for each term in query
             for (String term : ProcessedQuery)
@@ -399,7 +399,7 @@ public final class QueryProcessor {
     {
         // ordered list of the DocID present in the all posting lists of the term present in the query
         ArrayList<Integer> orderedList = new ArrayList<>();
-        HashMap<Integer, Integer> hashDocID = new HashMap<>();
+        LinkedHashMap<Integer, Integer> hashDocID = new LinkedHashMap<>();
         int currentDocID = 0;                                   //
 
         // new version
@@ -425,6 +425,8 @@ public final class QueryProcessor {
         long endTime = System.currentTimeMillis();           // end time of DocID list ordering
         System.out.println(ANSI_YELLOW + "\n*** TAKE DID LIST in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
+   /*     for(Integer docid: orderedList)
+            System.out.println(docid);*/
         /* old version
         long startTime = System.currentTimeMillis();         // start time of DocID list ordering
 
