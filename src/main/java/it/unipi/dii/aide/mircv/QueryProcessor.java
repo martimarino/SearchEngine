@@ -4,8 +4,7 @@ import it.unipi.dii.aide.mircv.data_structures.*;
 import it.unipi.dii.aide.mircv.data_structures.Dictionary;
 import it.unipi.dii.aide.mircv.utils.FileSystem;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.channels.FileChannel;
 import java.util.*;
 
@@ -378,17 +377,14 @@ public final class QueryProcessor {
                 printDebug("DAAT: retrieve posting list of  " + term);
                 DictionaryElem de = dictionary.getTermToTermStat().get(term);
                 if (dictionary.getTermToTermStat().containsKey(term))
-                    System.out.println("FLAG: " + Flags.isCompressionEnabled());
-                    Flags.setCompression(true);
+
                     if(Flags.isCompressionEnabled())
-                        postingLists[iterator] = Unary.readCompressedPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(),de.getDf(),docIdChannel,termFreqChannel);
+                        postingLists[iterator] = DataStructureHandler.readCompressedPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(), de.getTermFreqSize(), de.getDocIdSize(), de.getDf(), docIdChannel,termFreqChannel); //read compressed posting list
                     else // take the postingList of term
                         postingLists[iterator] = readPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(),de.getDf(),docIdChannel,termFreqChannel);
 
                 iterator++;                 // update iterator
             }
-            System.out.println("uncompressed pl: " + postingLists[0].contains(49));
-
             return postingLists;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -460,6 +456,9 @@ public final class QueryProcessor {
         // shows query execution time
         System.out.println(ANSI_YELLOW + "\n*** ORDERED DID LIST in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
+        //------------------ debug function -----------------
+       //DataStructureHandler.saveDocsInFile(orderedList, false);
+       //----------------------------------------------------
         if (verbose)
             System.out.println("Ordered List of DocID for the query:  " + orderedList);     // print orderedList
 

@@ -95,7 +95,8 @@ public class Dictionary {
                 dictElem.setTermId(buffer.getInt());              // read and set TermId
                 dictElem.setOffsetTermFreq(buffer.getLong());     // read and set offset Tf
                 dictElem.setOffsetDocId(buffer.getLong());        // read and set offset DID
-
+                dictElem.setTermFreqSize(buffer.getInt());
+                dictElem.setDocIdSize(buffer.getInt());
                 termToTermStat.put(term, dictElem);   // add DictionaryElem into memory
             }
 

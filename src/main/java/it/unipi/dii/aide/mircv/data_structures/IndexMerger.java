@@ -152,18 +152,26 @@ public final class IndexMerger {
                             printDebug("*** Writing elem to disk... ***\nTemp variables status (with the elem to be written)");
                             printDebug("TEMP DE: " + tempDE + "\nTEMP PL: " + tempPL.size());
                         }
+                        //update DocID and Term Frequency offset ( equal to the end of the files)
+                        tempDE.setOffsetTermFreq(outTermFreqChannel.size());
+                        tempDE.setOffsetDocId(outDocIdChannel.size());
 
-                        // write DictionaryElem to disk
-                        tempDE.storeDictionaryElemIntoDisk(outDictionaryChannel);
-                        if(tempDE.getTerm().equals("home")) {
-                            System.out.println("posting: " + tempPL.get(0));
-                            System.out.println("+++++++++++++++++++++++++++++++++");
-                        }
                         if(Flags.isCompressionEnabled()) {
-                            Unary.storeCompressedPostingIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);//store index with compression - unary compression for termfreq
+                            int[] compressedLength = DataStructureHandler.storeCompressedPostingIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);//store index with compression - unary compression for termfreq
+                            tempDE.setTermFreqSize(compressedLength[0]);
+                            tempDE.setDocIdSize(compressedLength[1]);
+                            // -------------- debug compression function ------------
+                /*            if (tempDE.getTerm().equals("home")) {
+                                ArrayList<Integer> debug = new ArrayList<>();
+                                for(int i = 0; i < debug.size(); i++)
+                                    debug.add(tempPL.get(i).getDocId());
+                                DataStructureHandler.saveDocsInFile(debug, true);
+                            }*//// ----------------------------------------
                         }
                         else
                             storePostingListIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);  // write InvertedIndexElem to disk
+                        // write DictionaryElem to disk
+                        tempDE.storeDictionaryElemIntoDisk(outDictionaryChannel, true);
 
                         //set temp variables values
                         tempDE = currentDE;

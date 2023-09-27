@@ -3,6 +3,7 @@ package it.unipi.dii.aide.mircv.data_structures;
 import it.unipi.dii.aide.mircv.TextProcessor;
 import it.unipi.dii.aide.mircv.compression.Unary;
 import it.unipi.dii.aide.mircv.QueryProcessor;
+import it.unipi.dii.aide.mircv.compression.VariableBytes;
 
 import java.io.*;
 import java.nio.CharBuffer;
@@ -126,7 +127,7 @@ public final class DataStructureHandler {
                 }
 
                 // store dictionary entry to disk
-                dictElem.storeDictionaryElemIntoDisk(dictChannel);
+                dictElem.storeDictionaryElemIntoDisk(dictChannel, false);
             }
 
             System.out.println(dictionary.getTermToTermStat().size() + " terms stored in block " + (dictionaryBlockOffsets.size()-1));
@@ -307,5 +308,101 @@ public final class DataStructureHandler {
 //    }
     // -------- end: functions to read from disk --------
 
+    /**
+     * function to store posting list after compression into disk
+     *
+     * @param pl                posting list to store
+     * @param docidChannel      file where store DocID values
+     * @param termfreqChannel   file where store Term Frequency values
+     * @return Term Frequency and DocID compressed length
+     */
+
+    public static int[] storeCompressedPostingIntoDisk(ArrayList<Posting> pl, FileChannel termfreqChannel, FileChannel docidChannel){
+
+        ArrayList<Integer> tf = new ArrayList<>();
+        ArrayList<Integer> docid  = new ArrayList<>();
+        int[] length = new int[2];
+        //number of postings in the posting list
+        for(Posting ps : pl) {
+            tf.add(ps.getTermFreq());
+            docid.add(ps.getDocId());
+        }
+
+        byte[] compressedTf = Unary.integersCompression(tf);
+        byte[] compressedDocId = VariableBytes.integersCompression(docid);
+        // Create buffers for docid and termfreq
+        try {
+            MappedByteBuffer buffertermfreq = termfreqChannel.map(FileChannel.MapMode.READ_WRITE, termfreqChannel.size(), compressedTf.length); //number of bytes of compressed tfs
+            MappedByteBuffer bufferdocid = docidChannel.map(FileChannel.MapMode.READ_WRITE, docidChannel.size(), compressedDocId.length); //number of bytes of compressed docids
+
+            buffertermfreq.put(compressedTf);
+            bufferdocid.put(compressedDocId);
+
+            length[0] = compressedTf.length;
+            length[1] = compressedDocId.length;
+            return length;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+    /**
+     * function to store posting list after compression into disk
+     *
+     * @param offsetDocId       offset from where to start the read of the DocID values
+     * @param offsetTermFreq    offset from where to start the read of the Term Frequency values
+     * @param termFreqSize      size of the compressed Term Frequency values
+     * @param docIdSize         size of the compressed DocID values
+     * @param posting_size      posting list size
+     * @param docidChannel      file where read DocID values
+     * @param termfreqChannel   file where read Term Frequency values
+     * @return termfreq and docid compressed length
+     */
+    public static ArrayList<Posting> readCompressedPostingListFromDisk(long offsetDocId, long offsetTermFreq, int termFreqSize, int docIdSize, int posting_size, FileChannel docidChannel, FileChannel termfreqChannel) {
+
+        ArrayList<Posting> uncompressed = new ArrayList<>();
+        byte[] docids = new byte[docIdSize];
+        byte[] tf = new byte[termFreqSize];
+
+        try {
+            MappedByteBuffer docidBuffer = docidChannel.map(FileChannel.MapMode.READ_ONLY, offsetDocId, docIdSize);
+            MappedByteBuffer termfreqBuffer = termfreqChannel.map(FileChannel.MapMode.READ_ONLY, offsetTermFreq, termFreqSize);
+
+            termfreqBuffer.get(tf, 0, termFreqSize);
+            docidBuffer.get(docids, 0, docIdSize );
+
+            ArrayList<Integer> uncompressedTf = Unary.integersDecompression(tf, posting_size);
+            ArrayList<Integer> uncompressedDocid = VariableBytes.integersDecompression(docids);
+            for(int i = 0; i < posting_size; i++) {
+                //System.out.println("docid: " + uncompressedDocid.get(i)  + " tf: " + uncompressedTf.get(i));
+                uncompressed.add(new Posting(uncompressedDocid.get(i), uncompressedTf.get(i))); // add the posting to the posting list
+            }
+            return uncompressed;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+
+
+// function to save docids  or tf posting list into file (in order to compare before and after compression)
+    public static void saveDocsInFile(ArrayList<Integer> postings, boolean merge) throws FileNotFoundException {
+        // ----------- debug file ---------------
+        String tempFileName = (merge? "tempFile.txt" : "tempFile_out.txt");
+        File outputf = new File(tempFileName);
+
+
+        PrintWriter outputWriter = new PrintWriter(outputf);
+
+        for(int i = 0; i < postings.size(); i++) {
+            outputWriter.print(postings.get(i));
+            outputWriter.print(" ");
+    }
+
+}
 
 }

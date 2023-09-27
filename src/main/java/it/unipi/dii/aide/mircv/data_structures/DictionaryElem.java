@@ -14,7 +14,7 @@ import static it.unipi.dii.aide.mircv.utils.Constants.*;
  */
 public class DictionaryElem {
 
-    static final int DICT_ELEM_SIZE = TERM_DIM + 3 * Integer.BYTES + 2 * Long.BYTES; // 20 + 12 + 16 = 48
+    static final int DICT_ELEM_SIZE = (Flags.isCompressionEnabled()? TERM_DIM + 5 * Integer.BYTES + 2 * Long.BYTES : TERM_DIM + 3 * Integer.BYTES + 2 * Long.BYTES); // if compression case, need to store 2 more integers (dimension of compressed DocID and Term Frequency values)
 
     private String term;        //32 byte
     private int df;             // document frequency, number of documents in which there is the term
@@ -22,13 +22,16 @@ public class DictionaryElem {
     private int termId;
     private long offsetTermFreq;// starting point of the posting list of the term in the term freq file
     private long offsetDocId;   // starting point of the posting list of the term in the docid file
-
+    private int docIdSize;  // dimension in byte of compressed docid of the posting list
+    private int termFreqSize; //dimension in byte of compressed termfreq of the posting list
 
     DictionaryElem() {
         this.setDf(0);
         this.setCf(0);
         this.setTermId(0);
         this.setTerm("");
+        this.setDocIdSize(0);
+        this.setTermFreqSize(0);
     }
 
     /**
@@ -41,6 +44,8 @@ public class DictionaryElem {
         this.setCf(0);
         this.setTermId(termId);
         this.setTerm(term);
+        this.setDocIdSize(0);
+        this.setTermFreqSize(0);
     }
 
     // add the quantity passed as a parameter to the current Df
@@ -90,6 +95,22 @@ public class DictionaryElem {
         this.offsetDocId = offsetDocId;
     }
 
+    public int getDocIdSize() {
+        return docIdSize;
+    }
+
+    public void setDocIdSize(int docIdSize) {
+        this.docIdSize = docIdSize;
+    }
+
+    public int getTermFreqSize() {
+        return termFreqSize;
+    }
+
+    public void setTermFreqSize(int termFreqSize) {
+        this.termFreqSize = termFreqSize;
+    }
+
     @Override
     public String toString() {
         return "DictionaryElem{" +
@@ -107,7 +128,7 @@ public class DictionaryElem {
      *
      * @param channel   indicate the file where to write
      */
-    void storeDictionaryElemIntoDisk(FileChannel channel){
+    void storeDictionaryElemIntoDisk(FileChannel channel, boolean isMerge){
         try {
             MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), DICT_ELEM_SIZE);
 
@@ -126,6 +147,10 @@ public class DictionaryElem {
             buffer.putInt(termId);                        // write TermID
             buffer.putLong(offsetTermFreq);               // write offset Tf
             buffer.putLong(offsetDocId);                  // write offset DID
+            if(isMerge){ // if in merge phase, need to store also the size of DocID and Term Frequency compressed values
+                buffer.putInt(termFreqSize);
+                buffer.putInt(docIdSize);
+            }
             PARTIAL_DICTIONARY_OFFSET += DICT_ELEM_SIZE;        // update offset
 
         } catch (IOException e) {
