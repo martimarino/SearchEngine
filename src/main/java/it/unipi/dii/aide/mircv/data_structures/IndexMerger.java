@@ -4,6 +4,7 @@ import it.unipi.dii.aide.mircv.compression.VariableBytes;
 import it.unipi.dii.aide.mircv.data_structures.Flags;
 import it.unipi.dii.aide.mircv.compression.Unary;
 
+import javax.swing.text.FlowView;
 import java.io.*;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -41,6 +42,7 @@ public final class IndexMerger {
         // array containing the current read offset for each block
         ArrayList<Long> currentBlockOffset = new ArrayList<>(nrBlocks);
         currentBlockOffset.addAll(dictionaryBlockOffsets);
+        Flags.setIsMerge(true);
 
         int lim = 20;                           // var which indicates the upper limit for control prints, above which no prints will be shown
         int stepProgressionPrint = 100000;       // var which indicates the steps of 'i' progression print during merge
@@ -112,8 +114,10 @@ public final class IndexMerger {
                 // get current posting list
                 currentPL = readPostingListFromDisk(currentDE.getOffsetDocId(), currentDE.getOffsetTermFreq(), currentDE.getDf(), docidChannel, termfreqChannel);
 
+/*
                 if(i < lim)
                     printDebug("CURR DE: " + currentDE + "\nCURR PL: " + currentPL.size());
+*/
 
 
                 if (tempDE.getTerm().equals("")) {        // first iteration
@@ -152,9 +156,12 @@ public final class IndexMerger {
                             printDebug("*** Writing elem to disk... ***\nTemp variables status (with the elem to be written)");
                             printDebug("TEMP DE: " + tempDE + "\nTEMP PL: " + tempPL.size());
                         }
+
                         //update DocID and Term Frequency offset ( equal to the end of the files)
                         tempDE.setOffsetTermFreq(outTermFreqChannel.size());
                         tempDE.setOffsetDocId(outDocIdChannel.size());
+                        if(i < lim)
+                            System.out.println("end channel : " + outTermFreqChannel.size());
 
                         if(Flags.isCompressionEnabled()) {
                             int[] compressedLength = DataStructureHandler.storeCompressedPostingIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);//store index with compression - unary compression for termfreq
@@ -190,7 +197,7 @@ public final class IndexMerger {
                 currentBlockOffset.set(block_id, currentBlockOffset.get(block_id) + DICT_ELEM_SIZE);
             }
             printDebug("Merge ended, total number of iterations (i) is: " + i);
-
+            Flags.setIsMerge(false);
 //            delete_tempFiles();                                                                       !!!!!!!!!!!!!!!!
 
         } catch (IOException e) {

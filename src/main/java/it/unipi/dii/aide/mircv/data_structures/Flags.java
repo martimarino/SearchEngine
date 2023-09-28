@@ -15,15 +15,13 @@ public final class Flags {
     private static boolean sws_flag = false;            // true = stop words removal enabled, false = stop words removal disabled
     private static boolean compression_flag = false;    // true = compression enabled, false = compression disabled
     private static boolean scoring_flag = false;        // true = scoring enable, false = scoring disable
-
+    private static boolean isMerge = false;
 
     public static boolean isSwsEnabled() { return sws_flag; }
 
     public static boolean isCompressionEnabled() { return compression_flag; }
 
     public static boolean isScoringEnabled() { return scoring_flag; }
-
-
 
     public static void setSws(boolean sws_flag) { Flags.sws_flag = sws_flag; }
 
@@ -34,7 +32,6 @@ public final class Flags {
     public static void setScoring(boolean scoring_flag) {
         Flags.scoring_flag = scoring_flag;
     }
-
 
     // function to store the user's choices for the flags
     public static void storeFlagsIntoDisk() {
@@ -100,4 +97,11 @@ public final class Flags {
         return docFlags.exists();
     }
 
+    public static boolean isIsMerge() {
+        return isMerge;
+    }
+
+    public static void setIsMerge(boolean isMerge) {
+        Flags.isMerge = isMerge;
+    }
 }

@@ -46,7 +46,7 @@ public class Main {
                     setSws(getUserChoice(sc, "stopwords removal"));    // take user preferences on the removal of stopwords
                     setCompression(getUserChoice(sc, "compression"));  // take user preferences on the compression
                     setScoring(getUserChoice(sc, "scoring"));          // take user preferences on the scoring
-
+                    storeFlagsIntoDisk();      // store Flags
 
                     startTime = System.currentTimeMillis();         // start time to merge blocks from disk
                     IndexMerger.mergeBlocks();                      // merge
@@ -97,8 +97,6 @@ public class Main {
                 case "q":       // query
                     ArrayList<Integer> rankedResults;       // ArrayList that contain the ranked results of query
                     int numberOfResults = 0;    // take the integer entered by users that indicate the number of results wanted for query
-                    setCompression(true);  // take user preferences on the compression
-
                     // control check that all the files and resources required to execute a query are present
                     if (!QueryProcessor.queryStartControl()) {
                         printError("Error: there aren't all files and resources . Please set all and than retry.");

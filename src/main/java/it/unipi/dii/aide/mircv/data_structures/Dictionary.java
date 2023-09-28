@@ -72,8 +72,8 @@ public class Dictionary {
 
             // scan all Dictionary Element saved into disk
             while(position < len) {
-                buffer = channel.map(FileChannel.MapMode.READ_ONLY, position, DICT_ELEM_SIZE);// read one DictionaryElem
-                position += DICT_ELEM_SIZE;                     // update read position
+                buffer = channel.map(FileChannel.MapMode.READ_ONLY, position, Flags.isCompressionEnabled()? DICT_ELEM_SIZE + 2*INT_BYTES : DICT_ELEM_SIZE);// read one DictionaryElem
+                position += Flags.isCompressionEnabled()? DICT_ELEM_SIZE + 2*INT_BYTES : DICT_ELEM_SIZE;                     // update read position
 
                 DictionaryElem dictElem = new DictionaryElem();       // create new DictionaryElem
 
@@ -95,8 +95,10 @@ public class Dictionary {
                 dictElem.setTermId(buffer.getInt());              // read and set TermId
                 dictElem.setOffsetTermFreq(buffer.getLong());     // read and set offset Tf
                 dictElem.setOffsetDocId(buffer.getLong());        // read and set offset DID
-                dictElem.setTermFreqSize(buffer.getInt());
-                dictElem.setDocIdSize(buffer.getInt());
+                if(Flags.isCompressionEnabled()) {
+                    dictElem.setTermFreqSize(buffer.getInt());
+                    dictElem.setDocIdSize(buffer.getInt());
+                }
                 termToTermStat.put(term, dictElem);   // add DictionaryElem into memory
             }
 

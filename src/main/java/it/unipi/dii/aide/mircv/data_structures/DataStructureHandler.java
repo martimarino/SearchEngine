@@ -142,6 +142,7 @@ public final class DataStructureHandler {
 
         //number of postings in the posting list
         int len = pl.size();
+
         // Create buffers for docid and termfreq
         try {
             MappedByteBuffer bufferdocid = docidChannel.map(FileChannel.MapMode.READ_WRITE, docidChannel.size(), (long) len*Integer.BYTES); // from 0 to number of postings * int dimension
@@ -157,31 +158,6 @@ public final class DataStructureHandler {
         }
     }
 
-/*    public static void storeCompressedDocIdIntoDisk(ArrayList<Posting> pl, FileChannel termfreqChannel, FileChannel docidChannel) {
-
-        ArrayList<Integer> docid = new ArrayList<>();
-        //number of postings in the posting list
-        int len = pl.size();
-
-        for(Posting ps : pl) {
-            docid.add(ps.getDocId());
-        }
-
-        //byte[] compressedDocid =  //function to compress docid
-        // Create buffers for docid and termfreq
-        try {
-            //MappedByteBuffer bufferdocid = docidChannel.map(FileChannel.MapMode.READ_WRITE, docidChannel.size(), compressedDocid.length); // from 0 to number of postings * int dimension
-
-            for(int i = 0; i < len; i++) {
-                //bufferdocid.put(compressedDocid[i]);
-                return;
-           }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }*/
 
     // -------- end: functions to store into disk --------
 

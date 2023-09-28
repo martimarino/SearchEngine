@@ -14,7 +14,7 @@ import static it.unipi.dii.aide.mircv.utils.Constants.*;
  */
 public class DictionaryElem {
 
-    static final int DICT_ELEM_SIZE = (Flags.isCompressionEnabled()? TERM_DIM + 5 * Integer.BYTES + 2 * Long.BYTES : TERM_DIM + 3 * Integer.BYTES + 2 * Long.BYTES); // if compression case, need to store 2 more integers (dimension of compressed DocID and Term Frequency values)
+    static final int DICT_ELEM_SIZE = TERM_DIM + 3 * Integer.BYTES + 2 * Long.BYTES; // if compression case, need to store 2 more integers (dimension of compressed DocID and Term Frequency values)
 
     private String term;        //32 byte
     private int df;             // document frequency, number of documents in which there is the term
@@ -129,8 +129,13 @@ public class DictionaryElem {
      * @param channel   indicate the file where to write
      */
     void storeDictionaryElemIntoDisk(FileChannel channel, boolean isMerge){
+
         try {
-            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), DICT_ELEM_SIZE);
+            MappedByteBuffer buffer;
+            if(isMerge & Flags.isCompressionEnabled())
+                buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), DICT_ELEM_SIZE + 2*INT_BYTES);
+            else
+                buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), DICT_ELEM_SIZE);
 
             // Buffer not created
             if(buffer == null)
@@ -147,11 +152,12 @@ public class DictionaryElem {
             buffer.putInt(termId);                        // write TermID
             buffer.putLong(offsetTermFreq);               // write offset Tf
             buffer.putLong(offsetDocId);                  // write offset DID
-            if(isMerge){ // if in merge phase, need to store also the size of DocID and Term Frequency compressed values
+            if(isMerge & Flags.isCompressionEnabled()){ // if in merge phase, need to store also the size of DocID and Term Frequency compressed values
                 buffer.putInt(termFreqSize);
                 buffer.putInt(docIdSize);
             }
-            PARTIAL_DICTIONARY_OFFSET += DICT_ELEM_SIZE;        // update offset
+            PARTIAL_DICTIONARY_OFFSET += (isMerge & Flags.isCompressionEnabled())? DICT_ELEM_SIZE + 2*INT_BYTES : DICT_ELEM_SIZE;        // update offset
+
 
         } catch (IOException e) {
             e.printStackTrace();

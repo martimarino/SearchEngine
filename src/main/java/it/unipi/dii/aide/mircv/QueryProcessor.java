@@ -376,6 +376,7 @@ public final class QueryProcessor {
             {
                 printDebug("DAAT: retrieve posting list of  " + term);
                 DictionaryElem de = dictionary.getTermToTermStat().get(term);
+
                 if (dictionary.getTermToTermStat().containsKey(term))
 
                     if(Flags.isCompressionEnabled())
