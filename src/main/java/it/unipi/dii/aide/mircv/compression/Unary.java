@@ -76,43 +76,40 @@ public class Unary {
 
     public static ArrayList<Integer> integersDecompression(byte[] compressedArray, int totNum) {
         ArrayList<Integer> decompressedList = new ArrayList<>();
-        int currentBit = 7; // Parti dal bit più significativo nel primo byte
+        int currentBit = 7;
         int currentValue = 0;
         int nIntegers = 0;
         int currentByte = 0;
-        //System.out.println("size: " + totNum);
+
         for (int i = 0; i < compressedArray.length; i++) {
 
             byte currentByteValue = compressedArray[i];
 
             while (currentBit >= 0) {
-                // Leggi il bit corrente
+                // Read current bit
                 int bit = (currentByteValue >> currentBit) & 1;
 
                 if (bit == 1) {
-                    // Se il bit è 1, incrementa il valore corrente
+                    // If bit is 1, increment current value
                     currentValue++;
                 } else {
                     currentValue++;
-                    // Se il bit è 0, aggiungi il valore corrente alla lista decompressa
+                    // If bit is 0, add current value to decompressed list
                     decompressedList.add(currentValue);
 
-                    currentValue = 0; // Resetta il valore corrente
+                    currentValue = 0; // Reset current value
                     nIntegers++;
                     if(nIntegers == totNum) {
-   /*                     for (Integer integ : decompressedList)
-                            System.out.println("int: " + integ);
-                        System.out.println("end");*/
                         return decompressedList;
                     }
                 }
 
                 currentBit--;
 
-                // Controlla se hai letto tutti i bit in questo byte
+                // check if all byte read
                 if (currentBit < 0) {
                     currentByte++;
-                    currentBit = 7; // Vai al bit più significativo del prossimo byte
+                    currentBit = 7; // Go to the most meaningful bit of the next byte
                     break;
                 }
             }

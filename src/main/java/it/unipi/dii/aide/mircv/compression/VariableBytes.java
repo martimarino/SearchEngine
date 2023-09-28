@@ -31,8 +31,9 @@ public class VariableBytes {
 
             int docidVal = docidsToCompress.get(i);
 
-            byteSize = ((32 - Integer.numberOfLeadingZeros(docidVal) + 6) / 7);
+            byteSize = ((32 - Integer.numberOfLeadingZeros(docidVal) + 6) / 7); //size of current integer
 
+            //for all the bytes of the current integer
             while (currentIndex < byteSize) {
 
                 byte b = (byte) ((docidVal >> (currentIndex * 7)) & 0x7F); // move to right and AND bit to bit with 0111111
@@ -60,13 +61,14 @@ public class VariableBytes {
         int currentIndex = 0;
         int num = 0;
 
+        //for all the bytes in docidsToDecompress byte array
         while (currentIndex < docidsToDecompress.length) {
 
             byte currentByte = docidsToDecompress[currentIndex];
 
             int value = currentByte & 0x7F; // get last 7 bit from byte
 
-            num |= (value << shift); // Combine bits in the result
+            num |= (value << shift); // Combine bits in the result (recompose the value of the bits)
             shift += 7;
             if ((currentByte & 0x80) == 0) {
                 // Most meaningful bit is 0, so it's the last byte

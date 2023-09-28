@@ -33,7 +33,6 @@ public class Main {
                     "\n\t  x -> exit" +
                     "\n***********************************\n");
             String mode = sc.nextLine();        // take user's choice
-            setCompression(true);  // take user preferences on the compression
 
             // switch to run user's choice
             switch (mode) {
@@ -43,6 +42,11 @@ public class Main {
                     //setCompression(true);  // take user preferences on the compression
 
                     DataStructureHandler.readBlockOffsetsFromDisk();
+
+                    setSws(getUserChoice(sc, "stopwords removal"));    // take user preferences on the removal of stopwords
+                    setCompression(getUserChoice(sc, "compression"));  // take user preferences on the compression
+                    setScoring(getUserChoice(sc, "scoring"));          // take user preferences on the scoring
+
 
                     startTime = System.currentTimeMillis();         // start time to merge blocks from disk
                     IndexMerger.mergeBlocks();                      // merge
@@ -71,18 +75,8 @@ public class Main {
                     endTime = System.currentTimeMillis();           // end time of merge blocks
                     printTime("\nBlocks merged in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
                     continue;                           // go next while iteration
-/*                case "l":
-                    ArrayList<Integer> a = new ArrayList<>();
-                    a.add(193);
-                    a.add(67822);
-                    a.add(180);
-                    a.add(284);
-
-                    continue;
- */
+                case "l":
 /*
-
-
                     readFlagsFromDisk();
                     readCollectionStatsFromDisk();
 

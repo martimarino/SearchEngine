@@ -44,7 +44,7 @@ public final class IndexMerger {
 
         int lim = 20;                           // var which indicates the upper limit for control prints, above which no prints will be shown
         int stepProgressionPrint = 100000;       // var which indicates the steps of 'i' progression print during merge
-
+        System.out.println("Compression " + Flags.isCompressionEnabled());
         // open file and create channels for reading the partial dictionary and index file and write the complete index and dictionary file
         try (
                 // open partial files to read the partial dictionary and index
