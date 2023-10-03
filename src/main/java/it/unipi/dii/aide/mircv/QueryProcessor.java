@@ -62,6 +62,7 @@ public final class QueryProcessor {
             rankedResults = getRankedResults(numberOfResults);          // get ranked results
             tableDAAT.clear();                                          // clear HashMap
             scoreToDocID.clear();                                       // clear HashMap
+            scoreWithMaxDoc.clear();                                    // clear HashMap
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -183,6 +184,8 @@ public final class QueryProcessor {
             if (partialScore != 0)
             {
                 tableDAAT.put(currentDID,partialScore);     // add DID and related score to HashMap
+                if (!scoreWithMaxDoc.containsKey(partialScore))
+                    addToScoreToDocID(partialScore,currentDID,numberOfResults); // add DID to the related DID in hashmap
                 printDebug("Final TFIDF scoring for DID = " + currentDID + " is: " + tableDAAT.get(currentDID));
             }
         }
@@ -284,9 +287,9 @@ public final class QueryProcessor {
         }
         else
         {
-            int iterator = 1;                   // iterator to stop the ordering
 
-            // old version
+
+            /*// old version
             startTime = System.currentTimeMillis();         // start time of hash map ordering
             for (double num : orderedList) {
                 for (Map.Entry<Integer, Double> entry : tableDAAT.entrySet()) {
@@ -306,9 +309,9 @@ public final class QueryProcessor {
             }
             //*/
 
-            /*
             //new version
-            ArrayList<Integer> retrievDocIDs;
+            int iterator = 1;                   // iterator to stop the ordering
+            ArrayList<Integer> retrievDocIDs;   // list to get the arraylist of DocID related to a score
 
             startTime = System.currentTimeMillis();         // start time of hash map ordering
             //remove duplicate
@@ -319,7 +322,7 @@ public final class QueryProcessor {
                     // take DocID of the document that have num as score
                     retrievDocIDs = scoreToDocID.get(num);
                     scoreToDocID.remove(num);
-                    System.out.println("\n*** retrieveDocIDs size: " + retrievDocIDs.size());
+                    System.out.println("\n*** retrieveDocIDs size: " + retrievDocIDs.size() + "\nretrieveDocIDs array list: " + retrievDocIDs);
                     // scan all DocID retrieved
                     for (Integer i : retrievDocIDs)
                     {
@@ -335,8 +338,12 @@ public final class QueryProcessor {
                         }
                     }
                 }
+                else
+                {
+                    System.out.println(ANSI_RED + "ERROR in scoreToDocID hashMap there isn't a Doc for the score: " + num + ANSI_RESET);
+                }
             }
-            */
+            //*/
         }
 
         return rankedResults;
@@ -444,9 +451,9 @@ public final class QueryProcessor {
 
         if (scoreToDocID.containsKey(score))        // contains key, add DocID to the arrayList
         {
-            if (scoreToDocID.get(score).size() >= numberOfResults)   // SEE NOTE 0
+            if (scoreToDocID.get(score).size() >= numberOfResults)      // SEE NOTE 0
             {
-                scoreWithMaxDoc.put(score,true);        // SEE NOTE 1
+                scoreWithMaxDoc.put(score,true);                        // SEE NOTE 1
                 return;
             }
             // get value from HashMap
@@ -496,6 +503,6 @@ public final class QueryProcessor {
  *     best result, if for each result I collect at least the first "numberOfResults" documents with that result and
  *     don't register the others at the end I will have given the same best "numberOfResults" results as if I had
  *     registered all the documents.
- * 1 - the maximum required number of documents (numberOfResults) have been scored this way, I advise not to take
- *     any more documents with this score
+ * 1 - the maximum required number of documents (numberOfResults) have been scored, advise don't take any more
+ *     documents with this score
  */
