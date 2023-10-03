@@ -123,6 +123,9 @@ public final class QueryProcessor {
         Posting currentP;                       // support var
         int currentDID = 0;                     // DID of the current doc processed in algorithm
         double partialScore = 0;                   // var that contain partial score
+        int[] postingListsIndex;                // contain the current position index for the posting list of each term in the query
+        long startTime;
+        long endTime;
 
         postingLists = retrieveAllPostListsFromQuery(ProcessedQuery);   // take all posting lists of query terms
         // control check for empty posting lists (the terms are not present in the document collection)
@@ -133,15 +136,16 @@ public final class QueryProcessor {
         }
 
         ordListDID = DIDOrderedListOfQuery(postingLists);               // take ordered list of DocID
+        postingListsIndex = getPostingListsIndex(postingLists);     // get the index initialized   NEW VERSION
 
-        long startTime = System.currentTimeMillis();           // end time of hash map ordering
-
+        startTime = System.currentTimeMillis();           // end time of hash map ordering
         // scan all Doc retrieved and calculate score TFIDF
         for (int i = 0; i < ordListDID.size(); i++)
         {
             currentDID = ordListDID.get(i);     // update the DID, document of which to calculate the score
             partialScore = 0;                   // reset var
 
+            /* old version with remove in the posting lists
             // default case is query Disjunctive
             // take all values and calculating the scores in the posting related to currentDID
             for (int j = 0; j < postingLists.length; j++)
@@ -170,6 +174,45 @@ public final class QueryProcessor {
                         break;              // exit from the for and go to next Document
                 }
             }
+            */
+
+            ///*new version to substitute remove wit get in the posting lists
+            // default case is query Disjunctive
+            // take all values and calculating the scores in the posting related to currentDID
+            for (int j = 0; j < postingLists.length; j++)
+            {
+                // check if the posting lists of j-th isn't at the end AND if the j-th term of the query is present in the doc identify by currentDID
+                if ((postingListsIndex[j] < postingLists[j].size()) && (postingLists[j].get(postingListsIndex[j]).getDocId() == currentDID))
+                {
+                    currentP = postingLists[j].get(postingListsIndex[j]);              // take posting
+                    postingListsIndex[j]++;                         // update index of current value
+
+                    //System.out.println("DAAT, prescoring -- df = " + DataStructureHandler.postingListLengthFromTerm(ProcessedQuery.get(j)));
+
+                    // calculate TFIDF for this term and currentDID and sum to partial score
+                    String term = ProcessedQuery.get(j);
+                    int df = dictionary.getTermToTermStat().get(term).getDf();
+                    partialScore += ScoringTFIDF(currentP.getTermFreq(), df);
+
+                    printDebug("DAAT: posting del termine: " + ProcessedQuery.get(j) + " in array pos: " + j + " ha DID: " + currentDID + " and partialScore: " + partialScore);
+                }
+                else if (isConjunctive)
+                {
+                    // must take only the document in which there are all term (DID that compare in all posting lists of the terms)
+                    partialScore = 0;       // reset the partial score
+                    // if all postings in one posting lists have already been seen the next documents in the posting lists cannot contain all the terms in the query
+                    if (postingListsIndex[j] >= postingLists[j].size())
+                    {
+                        endTime = System.currentTimeMillis();           // end time of hash map ordering
+                        // shows query execution time
+                        System.out.println(ANSI_YELLOW + "\n*** DAAT execute in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
+                        return;             // exit from function
+                    }
+                    else
+                        break;              // exit from the for and go to next Document
+                }
+            }
+            //*/
 
             // save score
             if (partialScore != 0)
@@ -179,7 +222,7 @@ public final class QueryProcessor {
             }
         }
 
-        long endTime = System.currentTimeMillis();           // end time of hash map ordering
+        endTime = System.currentTimeMillis();           // end time of hash map ordering
         // shows query execution time
         System.out.println(ANSI_YELLOW + "\n*** DAAT execute in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
     }
@@ -408,7 +451,6 @@ public final class QueryProcessor {
 
         // new version
         long startTime = System.currentTimeMillis();         // start time of DocID list ordering
-
         // scan all posting lists passed as parameters
         for (int i = 0; i < postingLists.length; i++)
         {
@@ -416,8 +458,10 @@ public final class QueryProcessor {
             for (Posting p : postingLists[i])
             {
                 currentDocID = p.getDocId();            // take DocID in the current posting
+                if (i == 0)
+                    hashDocID.put(currentDocID,1);      // add DocID
                 // control check for duplicate DocID, do only after first posting list
-                if (!hashDocID.containsKey(currentDocID))
+                else if (!hashDocID.containsKey(currentDocID))
                 {
                     hashDocID.put(currentDocID,1);      // add DocID
                 }
@@ -429,28 +473,6 @@ public final class QueryProcessor {
         long endTime = System.currentTimeMillis();           // end time of DocID list ordering
         System.out.println(ANSI_YELLOW + "\n*** TAKE DID LIST in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
-   /*     for(Integer docid: orderedList)
-            System.out.println(docid);*/
-        /* old version
-        long startTime = System.currentTimeMillis();         // start time of DocID list ordering
-
-        // scan all posting lists passed as parameters
-        for (int i = 0; i < postingLists.length; i++)
-        {
-            // scan all DocID in the i-th posting list
-            for (Posting p : postingLists[i])
-            {
-                currentDocID = p.getDocId();            // take DocID in the current posting
-                // control check for duplicate DocID, do only after first posting list
-                if (!orderedList.contains(currentDocID))
-                {
-                    orderedList.add(currentDocID);      // add DocID
-                }
-            }
-        }
-        long endTime = System.currentTimeMillis();           // end time of DocID list ordering
-        System.out.println(ANSI_YELLOW + "\n*** TAKE DID LIST in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
-        */
         startTime = System.currentTimeMillis();         // start time of DocID list ordering
         Collections.sort(orderedList);          // order the list of DocID
         endTime = System.currentTimeMillis();           // end time of DocID list ordering
@@ -496,6 +518,20 @@ public final class QueryProcessor {
         }
     }
 
+    ///* new version to substitute remove wit get in the posting lists
+    private static int[] getPostingListsIndex (ArrayList<Posting>[] postingLists)
+    {
+        int[] postingListsIndex = new int[postingLists.length];
+
+        // set the index to 0 for each posting lists of the term in the query
+        for (int i = 0; i < postingLists.length; i++)
+        {
+            postingListsIndex[i] = 0;       // set index to 0
+        }
+
+        return postingListsIndex;
+    }
+    //*/
     // -------- end: utilities function --------
 }
 
