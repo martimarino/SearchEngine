@@ -10,6 +10,7 @@ import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.*;
 import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.getDictElemSize;
 import static it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 import static java.lang.Math.min;
 
 /**
@@ -128,7 +129,7 @@ public final class IndexMerger {
                         if(currentDE.getMaxTf() > tempDE.getMaxTf())       //update maxTf
                             tempDE.setMaxTf(currentDE.getMaxTf());
                     }
-                    else{    // different term found (respect the previous iteration), write to disk the complete data of the previous term
+                    else{    // different term found, write to disk the complete data of the previous term
 
                         //update DocID and Term Frequency offset ( equal to the end of the files)
                         tempDE.setOffsetTermFreq(outTermFreqChannel.size());
@@ -137,9 +138,16 @@ public final class IndexMerger {
                         tempDE.computeIdf();
                         tempDE.computeMaxTFIDF();
 
-                        printDebug(tempDE.toString());
+//                        // -------------- debug function ------------
+//                       if (tempDE.getTerm().equals("0000")) {
+//                            ArrayList<Integer> debug = new ArrayList<>();
+//                            printDebug("size: " + tempPL.size());
+//                            for(int i = 0; i < tempPL.size(); i++)
+//                                debug.add(tempPL.get(i).getDocId());
+//                            saveDocsInFile(debug, "src/main/resources/totalPosting.txt");
+//                        }
+
                         assert tempPL != null;
-                        printDebug(tempPL.toString());
 
                         int lenPL = tempPL.size();
                         int[] tempCompressedLength = new int[2];
@@ -158,10 +166,15 @@ public final class IndexMerger {
                                     SkipInfo sp = new SkipInfo(subPL.get(subPL.size()-1).getDocId(), outDocIdChannel.size(), tempCompressedLength[1], outTermFreqChannel.size(),tempCompressedLength[0]);
                                     sp.storeSkipInfoToDisk(outSkipChannel);
                                 } else {
-                                    storePostingListIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);  // write InvertedIndexElem to disk
+                                    storePostingListIntoDisk(tempSubPL, outTermFreqChannel, outDocIdChannel);  // write InvertedIndexElem to disk
                                     SkipInfo sp = new SkipInfo(subPL.get(subPL.size()-1).getDocId(), outDocIdChannel.size(), 0, outTermFreqChannel.size(), 0);
+//                                    if (tempDE.getTerm().equals("0000")) {
+//                                        ArrayList<Integer> debug = new ArrayList<>();
+//                                        for (Posting posting : tempSubPL) debug.add(posting.getDocId());
+//                                        saveDocsInFile(debug,  "src/main/resources/subpl" + i +".txt");
+//                                        saveDocsInFileSkipInfo(sp, "src/main/resources/skipInfo" + i + ".txt");
+//                                    }
                                     sp.storeSkipInfoToDisk(outSkipChannel);
-                                    printDebug(sp.toString());
                                 }
                                 nSkip++;
 

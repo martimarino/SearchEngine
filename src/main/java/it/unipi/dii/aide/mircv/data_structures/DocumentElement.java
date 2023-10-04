@@ -84,7 +84,5 @@ public class DocumentElement {
         docid = buffer.getInt();
         doclength = buffer.getInt();
 
-        if(start % printInterval == 0)
-            printDebug("DOCNO: " + getDocno() + " DOCID: " + getDocid() + " DOCLENGTH: " + getDoclength());
     }
 }

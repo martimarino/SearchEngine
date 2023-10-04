@@ -52,10 +52,8 @@ public final class Constants {
 
     // ---------------------------------------- Utilities for debugging -----------------------------------------------
 
-    // variable that indicates after how many iterations to make a control printout (used in various methods)
-    public static int printInterval = 1000000;
     // variable that stipulates the behaviour for control printouts. If false there will be no printouts, if true there will be all printouts.
-    public static boolean verbose = false;
+    public static boolean verbose = true;
 
     public static String formatTime(long start, long end) {
 
