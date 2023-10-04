@@ -22,7 +22,9 @@ public final class QueryProcessor {
     private static boolean orderAllHashMap = false;
     // HashMap for containing the DocID and document score related. DID -> doc score
     private static final HashMap<Integer, Double> tableDAAT = new HashMap<>();
+    // HashMap for containing the top "numberOfResults" DocID of the document related to score value. doc score -> ArrayList of DID
     private static final HashMap<Double, ArrayList<Integer>> scoreToDocID = new HashMap<>();
+    // HashMap for containing the score values for which "numberOfResults" docs have already been found. Score -> true or false
     private static final HashMap<Double, Boolean> scoreWithMaxDoc = new HashMap<>();
     public static HashMap<Integer, DocumentElement> documentTable = new HashMap<>();    // hash table DocID to related DocElement
     static it.unipi.dii.aide.mircv.data_structures.Dictionary dictionary = new Dictionary();    // dictionary in memory
@@ -183,9 +185,12 @@ public final class QueryProcessor {
             // save score
             if (partialScore != 0)
             {
-                tableDAAT.put(currentDID,partialScore);     // add DID and related score to HashMap
+                //tableDAAT.put(currentDID,partialScore);     // add DID and related score to HashMap   OLD VERSION
                 if (!scoreWithMaxDoc.containsKey(partialScore))
+                {
+                    tableDAAT.put(currentDID,partialScore);     // add DID and related score to HashMap     NEW VERSION
                     addToScoreToDocID(partialScore,currentDID,numberOfResults); // add DID to the related DID in hashmap
+                }
                 printDebug("Final TFIDF scoring for DID = " + currentDID + " is: " + tableDAAT.get(currentDID));
             }
         }
