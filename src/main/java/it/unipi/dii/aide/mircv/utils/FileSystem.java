@@ -1,8 +1,14 @@
 package it.unipi.dii.aide.mircv.utils;
 
 import java.io.File;
+
+import it.unipi.dii.aide.mircv.data_structures.SkipInfo;
 import org.apache.commons.io.FileUtils;
+
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 
@@ -80,4 +86,28 @@ public final class FileSystem {
         return docTable.exists() && dict.exists() && docDID.exists() && docTF.exists();
     }
 
+    // function to save docids  or tf posting list into file (in order to compare before and after compression)
+    public static void saveDocsInFile(ArrayList<Integer> postings, String tempFileName) throws FileNotFoundException {
+        // Create a file
+        File outputf = new File(tempFileName);
+
+        try (PrintWriter outputWriter = new PrintWriter(outputf)) {
+            for (int i = 0; i < postings.size(); i++) {
+                printDebug("posting" + i + ": " + postings.get(i));
+                outputWriter.print(postings.get(i));
+                outputWriter.println(); // Add a newline character
+            }
+        }
+    }
+
+    public static void saveDocsInFileSkipInfo(SkipInfo si, String tempFileName) throws FileNotFoundException {
+        // ----------- debug file ---------------
+        File outputf = new File(tempFileName);
+
+        try(PrintWriter outputWriter = new PrintWriter(outputf);) {
+
+            outputWriter.print(si.toString());
+            outputWriter.println();
+        }
+    }
 }

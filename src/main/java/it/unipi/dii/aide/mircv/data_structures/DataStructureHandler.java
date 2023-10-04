@@ -330,22 +330,4 @@ public final class DataStructureHandler {
         return null;
     }
 
-
-
-// function to save docids  or tf posting list into file (in order to compare before and after compression)
-    public static void saveDocsInFile(ArrayList<Integer> postings, boolean merge) throws FileNotFoundException {
-        // ----------- debug file ---------------
-        String tempFileName = (merge? "tempFile.txt" : "tempFile_out.txt");
-        File outputf = new File(tempFileName);
-
-
-        PrintWriter outputWriter = new PrintWriter(outputf);
-
-        for(int i = 0; i < postings.size(); i++) {
-            outputWriter.print(postings.get(i));
-            outputWriter.print(" ");
-    }
-
-}
-
 }

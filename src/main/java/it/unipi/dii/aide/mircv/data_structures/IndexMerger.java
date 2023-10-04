@@ -1,5 +1,7 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
+import it.unipi.dii.aide.mircv.utils.FileSystem;
+
 import java.io.*;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -186,15 +188,13 @@ public final class IndexMerger {
                                 tempDE.setDocIdSize(tempCompressedLength[1]);
                             }
                         }
-
-                            /*// -------------- debug compression function ------------
-                           if (tempDE.getTerm().equals("home")) {
-                                ArrayList<Integer> debug = new ArrayList<>();
-                                for(int i = 0; i < debug.size(); i++)
-                                    debug.add(tempPL.get(i).getDocId());
-                                DataStructureHandler.saveDocsInFile(debug, true);
-                            }// ----------------------------------------*/
-                        //}
+         /*              ------- debug function ------
+                        if (tempDE.getTerm().equals("home")) {
+                            ArrayList<Integer> debug = new ArrayList<>();
+                            for(int i = 0; i < debug.size(); i++)
+                                debug.add(tempPL.get(i).getDocId());
+                            DataStructureHandler.saveDocsInFile(debug, true, "totalPosting.txt");
+                        }*/
                         else {
                             if(Flags.isCompressionEnabled()){
                                 int[] compressedLength = DataStructureHandler.storeCompressedPostingIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);//store index with compression - unary compression for termfreq
