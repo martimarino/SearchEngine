@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import static it.unipi.dii.aide.mircv.QueryProcessor.queryStartControl;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.*;
@@ -28,7 +29,7 @@ public class Main {
                     "\n\tSelect an option:" +
                     "\n\t  m -> try merge only" +
                     "\n\t  i -> build the index" +
-//                    "\n\t  l -> load from disk" +
+                    "\n\t  d -> offset debug" +
                     "\n\t  q -> query mode" +
                     "\n\t  x -> exit" +
                     "\n***********************************\n");
@@ -75,32 +76,21 @@ public class Main {
                     endTime = System.currentTimeMillis();           // end time of merge blocks
                     printTime("\nBlocks merged in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
                     continue;                           // go next while iteration
-                case "l":
-/*
-                    readFlagsFromDisk();
-                    readCollectionStatsFromDisk();
+                case "d":
 
-                    // Read Document Table from disk and put into memory
-                    startTime = System.currentTimeMillis();             // start time to read Document Table from disk
-                    DataStructureHandler.readDocumentTableFromDisk();   // read Document Table
-                    endTime = System.currentTimeMillis();               // end time to read Document Table from disk
-                    printTime("Document Table loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+                    queryStartControl();
+                    String term = "0000";
+                    printDebug(QueryProcessor.dictionary.getTermStat(term).toString());
 
-                    // Read Dictionary from disk
-                    startTime = System.currentTimeMillis();         // start time to read Dictionary from disk
-                    DataStructureHandler.readDictionaryFromDisk();  // read dictionary
-                    endTime = System.currentTimeMillis();           // end time to read Dictionary from disk
-                    printTime("Dictionary loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
                     continue;                           // go next while iteration
-*/
+
 
                 case "q":       // query
                     ArrayList<Integer> rankedResults;       // ArrayList that contain the ranked results of query
                     int numberOfResults = 0;    // take the integer entered by users that indicate the number of results wanted for query
                     // control check that all the files and resources required to execute a query are present
-                    if (!QueryProcessor.queryStartControl()) {
-                        printError("Error: there aren't all files and resources . Please set all and than retry.");
-                        continue;                           // go next while iteration
+                    if (!queryStartControl()) {
+                        return;                           // go next while iteration
                     }
 
                     printUI("Insert query: \n");

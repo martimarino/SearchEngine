@@ -2,16 +2,17 @@ package it.unipi.dii.aide.mircv.data_structures;
 
 import it.unipi.dii.aide.mircv.TextProcessor;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.*;
+
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 
 public final class PartialIndexBuilder {
@@ -34,9 +35,17 @@ public final class PartialIndexBuilder {
         int termCounter = 0;        // counter for TermID
         int totDocLen = 0;          // variable for the sum of the lengths of all documents
 
+        File file = new File(COLLECTION_PATH);
         try (
-                BufferedReader buffer_collection = new BufferedReader(new InputStreamReader(new FileInputStream(COLLECTION_PATH), StandardCharsets.UTF_8));
+            final TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(new GzipCompressorInputStream(new FileInputStream(file)));
+
         ) {
+            TarArchiveEntry tarArchiveEntry = tarArchiveInputStream.getNextTarEntry();
+            BufferedReader buffer_collection;
+            if(tarArchiveEntry == null)
+                return;
+            buffer_collection = new BufferedReader(new InputStreamReader(tarArchiveInputStream, StandardCharsets.UTF_8));
+
             String record;          // string to contain the document
 
             // scan all documents in the collection

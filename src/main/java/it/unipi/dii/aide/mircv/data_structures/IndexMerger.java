@@ -140,14 +140,14 @@ public final class IndexMerger {
                         tempDE.computeIdf();
                         tempDE.computeMaxTFIDF();
 
-//                        // -------------- debug function ------------
-//                       if (tempDE.getTerm().equals("0000")) {
-//                            ArrayList<Integer> debug = new ArrayList<>();
-//                            printDebug("size: " + tempPL.size());
-//                            for(int i = 0; i < tempPL.size(); i++)
-//                                debug.add(tempPL.get(i).getDocId());
-//                            saveDocsInFile(debug, "src/main/resources/totalPosting.txt");
-//                        }
+                        // -------------- debug function ------------
+                       if (tempDE.getTerm().equals("0000")) {
+                            ArrayList<Integer> debug = new ArrayList<>();
+                            printDebug("size: " + tempPL.size());
+                            for(int i = 0; i < tempPL.size(); i++)
+                                debug.add(tempPL.get(i).getDocId());
+                            saveDocsInFile(debug, "src/main/resources/totalPosting.txt");
+                        }
 
                         assert tempPL != null;
 
@@ -165,11 +165,17 @@ public final class IndexMerger {
                                     assert compressedLength != null;
                                     tempCompressedLength[0] += compressedLength[0];
                                     tempCompressedLength[1] += compressedLength[1];
-                                    SkipInfo sp = new SkipInfo(subPL.get(subPL.size()-1).getDocId(), outDocIdChannel.size(), tempCompressedLength[1], outTermFreqChannel.size(),tempCompressedLength[0]);
+                                    SkipInfo sp = new SkipInfo(subPL.get(subPL.size()-1).getDocId(), outDocIdChannel.size(), outTermFreqChannel.size());
+                                    if (tempDE.getTerm().equals("0000")) {
+                                        ArrayList<Integer> debug = new ArrayList<>();
+                                        for (Posting posting : tempSubPL) debug.add(posting.getDocId());
+                                        saveDocsInFile(debug,  "src/main/resources/subpl" + i +".txt");
+                                        saveDocsInFileSkipInfo(sp, "src/main/resources/skipInfo" + i + ".txt");
+                                    }
                                     sp.storeSkipInfoToDisk(outSkipChannel);
                                 } else {
                                     storePostingListIntoDisk(tempSubPL, outTermFreqChannel, outDocIdChannel);  // write InvertedIndexElem to disk
-                                    SkipInfo sp = new SkipInfo(subPL.get(subPL.size()-1).getDocId(), outDocIdChannel.size(), 0, outTermFreqChannel.size(), 0);
+                                    SkipInfo sp = new SkipInfo(subPL.get(subPL.size()-1).getDocId(), outDocIdChannel.size(),  outTermFreqChannel.size());
 //                                    if (tempDE.getTerm().equals("0000")) {
 //                                        ArrayList<Integer> debug = new ArrayList<>();
 //                                        for (Posting posting : tempSubPL) debug.add(posting.getDocId());

@@ -12,6 +12,7 @@ import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.readC
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readPostingListFromDisk;
 import static it.unipi.dii.aide.mircv.data_structures.Flags.readFlagsFromDisk;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.saveDocsInFile;
 
 /**
  * Class to manage and execute query
@@ -51,6 +52,7 @@ public final class QueryProcessor {
             printDebug("Query before processed: " + query);
             processedQuery = TextProcessor.preprocessText(query); // Preprocessing of document text
             printDebug("Query after processed: " + processedQuery);
+            printDebug(dictionary.getTermStat("0000").toString());
 
             // control for correct form
             if ( (isConjunctive && isDisjunctive) || !(isConjunctive || isDisjunctive))     // query is Conjunctive or Disjunctive cannot be both or neither
@@ -117,8 +119,7 @@ public final class QueryProcessor {
      * @param isConjunctive     indicates whether the query is of conjunctive type
      * @param isDisjunctive     indicates whether the query is of disjunctive type
      */
-    private static void DAATAlgorithm(ArrayList<String> ProcessedQuery, boolean isConjunctive, boolean isDisjunctive, int numberOfResults)
-    {
+    private static void DAATAlgorithm(ArrayList<String> ProcessedQuery, boolean isConjunctive, boolean isDisjunctive, int numberOfResults) throws FileNotFoundException {
         // ordered list of the DocID present in the all posting lists of the term present in the query
         ArrayList<Integer> ordListDID;
         ArrayList<Posting>[] postingLists;      // contains all the posting lists for each term of the query
@@ -403,8 +404,7 @@ public final class QueryProcessor {
      * @param postingLists  the posting lists of each term in the query
      * @return  an ordered ArrayList of the DocIDs in the posting lists
      */
-    private static ArrayList<Integer> DIDOrderedListOfQuery(ArrayList<Posting>[] postingLists)
-    {
+    private static ArrayList<Integer> DIDOrderedListOfQuery(ArrayList<Posting>[] postingLists) throws FileNotFoundException {
         // ordered list of the DocID present in the all posting lists of the term present in the query
         ArrayList<Integer> orderedList = new ArrayList<>();
         LinkedHashMap<Integer, Integer> hashDocID = new LinkedHashMap<>();  //hashmap to get all DocID without copies
@@ -440,7 +440,7 @@ public final class QueryProcessor {
         System.out.println(ANSI_YELLOW + "\n*** ORDERED DID LIST in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
         //------------------ debug function -----------------
-       //DataStructureHandler.saveDocsInFile(orderedList, false);
+       saveDocsInFile(orderedList, "src/main/resources/orderedPL.txt");
        //----------------------------------------------------
         if (verbose)
             System.out.println("Ordered List of DocID for the query:  " + orderedList);     // print orderedList
