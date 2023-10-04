@@ -249,39 +249,6 @@ public final class DataStructureHandler {
         return null;
     }
 
-//    /**
-//     * function to obtain the complete posting list (stored into disk) related the term passed by parameter
-//     *
-//     * @param term
-//     * @return
-//     */
-//    public static ArrayList<Posting> getPostingListFromTerm(String term)
-//    {
-//        ArrayList<Posting> postingList = new ArrayList<>();     // contain the posting list of term
-//        DictionaryElem de;
-//
-//       try (
-//                // open complete files to read the postingList
-//                RandomAccessFile docidFile = new RandomAccessFile(DOCID_FILE, "rw");
-//                RandomAccessFile termfreqFile = new RandomAccessFile(TERMFREQ_FILE, "rw");
-//                // FileChannel
-//                FileChannel docIdChannel = docidFile.getChannel();
-//                FileChannel termFreqChannel = termfreqFile.getChannel();
-//        ) {
-//            // check if the term is the term is present in the dictionary hashmap
-//            if (dictionary.getTermToTermStat().containsKey(term))
-//            {
-//                de = dictionary.getTermToTermStat().get(term);      // take DictionaryElem related term
-//                // take the postingList of term
-//                postingList = readPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(),de.getDf(),docIdChannel,termFreqChannel);
-//            }
-//        }
-//        catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//
-//        return postingList;
-//    }
     // -------- end: functions to read from disk --------
 
     /**

@@ -11,6 +11,7 @@ public final class Constants {
     public static final String MERGED_FOLDER = RES_FOLDER + "merged/";
 
     // -------------------------------- Constants for file paths -------------------------------------------
+
     public final static String COLLECTION_PATH = RES_FOLDER + "collection.tsv";
 
     public static final String PARTIAL_DICTIONARY_FILE = PARTIAL_FOLDER + "partial_dictionary.txt"; // file in which is stored the vocabulary in blocks
@@ -26,6 +27,8 @@ public final class Constants {
     public static final String FLAGS_FILE = RES_FOLDER + "flags.txt"; // file in which flags are stored
     public static final String STATS_FILE = RES_FOLDER + "collectionStatistics.txt"; // file in which collection statistics are stored
 
+    public static final String SKIP_FILE = MERGED_FOLDER + "skipInfo.txt";
+
     // -------------------------------- Constants for variable bytes -------------------------------------------
 
     public static final int INT_BYTES = Integer.BYTES;
@@ -33,8 +36,12 @@ public final class Constants {
     public static final int DOUBLE_BYTES = Double.BYTES;
 
     public static final int TERM_DIM = 20;                      // Length of a term (in bytes)
-
     public static int N_POSTINGS = 0;                  // Number of partial postings to save in the file
+
+    public static final int SKIP_POINTERS_THRESHOLD = 1024;
+    // 4 (docId) + 8 (docId offset) + 8 (frequency offset) = 20 bytes
+    public static final int SKIP_BLOCK_DIMENSION = 20;
+    public static final int MAX_TERM_LEN = 20; // in bytes
 
     // -------------------------------------- Constants for file offsets ----------------------------------------------
 

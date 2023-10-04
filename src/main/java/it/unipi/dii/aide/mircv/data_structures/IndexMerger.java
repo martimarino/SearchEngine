@@ -1,10 +1,5 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
-import it.unipi.dii.aide.mircv.compression.VariableBytes;
-import it.unipi.dii.aide.mircv.data_structures.Flags;
-import it.unipi.dii.aide.mircv.compression.Unary;
-
-import javax.swing.text.FlowView;
 import java.io.*;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -12,9 +7,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.*;
-import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.DICT_ELEM_SIZE;
+import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.getDictElemSize;
 import static it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
+import static java.lang.Math.min;
 
 /**
  * class to merge the InverteIndex
@@ -35,6 +31,7 @@ public final class IndexMerger {
      */
     public static void mergeBlocks() {
         System.out.println("Merging partial files...");                     // print of the merging start
+        Flags.setIsMerge(true);
 
         int nrBlocks = dictionaryBlockOffsets.size();           // dictionary number
         DataStructureHandler.readBlockOffsetsFromDisk();        // get offsets of dictionary blocks from disk
@@ -42,10 +39,8 @@ public final class IndexMerger {
         // array containing the current read offset for each block
         ArrayList<Long> currentBlockOffset = new ArrayList<>(nrBlocks);
         currentBlockOffset.addAll(dictionaryBlockOffsets);
-        Flags.setIsMerge(true);
 
-        int lim = 20;                           // var which indicates the upper limit for control prints, above which no prints will be shown
-        int stepProgressionPrint = 100000;       // var which indicates the steps of 'i' progression print during merge
+        // var which indicates the steps of 'i' progression print during merge
         System.out.println("Compression " + Flags.isCompressionEnabled());
         // open file and create channels for reading the partial dictionary and index file and write the complete index and dictionary file
         try (
@@ -57,6 +52,8 @@ public final class IndexMerger {
                 RandomAccessFile docidFile = new RandomAccessFile(DOCID_FILE, "rw");
                 RandomAccessFile termfreqFile = new RandomAccessFile(TERMFREQ_FILE, "rw");
                 RandomAccessFile dictFile = new RandomAccessFile(DICTIONARY_FILE, "rw");
+                // open skipping file
+                RandomAccessFile skipFile = new RandomAccessFile(SKIP_FILE, "rw");
 
                 // FileChannel in input (partial file)
                 FileChannel dictChannel = partialDictFile.getChannel();
@@ -66,6 +63,8 @@ public final class IndexMerger {
                 FileChannel outDictionaryChannel = dictFile.getChannel();
                 FileChannel outDocIdChannel = docidFile.getChannel();
                 FileChannel outTermFreqChannel = termfreqFile.getChannel();
+                // FileChannel in output (skipping)
+                FileChannel outSkipChannel = skipFile.getChannel()
         ) {
             // scroll all blocks and add the first term of each block to priority queue
             for(int i = 0; i <  nrBlocks; i++) {
@@ -86,39 +85,25 @@ public final class IndexMerger {
 
             // Merging the posting list -> SEE NOTE 1
             while(!pq.isEmpty()) {
-                if (i < lim)     // print to divide the control print of each iteration
-                    printDebug("-----------------------------------------------------");
 
                 // get first element from priority queue
                 currentTermBlock = pq.poll();               // get lowest term from priority queue
+                assert currentTermBlock != null;
                 term = currentTermBlock.getTerm();          // get the term
                 block_id = currentTermBlock.getBlock();     // get the blockID
 
-                if (i < lim)
-                    printDebug("Current term (removed from pq): " + currentTermBlock);
-
                 // If condition to verify if there are other elements -> SEE NOTE 2
-                if (currentBlockOffset.get(block_id) + DICT_ELEM_SIZE  < (block_id == (currentBlockOffset.size()-1) ? dictChannel.size() : dictionaryBlockOffsets.get(block_id +1))){
-                    buffer = dictChannel.map(FileChannel.MapMode.READ_ONLY, currentBlockOffset.get(block_id) + DICT_ELEM_SIZE, TERM_DIM); // get first element of the block
+                if (currentBlockOffset.get(block_id) + getDictElemSize()  < (block_id == (currentBlockOffset.size()-1) ? dictChannel.size() : dictionaryBlockOffsets.get(block_id +1))){
+                    buffer = dictChannel.map(FileChannel.MapMode.READ_ONLY, currentBlockOffset.get(block_id) + getDictElemSize(), TERM_DIM); // get first element of the block
                     String[] t = StandardCharsets.UTF_8.decode(buffer).toString().split("\0");      // get the term of element
                     if (!(t.length == 0))           // control check if term is not empty
                         pq.add(new TermBlock(t[0], block_id));  //add to the priority queue a term block element (term + its blocks number)
-                }
-                else
-                {
-                    printDebug("current block offset " + currentBlockOffset.get(block_id) + "block "+ block_id);
                 }
 
                 // get current elem of dictionary
                 currentDE.readDictionaryElemFromDisk(currentBlockOffset.get(block_id), dictChannel);
                 // get current posting list
                 currentPL = readPostingListFromDisk(currentDE.getOffsetDocId(), currentDE.getOffsetTermFreq(), currentDE.getDf(), docidChannel, termfreqChannel);
-
-/*
-                if(i < lim)
-                    printDebug("CURR DE: " + currentDE + "\nCURR PL: " + currentPL.size());
-*/
-
 
                 if (tempDE.getTerm().equals("")) {        // first iteration
 
@@ -128,18 +113,10 @@ public final class IndexMerger {
                     tempDE.setOffsetDocId(outDocIdChannel.size());
                     tempPL = currentPL;
 
-                    if(i < lim) {
-                        printDebug("*** First iteration ***");
-                        printDebug("CURR DE: " + tempDE + "\nCURR PL: " + tempPL.size());
-                    }
                 } else {                                // is not the first iteration
-                    if(i < lim)
-                        printDebug("CURR DE: " + tempDE + "\nCURR PL: " + tempPL.size());
 
                     // same term found (respect the previous iteration), temporary structures update
                     if (currentDE.getTerm().equals(tempDE.getTerm())) {
-                        if(i < lim)
-                            printDebug("*** Same term of previous one -> accumulate on temp variables ***");
 
                         // update DictionaryElem
                         tempDE.addCf(currentDE.getCf());        // update Cf
@@ -148,60 +125,93 @@ public final class IndexMerger {
                         assert tempPL != null;
                         tempPL.addAll(currentPL);               // add all new postings
 
-                        if(i < lim)
-                            printDebug("TEMP DE: " + tempDE + "\nTEMP PL: " + tempPL.size());
+                        if(currentDE.getMaxTf() > tempDE.getMaxTf())       //update maxTf
+                            tempDE.setMaxTf(currentDE.getMaxTf());
                     }
                     else{    // different term found (respect the previous iteration), write to disk the complete data of the previous term
-                        if(i < lim) {
-                            printDebug("*** Writing elem to disk... ***\nTemp variables status (with the elem to be written)");
-                            printDebug("TEMP DE: " + tempDE + "\nTEMP PL: " + tempPL.size());
-                        }
 
                         //update DocID and Term Frequency offset ( equal to the end of the files)
                         tempDE.setOffsetTermFreq(outTermFreqChannel.size());
                         tempDE.setOffsetDocId(outDocIdChannel.size());
-                        if(i < lim)
-                            System.out.println("end channel : " + outTermFreqChannel.size());
 
-                        if(Flags.isCompressionEnabled()) {
-                            int[] compressedLength = DataStructureHandler.storeCompressedPostingIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);//store index with compression - unary compression for termfreq
-                            tempDE.setTermFreqSize(compressedLength[0]);
-                            tempDE.setDocIdSize(compressedLength[1]);
-                            // -------------- debug compression function ------------
-                /*            if (tempDE.getTerm().equals("home")) {
+                        tempDE.computeIdf();
+                        tempDE.computeMaxTFIDF();
+
+                        printDebug(tempDE.toString());
+                        assert tempPL != null;
+                        printDebug(tempPL.toString());
+
+                        int lenPL = tempPL.size();
+                        int[] tempCompressedLength = new int[2];
+                        if(lenPL >= SKIP_POINTERS_THRESHOLD) {
+                            int skipInterval = (int) Math.ceil(Math.sqrt(lenPL));        // one skip every rad(docs)
+                            int nSkip = 0;
+
+                            for(int i = 0; i < lenPL; i += skipInterval) {
+                                List<Posting> subPL = tempPL.subList(i, min(i + skipInterval, lenPL));
+                                ArrayList<Posting> tempSubPL = new ArrayList<>(subPL);
+                                if (Flags.isCompressionEnabled()) {
+                                    int[] compressedLength = DataStructureHandler.storeCompressedPostingIntoDisk(tempSubPL, outTermFreqChannel, outDocIdChannel);//store index with compression - unary compression for termfreq
+                                    assert compressedLength != null;
+                                    tempCompressedLength[0] += compressedLength[0];
+                                    tempCompressedLength[1] += compressedLength[1];
+                                    SkipInfo sp = new SkipInfo(subPL.get(subPL.size()-1).getDocId(), outDocIdChannel.size(), tempCompressedLength[1], outTermFreqChannel.size(),tempCompressedLength[0]);
+                                    sp.storeSkipInfoToDisk(outSkipChannel);
+                                } else {
+                                    storePostingListIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);  // write InvertedIndexElem to disk
+                                    SkipInfo sp = new SkipInfo(subPL.get(subPL.size()-1).getDocId(), outDocIdChannel.size(), 0, outTermFreqChannel.size(), 0);
+                                    sp.storeSkipInfoToDisk(outSkipChannel);
+                                    printDebug(sp.toString());
+                                }
+                                nSkip++;
+
+                            }
+                            tempDE.setSkipArrLen(nSkip);
+                            tempDE.setSkipOffset(outSkipChannel.size());
+                            if(Flags.isCompressionEnabled()) {
+                                tempDE.setTermFreqSize(tempCompressedLength[0]);
+                                tempDE.setDocIdSize(tempCompressedLength[1]);
+                            }
+                        }
+
+                            /*// -------------- debug compression function ------------
+                           if (tempDE.getTerm().equals("home")) {
                                 ArrayList<Integer> debug = new ArrayList<>();
                                 for(int i = 0; i < debug.size(); i++)
                                     debug.add(tempPL.get(i).getDocId());
                                 DataStructureHandler.saveDocsInFile(debug, true);
-                            }*//// ----------------------------------------
+                            }// ----------------------------------------*/
+                        //}
+                        else {
+                            if(Flags.isCompressionEnabled()){
+                                int[] compressedLength = DataStructureHandler.storeCompressedPostingIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);//store index with compression - unary compression for termfreq
+                                assert compressedLength != null;
+                                tempDE.setTermFreqSize(compressedLength[0]);
+                                tempDE.setDocIdSize(compressedLength[1]);
+                            }
+                            else
+                                storePostingListIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);  // write InvertedIndexElem to disk
                         }
-                        else
-                            storePostingListIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);  // write InvertedIndexElem to disk
-                        // write DictionaryElem to disk
                         tempDE.storeDictionaryElemIntoDisk(outDictionaryChannel, true);
 
                         //set temp variables values
                         tempDE = currentDE;
                         tempPL = currentPL;
-
-                        if(i < lim) {
-                            printDebug("Temp variables status after writing and update");
-                            printDebug("TEMP DE: " + tempDE + "\nTEMP PL: " + tempPL.size());
-                        }
                     }
                 }
                 currentDE = new DictionaryElem();
                 i++;
 
                 // update the offset of next element to read from the block read in this iteration
-                currentBlockOffset.set(block_id, currentBlockOffset.get(block_id) + DICT_ELEM_SIZE);
+                currentBlockOffset.set(block_id, currentBlockOffset.get(block_id) + getDictElemSize());
             }
             printDebug("Merge ended, total number of iterations (i) is: " + i);
-            Flags.setIsMerge(false);
 //            delete_tempFiles();                                                                       !!!!!!!!!!!!!!!!
 
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            Flags.setIsMerge(false);
         }
     }
 

@@ -1,5 +1,4 @@
 package it.unipi.dii.aide.mircv;
-import it.unipi.dii.aide.mircv.compression.Unary;
 import it.unipi.dii.aide.mircv.data_structures.*;
 import it.unipi.dii.aide.mircv.data_structures.Dictionary;
 import it.unipi.dii.aide.mircv.utils.FileSystem;
@@ -58,7 +57,7 @@ public final class QueryProcessor {
                 return rankedResults;
             }
 
-            DAATAlgorithm(processedQuery,isConjunctive, isDisjunctive,numberOfResults);        // apply DAAT, result in tableDAAT
+            DAATAlgorithm(processedQuery, isConjunctive, isDisjunctive, numberOfResults);        // apply DAAT, result in tableDAAT
 
             rankedResults = getRankedResults(numberOfResults);          // get ranked results
             tableDAAT.clear();                                          // clear HashMap
@@ -111,11 +110,11 @@ public final class QueryProcessor {
     /**
      * function for apply the Document at a Time algorithm
      *
-     * @param ProcessedQuery    array list for containing the query term
+     * @param processedQuery    array list for containing the query term
      * @param isConjunctive     indicates whether the query is of conjunctive type
      * @param isDisjunctive     indicates whether the query is of disjunctive type
      */
-    private static void DAATAlgorithm(ArrayList<String> ProcessedQuery, boolean isConjunctive, boolean isDisjunctive, int numberOfResults)
+    private static void DAATAlgorithm(ArrayList<String> processedQuery, boolean isConjunctive, boolean isDisjunctive, int numberOfResults)
     {
         // ordered list of the DocID present in the all posting lists of the term present in the query
         ArrayList<Integer> ordListDID;
@@ -124,7 +123,7 @@ public final class QueryProcessor {
         int currentDID = 0;                     // DID of the current doc processed in algorithm
         double partialScore = 0;                   // var that contain partial score
 
-        postingLists = retrieveAllPostListsFromQuery(ProcessedQuery);   // take all posting lists of query terms
+        postingLists = retrieveAllPostListsFromQuery(processedQuery);   // take all posting lists of query terms
         // control check for empty posting lists (the terms are not present in the document collection)
         if (postingLists.length == 0)
         {
@@ -146,18 +145,18 @@ public final class QueryProcessor {
             // take all values and calculating the scores in the posting related to currentDID
             for (int j = 0; j < postingLists.length; j++)
             {
-                // check if the posting lists of j-th is empty AND if the j-th term of the query is present in the doc identify by currentDID
+                // check if the posting lists of j-th is empty AND if the j-th term of the query is present in the doc identified by currentDID
                 if (!postingLists[j].isEmpty() && (postingLists[j].get(0).getDocId() == currentDID))
                 {
                     currentP = postingLists[j].remove(0);               // take and remove posting
-                    //System.out.println("DAAT, prescoring -- df = " + DataStructureHandler.postingListLengthFromTerm(ProcessedQuery.get(j)));
+                    //System.out.println("DAAT, prescoring -- df = " + DataStructureHandler.postingListLengthFromTerm(processedQuery.get(j)));
 
                     // calculate TFIDF for this term and currentDID and sum to partial score
-                    String term = ProcessedQuery.get(j);
+                    String term = processedQuery.get(j);
                     int df = dictionary.getTermToTermStat().get(term).getDf();
-                    partialScore += ScoringTFIDF(currentP.getTermFreq(), df);
+                    partialScore += scoringTFIDF(currentP.getTermFreq(), df);
 
-                    printDebug("DAAT: posting del termine: " + ProcessedQuery.get(j) + " in array pos: " + j + " ha DID: " + currentDID + " and partialScore: " + partialScore);
+                    printDebug("DAAT: posting del termine: " + processedQuery.get(j) + " in array pos: " + j + " ha DID: " + currentDID + " and partialScore: " + partialScore);
                 }
                 else if (isConjunctive)
                 {
@@ -192,7 +191,7 @@ public final class QueryProcessor {
      * @return  the TFIDF score for one term and one document. The total score for a document will be the sum of the
      *          result of this function for each term that is both in the document and in the query
      */
-    private static Double ScoringTFIDF(int termFreq, int postListLength)
+    private static Double scoringTFIDF(int termFreq, int postListLength)
     {
         double TFweight;
         double IDFweight;

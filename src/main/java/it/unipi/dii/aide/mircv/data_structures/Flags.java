@@ -15,7 +15,10 @@ public final class Flags {
     private static boolean sws_flag = false;            // true = stop words removal enabled, false = stop words removal disabled
     private static boolean compression_flag = false;    // true = compression enabled, false = compression disabled
     private static boolean scoring_flag = false;        // true = scoring enable, false = scoring disable
+
+    private static boolean isSPIMI = false;
     private static boolean isMerge = false;
+    private static boolean isQuery = false;
 
     public static boolean isSwsEnabled() { return sws_flag; }
 
@@ -97,11 +100,17 @@ public final class Flags {
         return docFlags.exists();
     }
 
-    public static boolean isIsMerge() {
-        return isMerge;
+    public static boolean isSPIMI() {
+        return isSPIMI;
     }
 
+    public static void setIsSPIMI(boolean isSPIMI) {
+        Flags.isSPIMI = isSPIMI;
+    }
+
+    public static boolean isMerge() { return Flags.isMerge; }
+
     public static void setIsMerge(boolean isMerge) {
-        Flags.isMerge = isMerge;
+        Flags.isSPIMI = isMerge;
     }
 }

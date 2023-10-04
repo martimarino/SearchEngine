@@ -12,7 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.DICT_ELEM_SIZE;
+import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.getDictElemSize;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 
 public class Dictionary {
@@ -72,8 +72,8 @@ public class Dictionary {
 
             // scan all Dictionary Element saved into disk
             while(position < len) {
-                buffer = channel.map(FileChannel.MapMode.READ_ONLY, position, Flags.isCompressionEnabled()? DICT_ELEM_SIZE + 2*INT_BYTES : DICT_ELEM_SIZE);// read one DictionaryElem
-                position += Flags.isCompressionEnabled()? DICT_ELEM_SIZE + 2*INT_BYTES : DICT_ELEM_SIZE;                     // update read position
+                buffer = channel.map(FileChannel.MapMode.READ_ONLY, position, getDictElemSize());// read one DictionaryElem
+                position += getDictElemSize();                     // update read position
 
                 DictionaryElem dictElem = new DictionaryElem();       // create new DictionaryElem
 

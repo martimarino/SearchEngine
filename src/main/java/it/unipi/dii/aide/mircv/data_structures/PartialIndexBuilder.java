@@ -28,6 +28,7 @@ public final class PartialIndexBuilder {
      */
     public static void SPIMIalgorithm() {
 
+        Flags.setIsSPIMI(true);
         long memoryAvailable = (long) (Runtime.getRuntime().maxMemory() * MEMORY_THRESHOLD);
         int docCounter = 1;         // counter for DocID
         int termCounter = 0;        // counter for TermID
@@ -101,6 +102,8 @@ public final class PartialIndexBuilder {
 
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            Flags.setIsSPIMI(false);
         }
     }
 

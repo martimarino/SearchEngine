@@ -5,7 +5,6 @@ import java.nio.CharBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 
@@ -14,7 +13,13 @@ import static it.unipi.dii.aide.mircv.utils.Constants.*;
  */
 public class DictionaryElem {
 
-    static final int DICT_ELEM_SIZE = TERM_DIM + 3 * Integer.BYTES + 2 * Long.BYTES; // if compression case, need to store 2 more integers (dimension of compressed DocID and Term Frequency values)
+    // if compression case, need to store 2 more integers (dimension of compressed DocID and Term Frequency values)
+    private static final int DICT_ELEM_SIZE = TERM_DIM + 3 * Integer.BYTES + 2 * Long.BYTES;
+
+    static int getDictElemSize(){
+        return DICT_ELEM_SIZE + ((!Flags.isSPIMI() && Flags.isCompressionEnabled()) ? 2*Integer.BYTES : 0)
+                              + ((!Flags.isSPIMI()) ? (Long.BYTES + Integer.BYTES) : 0);
+    }
 
     private String term;        //32 byte
     private int df;             // document frequency, number of documents in which there is the term
@@ -22,17 +27,32 @@ public class DictionaryElem {
     private int termId;
     private long offsetTermFreq;// starting point of the posting list of the term in the term freq file
     private long offsetDocId;   // starting point of the posting list of the term in the docid file
+    // compression
     private int docIdSize;  // dimension in byte of compressed docid of the posting list
     private int termFreqSize; //dimension in byte of compressed termfreq of the posting list
+    //skipping
+    private long skipOffset;    // offset of the skip element
+    private int skipArrLen;       // len of the skip array
+
+    private double idf;
+    private double maxTf;
+    private double maxTFIDF;        // upper bound
+
 
     DictionaryElem() {
-        this.setDf(0);
-        this.setCf(0);
-        this.setTermId(0);
-        this.setTerm("");
-        this.setDocIdSize(0);
-        this.setTermFreqSize(0);
+        this.df = 0;
+        this.cf = 0;
+        this.termId = 0;
+        this.term = "";
+        this.docIdSize = 0;
+        this.termFreqSize = 0;
+        this.skipOffset = -1;
+        this.skipArrLen = -1;
+        this.idf = 0;
+        this.maxTf = 0;
+        this.maxTFIDF = 0;
     }
+
 
     /**
         Constructor with TermID parameter. Called when the first occurrence of a term is found.
@@ -40,27 +60,27 @@ public class DictionaryElem {
         once in the collection for these set df and cf to 1.
      */
     public DictionaryElem(int termId, String term) {
-        this.setDf(0);
-        this.setCf(0);
-        this.setTermId(termId);
-        this.setTerm(term);
-        this.setDocIdSize(0);
-        this.setTermFreqSize(0);
+        this.termId = termId;
+        this.term = term;
+        this.df = 0;
+        this.cf = 0;
+        this.docIdSize = 0;
+        this.termFreqSize = 0;
+        this.skipOffset = 0;
+        this.skipArrLen = 0;
+        this.idf = 0;
+        this.maxTf = 0;
+        this.maxTFIDF = 0;
     }
 
     // add the quantity passed as a parameter to the current Df
-    public void addDf(int n)
-    {
-        setDf(getDf() + n);
-    }
+    public void addDf(int n) { setDf(getDf() + n); }
 
     // add the quantity passed as a parameter to the current Cf
-    public void addCf(int n)
-    {
-        setCf(getCf() + n);
-    }
+    public void addCf(int n) { setCf(getCf() + n); }
 
     // ---- start method get and set ----
+
     public void setDf(int df) { this.df = df; }
 
     public void setCf(int cf) { this.cf = cf; }
@@ -68,6 +88,14 @@ public class DictionaryElem {
     public void setTerm(String term) { this.term = term; }
 
     public void setTermId(int termId) { this.termId = termId; }
+
+    public double getIdf() { return idf; }
+
+    public double getMaxTf() { return maxTf; }
+
+    public void setMaxTf(double maxTf) { this.maxTf = maxTf; }
+
+    public double getMaxTFIDF() { return maxTFIDF; }
 
     public int getDf() { return df; }
 
@@ -111,6 +139,14 @@ public class DictionaryElem {
         this.termFreqSize = termFreqSize;
     }
 
+    public long getSkipOffset() { return skipOffset; }
+
+    public void setSkipOffset(long skipOffset) { this.skipOffset = skipOffset; }
+
+    public int getSkipArrLen() { return skipArrLen; }
+
+    public void setSkipArrLen(int skipArrLen) { this.skipArrLen = skipArrLen; }
+
     @Override
     public String toString() {
         return "DictionaryElem{" +
@@ -120,6 +156,13 @@ public class DictionaryElem {
                 ", termId=" + termId +
                 ", offsetTermFreq=" + offsetTermFreq +
                 ", offsetDocId=" + offsetDocId +
+                ", docIdSize=" + docIdSize +
+                ", termFreqSize=" + termFreqSize +
+                ", offsetSkip=" + skipOffset +
+                ", skipSize=" + skipArrLen +
+                ", idf=" + idf +
+                ", maxTf=" + maxTf +
+                ", maxTFIDF=" + maxTFIDF +
                 '}';
     }
 
@@ -128,14 +171,12 @@ public class DictionaryElem {
      *
      * @param channel   indicate the file where to write
      */
-    void storeDictionaryElemIntoDisk(FileChannel channel, boolean isMerge){
+    void storeDictionaryElemIntoDisk(FileChannel channel, boolean isSPIMI){
 
         try {
             MappedByteBuffer buffer;
-            if(isMerge & Flags.isCompressionEnabled())
-                buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), DICT_ELEM_SIZE + 2*INT_BYTES);
-            else
-                buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), DICT_ELEM_SIZE);
+            buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), getDictElemSize());
+
 
             // Buffer not created
             if(buffer == null)
@@ -152,11 +193,20 @@ public class DictionaryElem {
             buffer.putInt(termId);                        // write TermID
             buffer.putLong(offsetTermFreq);               // write offset Tf
             buffer.putLong(offsetDocId);                  // write offset DID
-            if(isMerge & Flags.isCompressionEnabled()){ // if in merge phase, need to store also the size of DocID and Term Frequency compressed values
+            if(!Flags.isSPIMI()) {
+                buffer.putLong(skipOffset);
+                buffer.putInt(skipArrLen);
+            }
+            if(Flags.isScoringEnabled()) {
+                buffer.putDouble(idf);
+                buffer.putDouble(maxTf);
+                buffer.putDouble(maxTFIDF);
+            }
+            if(!Flags.isSPIMI() & Flags.isCompressionEnabled()){ // if in merge phase, need to store also the size of DocID and Term Frequency compressed values
                 buffer.putInt(termFreqSize);
                 buffer.putInt(docIdSize);
             }
-            PARTIAL_DICTIONARY_OFFSET += (isMerge & Flags.isCompressionEnabled())? DICT_ELEM_SIZE + 2*INT_BYTES : DICT_ELEM_SIZE;        // update offset
+            PARTIAL_DICTIONARY_OFFSET += getDictElemSize();       // update offset
 
 
         } catch (IOException e) {
@@ -174,7 +224,7 @@ public class DictionaryElem {
     public void readDictionaryElemFromDisk(long start, FileChannel channel){
 
         try {
-            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, start,  DICT_ELEM_SIZE); // get first term of the block
+            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, start,  getDictElemSize()); // get first term of the block
             CharBuffer.allocate(TERM_DIM);              //allocate a charbuffer of the dimension reserved to docno
             CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
 
@@ -187,24 +237,25 @@ public class DictionaryElem {
             termId = buffer.getInt();              // read TermID
             offsetTermFreq = buffer.getLong();     // read offset Tf
             offsetDocId = buffer.getLong();        // read offset DID
+            if(!Flags.isSPIMI()) {
+                skipOffset = buffer.getLong();
+                skipArrLen = buffer.getInt();
+                idf = buffer.getDouble();
+                maxTf = buffer.getDouble();
+                maxTFIDF = buffer.getDouble();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
 
     }
 
-    // function to show in console a posting list passed by parameter
-    public static void printPostingList(ArrayList<Posting> pl, String term)
-    {
-        int position = 0;       // var that indicate the position of current posting in the posting list
+    public void computeIdf() {
+        this.idf = Math.log10(CollectionStatistics.getNDocs() / (double)this.df);
+    }
 
-        System.out.println("printPostingList of " + term + ": ");
-        // iterate through all posting in the posting list
-        for (Posting p : pl)
-        {
-            System.out.println("Posting #:" + position + " DocID: " + p.getDocId() + " Tf: " + p.getTermFreq());
-            position++;         // update iterator
-        }
+    public void computeMaxTFIDF() {
+        this.maxTFIDF = (1 + Math.log10(this.maxTf)) * this.idf;
     }
 
 }
