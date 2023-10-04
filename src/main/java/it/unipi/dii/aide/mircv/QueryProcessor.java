@@ -1,4 +1,5 @@
 package it.unipi.dii.aide.mircv;
+import it.unipi.dii.aide.mircv.compression.Unary;
 import it.unipi.dii.aide.mircv.data_structures.*;
 import it.unipi.dii.aide.mircv.data_structures.Dictionary;
 import it.unipi.dii.aide.mircv.utils.FileSystem;
@@ -17,15 +18,16 @@ import static it.unipi.dii.aide.mircv.utils.Constants.*;
  */
 public final class QueryProcessor {
 
-    // used for the test
-    private static boolean orderAllHashMap = false;        // indicate whether order all or only first "numberOfResults" results from hash table
-    // HashMap for containing the DocID and sum of Term Frequency related. DID -> sTermFreq
+    // indicate whether order all or only first "numberOfResults" results from hash table. TEST VARIABLE
+    private static boolean orderAllHashMap = false;
+    // HashMap for containing the DocID and document score related. DID -> doc score
     private static final HashMap<Integer, Double> tableDAAT = new HashMap<>();
+    // HashMap for containing the top "numberOfResults" DocID of the document related to score value. doc score -> ArrayList of DID
     private static final HashMap<Double, ArrayList<Integer>> scoreToDocID = new HashMap<>();
+    // HashMap for containing the score values for which "numberOfResults" docs have already been found. Score -> true or false
     private static final HashMap<Double, Boolean> scoreWithMaxDoc = new HashMap<>();
-
-    public static HashMap<Integer, DocumentElement> documentTable = new HashMap<>();                       // hash table DocID to related DocElement
-    static it.unipi.dii.aide.mircv.data_structures.Dictionary dictionary = new Dictionary();        // dictionary in memory
+    public static HashMap<Integer, DocumentElement> documentTable = new HashMap<>();    // hash table DocID to related DocElement
+    static it.unipi.dii.aide.mircv.data_structures.Dictionary dictionary = new Dictionary();    // dictionary in memory
 
     /**
      * fuction to manage the query request. Prepare and execute the query and return the results.
@@ -42,7 +44,7 @@ public final class QueryProcessor {
         ArrayList<String> processedQuery;                       // array list for containing the query term
 
         // take user's choices that affecting the query execution
-        boolean ScoringFunc = Flags.isScoringEnabled();      // take user's choice about using scoring function ...
+        boolean ScoringFunc = Flags.isScoringEnabled();      // take user's choice about using scoring function
 
         try{
             // processed the query to obtain the term
@@ -57,11 +59,12 @@ public final class QueryProcessor {
                 return rankedResults;
             }
 
-            DAATAlgorithm(processedQuery, isConjunctive, isDisjunctive, numberOfResults);        // apply DAAT, result in tableDAAT
+            DAATAlgorithm(processedQuery,isConjunctive, isDisjunctive,numberOfResults);        // apply DAAT, result in tableDAAT
 
             rankedResults = getRankedResults(numberOfResults);          // get ranked results
             tableDAAT.clear();                                          // clear HashMap
-            scoreToDocID.clear();
+            scoreToDocID.clear();                                       // clear HashMap
+            scoreWithMaxDoc.clear();                                    // clear HashMap
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -110,20 +113,22 @@ public final class QueryProcessor {
     /**
      * function for apply the Document at a Time algorithm
      *
-     * @param processedQuery    array list for containing the query term
+     * @param ProcessedQuery    array list for containing the query term
      * @param isConjunctive     indicates whether the query is of conjunctive type
      * @param isDisjunctive     indicates whether the query is of disjunctive type
      */
-    private static void DAATAlgorithm(ArrayList<String> processedQuery, boolean isConjunctive, boolean isDisjunctive, int numberOfResults)
+    private static void DAATAlgorithm(ArrayList<String> ProcessedQuery, boolean isConjunctive, boolean isDisjunctive, int numberOfResults)
     {
         // ordered list of the DocID present in the all posting lists of the term present in the query
         ArrayList<Integer> ordListDID;
         ArrayList<Posting>[] postingLists;      // contains all the posting lists for each term of the query
         Posting currentP;                       // support var
         int currentDID = 0;                     // DID of the current doc processed in algorithm
-        double partialScore = 0;                   // var that contain partial score
+        double partialScore = 0;                // var that contain partial score
+        int[] postingListsIndex;                // contain the current position index for the posting list of each term in the query
+        long startTime,endTime;                 // variables to calculate the execution time
 
-        postingLists = retrieveAllPostListsFromQuery(processedQuery);   // take all posting lists of query terms
+        postingLists = retrieveAllPostListsFromQuery(ProcessedQuery);   // take all posting lists of query terms
         // control check for empty posting lists (the terms are not present in the document collection)
         if (postingLists.length == 0)
         {
@@ -131,10 +136,10 @@ public final class QueryProcessor {
             return;     // exit to function
         }
 
-        ordListDID = DIDOrderedListOfQuery(postingLists);               // take ordered list of DocID
+        ordListDID = DIDOrderedListOfQuery(postingLists);           // take ordered list of DocID
+        postingListsIndex = getPostingListsIndex(postingLists);     // get the index initialized   NEW VERSION
 
-        long startTime = System.currentTimeMillis();           // end time of hash map ordering
-
+        startTime = System.currentTimeMillis();           // end time of hash map ordering
         // scan all Doc retrieved and calculate score TFIDF
         for (int i = 0; i < ordListDID.size(); i++)
         {
@@ -145,26 +150,33 @@ public final class QueryProcessor {
             // take all values and calculating the scores in the posting related to currentDID
             for (int j = 0; j < postingLists.length; j++)
             {
-                // check if the posting lists of j-th is empty AND if the j-th term of the query is present in the doc identified by currentDID
-                if (!postingLists[j].isEmpty() && (postingLists[j].get(0).getDocId() == currentDID))
+                // check if the posting lists of j-th isn't at the end AND if the j-th term of the query is present in the doc identify by currentDID
+                if ((postingListsIndex[j] < postingLists[j].size()) && (postingLists[j].get(postingListsIndex[j]).getDocId() == currentDID))
                 {
-                    currentP = postingLists[j].remove(0);               // take and remove posting
-                    //System.out.println("DAAT, prescoring -- df = " + DataStructureHandler.postingListLengthFromTerm(processedQuery.get(j)));
+                    currentP = postingLists[j].get(postingListsIndex[j]);              // take posting
+                    postingListsIndex[j]++;                         // update index of current value
+
+                    //System.out.println("DAAT, prescoring -- df = " + DataStructureHandler.postingListLengthFromTerm(ProcessedQuery.get(j)));
 
                     // calculate TFIDF for this term and currentDID and sum to partial score
-                    String term = processedQuery.get(j);
+                    String term = ProcessedQuery.get(j);
                     int df = dictionary.getTermToTermStat().get(term).getDf();
-                    partialScore += scoringTFIDF(currentP.getTermFreq(), df);
+                    partialScore += ScoringTFIDF(currentP.getTermFreq(), df);
 
-                    printDebug("DAAT: posting del termine: " + processedQuery.get(j) + " in array pos: " + j + " ha DID: " + currentDID + " and partialScore: " + partialScore);
+                    printDebug("DAAT: posting del termine: " + ProcessedQuery.get(j) + " in array pos: " + j + " ha DID: " + currentDID + " and partialScore: " + partialScore);
                 }
                 else if (isConjunctive)
                 {
                     // must take only the document in which there are all term (DID that compare in all posting lists of the terms)
                     partialScore = 0;       // reset the partial score
-                    // if one posting lists is empty the next documents in the posting lists cannot contain all the terms in the query
-                    if (postingLists[j].isEmpty())
+                    // if all postings in one posting lists have already been seen the next documents in the posting lists cannot contain all the terms in the query
+                    if (postingListsIndex[j] >= postingLists[j].size())
+                    {
+                        endTime = System.currentTimeMillis();           // end time of hash map ordering
+                        // shows query execution time
+                        System.out.println(ANSI_YELLOW + "\n*** DAAT execute in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
                         return;             // exit from function
+                    }
                     else
                         break;              // exit from the for and go to next Document
                 }
@@ -173,12 +185,17 @@ public final class QueryProcessor {
             // save score
             if (partialScore != 0)
             {
-                tableDAAT.put(currentDID,partialScore);     // add DID and related score to HashMap
+                //tableDAAT.put(currentDID,partialScore);     // add DID and related score to HashMap   OLD VERSION
+                if (!scoreWithMaxDoc.containsKey(partialScore))
+                {
+                    tableDAAT.put(currentDID,partialScore);     // add DID and related score to HashMap     NEW VERSION
+                    addToScoreToDocID(partialScore,currentDID,numberOfResults); // add DID to the related DID in hashmap
+                }
                 printDebug("Final TFIDF scoring for DID = " + currentDID + " is: " + tableDAAT.get(currentDID));
             }
         }
 
-        long endTime = System.currentTimeMillis();           // end time of hash map ordering
+        endTime = System.currentTimeMillis();           // end time of hash map ordering
         // shows query execution time
         System.out.println(ANSI_YELLOW + "\n*** DAAT execute in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
     }
@@ -191,19 +208,17 @@ public final class QueryProcessor {
      * @return  the TFIDF score for one term and one document. The total score for a document will be the sum of the
      *          result of this function for each term that is both in the document and in the query
      */
-    private static Double scoringTFIDF(int termFreq, int postListLength)
+    private static Double ScoringTFIDF(int termFreq, int postListLength)
     {
-        double TFweight;
-        double IDFweight;
-        double scoreTFIDF;
+        double TFweight, IDFweight, scoreTFIDF;     // variables to calculate the TFIDF score value
 
         // control to avoid log and division to 0
         if (termFreq == 0 || postListLength == 0)
             return (double) 0;
 
-        TFweight = (1 + Math.log10(termFreq));
-        IDFweight = Math.log10(((double) CollectionStatistics.getNDocs() / postListLength));
-        scoreTFIDF = TFweight * IDFweight;
+        TFweight = (1 + Math.log10(termFreq));      // calculate TF weight
+        IDFweight = Math.log10(((double) CollectionStatistics.getNDocs() / postListLength));    // calculate IDF weight
+        scoreTFIDF = TFweight * IDFweight;          // calculate TFIDF weight from Tf and IDF weight values
 
         printDebug("ScoringTFIDF - TFweight = " + TFweight + " IDFweight = " + IDFweight + " scoreTFIDF = " + scoreTFIDF);
 
@@ -220,10 +235,9 @@ public final class QueryProcessor {
      */
     private static ArrayList<Integer> getRankedResults(int numResults)
     {
-        ArrayList<Integer> rankedResults = new ArrayList<>();
-        ArrayList<Double> orderedList = new ArrayList<>();
-        long startTime;
-        long endTime;
+        ArrayList<Integer> rankedResults = new ArrayList<>();   // array list to contain the top "numResults" docs
+        ArrayList<Double> orderedList = new ArrayList<>();      // contain scores of all docs
+        long startTime, endTime;            // variables to calculate the execution time
 
         //control check
         if (numResults < 0 || tableDAAT.isEmpty())
@@ -235,15 +249,26 @@ public final class QueryProcessor {
         for (Map.Entry<Integer, Double> entry : tableDAAT.entrySet()) {
             orderedList.add(entry.getValue());
         }
-        //orderedList.sort(Collections.reverseOrder());     // old version
+
+        System.out.println("\n*** REMOVE DUPLICATES orderedLISt - before size: " + orderedList.size());
+        startTime = System.currentTimeMillis();         // start time of hash map ordering
+        Set<Double> set = new HashSet<>(orderedList);
+        orderedList.clear();
+        orderedList.addAll(set);
+        endTime = System.currentTimeMillis();           // end time of hash map ordering
+        System.out.println(ANSI_YELLOW + "\n*** REMOVE DUPLICATE orderedList in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
+        System.out.println("\n*** REMOVE DUPLICATES orderedLISt - after size: " + orderedList.size());
+
+        startTime = System.currentTimeMillis();         // start time of hash map ordering
+        orderedList.sort(Collections.reverseOrder());
+        endTime = System.currentTimeMillis();           // end time of hash map ordering
+        System.out.println(ANSI_YELLOW + "\n*** ORDER orderedList in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
         printDebug("Order results...");
         // true in testing phase -> order and show all results (required long time)
         if (orderAllHashMap)
         {
             startTime = System.currentTimeMillis();         // start time of hash map ordering
-
-            //orderedList.sort(Collections.reverseOrder());       // new version
             for (double num : orderedList) {
                 for (Map.Entry<Integer, Double> entry : tableDAAT.entrySet()) {
                     if (entry.getValue() == num && !rankedResults.contains(entry.getKey())) {
@@ -267,18 +292,9 @@ public final class QueryProcessor {
         }
         else
         {
-            int iterator = 1;                   // iterator to stop the ordering
 
-            // old version
-            /*
-            System.out.println("\n*** REMOVE DUPLICATES orderedLISt - before size: " + orderedList.size());
-            startTime = System.currentTimeMillis();         // start time of hash map ordering
-            Set<Double> set = new HashSet<>(orderedList);
-            orderedList.clear();
-            orderedList.addAll(set);
-            endTime = System.currentTimeMillis();           // end time of hash map ordering
-            System.out.println(ANSI_YELLOW + "\n*** REMOVE DUPLICATE orderedList in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
-            */
+
+            /*// old version
             startTime = System.currentTimeMillis();         // start time of hash map ordering
             for (double num : orderedList) {
                 for (Map.Entry<Integer, Double> entry : tableDAAT.entrySet()) {
@@ -298,24 +314,9 @@ public final class QueryProcessor {
             }
             //*/
 
-            /*
             //new version
-            ArrayList<Integer> retrievDocIDs;
-
-            System.out.println("\n*** REMOVE DUPLICATES orderedLISt - before size: " + orderedList.size());
-            startTime = System.currentTimeMillis();         // start time of hash map ordering
-            Set<Double> set = new HashSet<>(orderedList);
-            orderedList.clear();
-            orderedList.addAll(set);
-            endTime = System.currentTimeMillis();           // end time of hash map ordering
-            System.out.println(ANSI_YELLOW + "\n*** REMOVE DUPLICATE orderedList in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
-
-            startTime = System.currentTimeMillis();         // start time of hash map ordering
-            orderedList.sort(Collections.reverseOrder());
-            endTime = System.currentTimeMillis();           // end time of hash map ordering
-            System.out.println(ANSI_YELLOW + "\n*** ORDER orderedList in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
-
-            System.out.println("\n*** REMOVE DUPLICATES orderedLISt - after size: " + orderedList.size());
+            int iterator = 1;                   // iterator to stop the ordering
+            ArrayList<Integer> retrievDocIDs;   // list to get the arraylist of DocID related to a score
 
             startTime = System.currentTimeMillis();         // start time of hash map ordering
             //remove duplicate
@@ -326,7 +327,7 @@ public final class QueryProcessor {
                     // take DocID of the document that have num as score
                     retrievDocIDs = scoreToDocID.get(num);
                     scoreToDocID.remove(num);
-                    System.out.println("\n*** retrieveDocIDs size: " + retrievDocIDs.size());
+                    System.out.println("\n*** retrieveDocIDs size: " + retrievDocIDs.size() + "\nretrieveDocIDs array list: " + retrievDocIDs);
                     // scan all DocID retrieved
                     for (Integer i : retrievDocIDs)
                     {
@@ -342,8 +343,12 @@ public final class QueryProcessor {
                         }
                     }
                 }
+                else
+                {
+                    System.out.println(ANSI_RED + "ERROR in scoreToDocID hashMap there isn't a Doc for the score: " + num + ANSI_RESET);
+                }
             }
-            */
+            //*/
         }
 
         return rankedResults;
@@ -402,12 +407,10 @@ public final class QueryProcessor {
     {
         // ordered list of the DocID present in the all posting lists of the term present in the query
         ArrayList<Integer> orderedList = new ArrayList<>();
-        LinkedHashMap<Integer, Integer> hashDocID = new LinkedHashMap<>();
-        int currentDocID = 0;                                   //
+        LinkedHashMap<Integer, Integer> hashDocID = new LinkedHashMap<>();  //hashmap to get all DocID without copies
+        int currentDocID = 0;                                // var to contain the current DocID
 
-        // new version
-        long startTime = System.currentTimeMillis();         // start time of DocID list ordering
-
+        long startTime = System.currentTimeMillis();         // start time to take th DocID list
         // scan all posting lists passed as parameters
         for (int i = 0; i < postingLists.length; i++)
         {
@@ -415,8 +418,10 @@ public final class QueryProcessor {
             for (Posting p : postingLists[i])
             {
                 currentDocID = p.getDocId();            // take DocID in the current posting
+                if (i == 0)
+                    hashDocID.put(currentDocID,1);      // add DocID
                 // control check for duplicate DocID, do only after first posting list
-                if (!hashDocID.containsKey(currentDocID))
+                else if (!hashDocID.containsKey(currentDocID))
                 {
                     hashDocID.put(currentDocID,1);      // add DocID
                 }
@@ -425,31 +430,9 @@ public final class QueryProcessor {
         for (Map.Entry<Integer, Integer> entry : hashDocID.entrySet()) {
             orderedList.add(entry.getKey());
         }
-        long endTime = System.currentTimeMillis();           // end time of DocID list ordering
+        long endTime = System.currentTimeMillis();          // end time to take th DocID list
         System.out.println(ANSI_YELLOW + "\n*** TAKE DID LIST in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
-   /*     for(Integer docid: orderedList)
-            System.out.println(docid);*/
-        /* old version
-        long startTime = System.currentTimeMillis();         // start time of DocID list ordering
-
-        // scan all posting lists passed as parameters
-        for (int i = 0; i < postingLists.length; i++)
-        {
-            // scan all DocID in the i-th posting list
-            for (Posting p : postingLists[i])
-            {
-                currentDocID = p.getDocId();            // take DocID in the current posting
-                // control check for duplicate DocID, do only after first posting list
-                if (!orderedList.contains(currentDocID))
-                {
-                    orderedList.add(currentDocID);      // add DocID
-                }
-            }
-        }
-        long endTime = System.currentTimeMillis();           // end time of DocID list ordering
-        System.out.println(ANSI_YELLOW + "\n*** TAKE DID LIST in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
-        */
         startTime = System.currentTimeMillis();         // start time of DocID list ordering
         Collections.sort(orderedList);          // order the list of DocID
         endTime = System.currentTimeMillis();           // end time of DocID list ordering
@@ -462,7 +445,7 @@ public final class QueryProcessor {
         if (verbose)
             System.out.println("Ordered List of DocID for the query:  " + orderedList);     // print orderedList
 
-        hashDocID.clear();
+        hashDocID.clear();          // clear linkHashMap
 
         return orderedList;
     }
@@ -473,9 +456,9 @@ public final class QueryProcessor {
 
         if (scoreToDocID.containsKey(score))        // contains key, add DocID to the arrayList
         {
-            if (scoreToDocID.get(score).size() >= numberOfResults)   // SEE NOTE 0
+            if (scoreToDocID.get(score).size() >= numberOfResults)      // SEE NOTE 0
             {
-                scoreWithMaxDoc.put(score,true);        // SEE NOTE 1
+                scoreWithMaxDoc.put(score,true);                        // SEE NOTE 1
                 return;
             }
             // get value from HashMap
@@ -495,28 +478,36 @@ public final class QueryProcessor {
         }
     }
 
+    // new version to substitute remove wit get in the posting lists
+
+    /**
+     * function to create an array of indexes for posting lists
+     *
+     * @param postingLists  the posting lists of each term in the query
+     * @return  an array that contains the index for the current posting (position) for each posting lists of the term
+     *          in the query
+     */
+    private static int[] getPostingListsIndex (ArrayList<Posting>[] postingLists)
+    {
+        int[] postingListsIndex = new int[postingLists.length];
+
+        // set the index to 0 for each posting lists of the term in the query
+        for (int i = 0; i < postingLists.length; i++)
+        {
+            postingListsIndex[i] = 0;       // set index to 0
+        }
+
+        return postingListsIndex;
+    }
     // -------- end: utilities function --------
 }
 
 /*
  * NOTE:
- * 0 -
- * 1 - the maximum required number of documents (numberOfResults) have been scored this way, I advise not to take
- *     any more documents with this score
- */
-
-/*
- * Specification
- * in memoria si ha la document table e il dizionario
- *
- * - Obbligatorie:
- * -- query deve durare meno di 1", una volta fatta la query devo avere subito i risultati
- * -- deve utilizzare qualcosa di simile alla semplice interfaccia presentata nella classe, basata sulle operazioni openList(),
- * -- closeList(), next(), getDocid(), getFreq() su Inverted INdex. In questo modo, problemi come l'input del file e la tecnica
- *    di compressione dell'inverted index dovrebbero essere completamente completamente nascosti al processore di query di livello superiore.
- * -- Il programma deve restituire i primi 10 o 20 risultati in base alla funzione di punteggio TFIDF.
- * -- Implementare query congiuntive e disgiuntive.
- *
- * - Punto opzionale
- * -- Implementare il BM25 o altre funzioni di scoring, come ad es. quelle basate sui modelli linguistici.
+ * 0 - The idea behind the reasoning is that if I have to return to the user the "numberOfResults" documents with the
+ *     best result, if for each result I collect at least the first "numberOfResults" documents with that result and
+ *     don't register the others at the end I will have given the same best "numberOfResults" results as if I had
+ *     registered all the documents.
+ * 1 - the maximum required number of documents (numberOfResults) have been scored, advise don't take any more
+ *     documents with this score
  */
