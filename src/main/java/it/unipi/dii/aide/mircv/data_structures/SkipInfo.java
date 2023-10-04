@@ -12,8 +12,7 @@ public class SkipInfo {
     private long docIdOffset;
     private long freqOffset;
 
-
-    public SkipInfo(long maxDocId, long docIdOffset, int docIdBlockLen, long freqOffset, int freqBlockLen) {
+    public SkipInfo(long maxDocId, long docIdOffset, long freqOffset) {
         this.maxDocId = maxDocId;
         this.docIdOffset = docIdOffset;
         this.freqOffset = freqOffset;

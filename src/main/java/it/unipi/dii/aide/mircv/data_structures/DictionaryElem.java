@@ -193,6 +193,10 @@ public class DictionaryElem {
             buffer.putInt(termId);                        // write TermID
             buffer.putLong(offsetTermFreq);               // write offset Tf
             buffer.putLong(offsetDocId);                  // write offset DID
+            if(!Flags.isSPIMI() & Flags.isCompressionEnabled()){ // if in merge phase, need to store also the size of DocID and Term Frequency compressed values
+                buffer.putInt(termFreqSize);
+                buffer.putInt(docIdSize);
+            }
             if(!Flags.isSPIMI()) {
                 buffer.putLong(skipOffset);
                 buffer.putInt(skipArrLen);
@@ -202,10 +206,7 @@ public class DictionaryElem {
                 buffer.putDouble(maxTf);
                 buffer.putDouble(maxTFIDF);
             }
-            if(!Flags.isSPIMI() & Flags.isCompressionEnabled()){ // if in merge phase, need to store also the size of DocID and Term Frequency compressed values
-                buffer.putInt(termFreqSize);
-                buffer.putInt(docIdSize);
-            }
+
             PARTIAL_DICTIONARY_OFFSET += getDictElemSize();       // update offset
 
 

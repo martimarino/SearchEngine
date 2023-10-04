@@ -99,6 +99,8 @@ public class Dictionary {
                     dictElem.setTermFreqSize(buffer.getInt());
                     dictElem.setDocIdSize(buffer.getInt());
                 }
+                dictElem.setSkipOffset(buffer.getLong());
+                dictElem.setSkipOffset(buffer.getInt());
                 termToTermStat.put(term, dictElem);   // add DictionaryElem into memory
             }
 
