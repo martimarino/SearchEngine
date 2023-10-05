@@ -435,7 +435,7 @@ public final class QueryProcessor {
             orderedList.add(entry.getKey());
         }
         endTime = System.currentTimeMillis();          // end time to take th DocID list
-        System.out.println(ANSI_YELLOW + "\n*** TAKE DID LIST in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
+        System.out.println(ANSI_YELLOW + "\n*** TAKE DID LIST (no PQ) in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
         startTime = System.currentTimeMillis();         // start time of DocID list ordering
         Collections.sort(orderedList);          // order the list of DocID
