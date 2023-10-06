@@ -12,9 +12,12 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
+import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.getDictElemSize;
 import static it.unipi.dii.aide.mircv.data_structures.DocumentElement.*;
 import static it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
+//import static it.unipi.dii.aide.mircv.utils.FileSystem.appendStringToFile;
+//import static it.unipi.dii.aide.mircv.utils.FileSystem.saveStructureToFile;
 
 /**
  * This class handles the storage and retrieval of data structures used for document indexing.
@@ -60,7 +63,7 @@ public final class DataStructureHandler {
 
         try (
                 RandomAccessFile raf = new RandomAccessFile(BLOCKOFFSETS_FILE, "rw");
-                FileChannel channel = raf.getChannel()
+                FileChannel channel = raf.getChannel();
         ) {
             MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, (long) LONG_BYTES * dictionaryBlockOffsets.size()); //offset_size (size of dictionary offset) * number of blocks
 
@@ -72,6 +75,7 @@ public final class DataStructureHandler {
             for (int i = 0; i < dictionaryBlockOffsets.size(); i++) {
                 printDebug("OFFSET BLOCK " + i + ": " + dictionaryBlockOffsets.get(i));
                 buffer.putLong(dictionaryBlockOffsets.get(i)); //store into file the dictionary offset of the i-th block
+                printDebug(String.valueOf(dictionaryBlockOffsets.get(i)));
             }
 
             System.out.println(dictionaryBlockOffsets.size() + " blocks stored");
@@ -106,6 +110,8 @@ public final class DataStructureHandler {
                 DictionaryElem dictElem = dictionary.getTermStat(term);
                 dictElem.setOffsetTermFreq(INDEX_OFFSET);
                 dictElem.setOffsetDocId(INDEX_OFFSET);
+
+
                 if(term.equals("0000"))
                     printDebug("term: 0000 " + dictionary.getTermToTermStat().get("0000") +  " block " + (dictionaryBlockOffsets.size()-1) + " size: " + posList.size());
 
@@ -121,15 +127,15 @@ public final class DataStructureHandler {
 
                     buffer_docid.putInt(posting.getDocId());         // write DocID
                     buffer_termfreq.putInt(posting.getTermFreq());   // write TermFrequency
+
 //                    if(term.equals("0000"))
 //                        printDebug("docId " + posting.getDocId() +  " termfreq " + posting.getTermFreq());
                     INDEX_OFFSET += INT_BYTES;
                 }
 
                 // store dictionary entry to disk
-                dictElem.storeDictionaryElemIntoDisk(dictChannel, false);
+                dictElem.storeDictionaryElemIntoDisk(dictChannel);
             }
-
             System.out.println(dictionary.getTermToTermStat().size() + " terms stored in block " + (dictionaryBlockOffsets.size()-1));
 
         } catch (IOException ioException) {

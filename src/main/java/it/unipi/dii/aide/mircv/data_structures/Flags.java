@@ -8,7 +8,6 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.FLAGS_FILE;
-import static it.unipi.dii.aide.mircv.utils.Constants.INT_BYTES;
 
 public final class Flags {
 
@@ -16,9 +15,11 @@ public final class Flags {
     private static boolean compression_flag = false;    // true = compression enabled, false = compression disabled
     private static boolean scoring_flag = false;        // true = scoring enable, false = scoring disable
 
-    private static boolean isSPIMI = false;
-    private static boolean isMerge = false;
-    private static boolean isQuery = false;
+//    private static boolean isSPIMI = false;
+//    private static boolean isMerge = false;
+//    private static boolean isQuery = false;
+
+    private static boolean skip_flag = false;
 
     public static boolean isSwsEnabled() { return sws_flag; }
 
@@ -44,7 +45,7 @@ public final class Flags {
             RandomAccessFile raf = new RandomAccessFile(FLAGS_FILE, "rw");
             FileChannel channel = raf.getChannel()
         ) {
-            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, (long) INT_BYTES * 3); //offset_size (size of dictionary offset) * number of blocks
+            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, (long) Integer.BYTES * 3); //offset_size (size of dictionary offset) * number of blocks
 
             buffer.putInt(isSwsEnabled() ? 1 : 0);             // write stop words removal user's choice
             buffer.putInt(isCompressionEnabled() ? 1 : 0);     // write compression user's choice
@@ -100,17 +101,20 @@ public final class Flags {
         return docFlags.exists();
     }
 
-    public static boolean isSPIMI() {
-        return isSPIMI;
+//    public static boolean isSPIMI() {
+//        return isSPIMI;
+//    }
+//
+//    public static void setIsSPIMI(boolean isSPIMI) {
+//        Flags.isSPIMI = isSPIMI;
+//    }
+
+    public static boolean considerSkippingBytes() {
+        return skip_flag;
     }
 
-    public static void setIsSPIMI(boolean isSPIMI) {
-        Flags.isSPIMI = isSPIMI;
+    public static void setConsiderSkippingBytes(boolean skip_flag) {
+        Flags.skip_flag = skip_flag;
     }
 
-    public static boolean isMerge() { return Flags.isMerge; }
-
-    public static void setIsMerge(boolean isMerge) {
-        Flags.isSPIMI = isMerge;
-    }
 }

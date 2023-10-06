@@ -9,8 +9,8 @@ public class SkipList {
 
     public ArrayList<SkipInfo> points;
 
-    public Iterator<Posting> postingIterator = null;
-    public Iterator<SkipInfo> skipElemIterator = null;
+    public Iterator<Posting> postingIterator;
+    public Iterator<SkipInfo> skipElemIterator;
 
     private final LinkedHashMap<Integer, SkipInfo> skipPoints;
     private Posting currPosting;
@@ -38,7 +38,7 @@ public class SkipList {
             return;
         }
 
-        SkipInfo se = skipElemIterator.next();
+        SkipInfo si = skipElemIterator.next();
 
 //        postingIterator =
 

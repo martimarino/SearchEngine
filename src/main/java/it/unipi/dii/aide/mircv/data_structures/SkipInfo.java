@@ -66,7 +66,7 @@ public class SkipInfo {
             skipFileChannel.write(skipPointsBuffer);
     }
 
-    public void readSkippingInfoFromDisk(long start, FileChannel skipFileChannel) throws IOException {
+    public void readSkipInfoFromDisk(long start, FileChannel skipFileChannel) throws IOException {
         ByteBuffer skipPointsBuffer = ByteBuffer.allocate(SKIPPING_INFO_SIZE);
 
         skipFileChannel.position(start);

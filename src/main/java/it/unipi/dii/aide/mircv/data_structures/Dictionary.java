@@ -30,7 +30,7 @@ public class Dictionary {
      * Otherwise, it creates a new DictionaryElem associated with the term, inserts it in the HashMap and returns it.
      */
     public DictionaryElem getOrCreateTerm(String term, int termCounter) {
-        return termToTermStat.computeIfAbsent(term, t -> new DictionaryElem(termCounter, term));
+        return termToTermStat.computeIfAbsent(term, t -> new DictionaryElem(term));
     }
 
     public DictionaryElem getTermStat(String term) {
@@ -92,7 +92,6 @@ public class Dictionary {
                 buffer.position(TERM_DIM);                  //skip docno
                 dictElem.setDf(buffer.getInt());                  // read and set Df
                 dictElem.setCf(buffer.getInt());                  // read and set Cf
-                dictElem.setTermId(buffer.getInt());              // read and set TermId
                 dictElem.setOffsetTermFreq(buffer.getLong());     // read and set offset Tf
                 dictElem.setOffsetDocId(buffer.getLong());        // read and set offset DID
                 if(Flags.isCompressionEnabled()) {
@@ -111,3 +110,4 @@ public class Dictionary {
     }
 
 }
+

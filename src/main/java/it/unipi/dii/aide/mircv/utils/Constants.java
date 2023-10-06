@@ -9,25 +9,26 @@ public final class Constants {
     public static final String RES_FOLDER = "src/main/resources/";
     public static final String PARTIAL_FOLDER = RES_FOLDER + "partial/";
     public static final String MERGED_FOLDER = RES_FOLDER + "merged/";
+    public static final String DEBUG_FOLDER = RES_FOLDER + "debug/";
 
     // -------------------------------- Constants for file paths -------------------------------------------
 
-    public final static String COLLECTION_PATH = RES_FOLDER + "collection.tsv";
+    public final static String COLLECTION_PATH = RES_FOLDER + "collection.tar.gz";
 
-    public static final String PARTIAL_DICTIONARY_FILE = PARTIAL_FOLDER + "partial_dictionary.txt"; // file in which is stored the vocabulary in blocks
-    public static final String PARTIAL_DOCID_FILE = PARTIAL_FOLDER + "partial_docId.txt";  // file containing the docId (element of posting list) for each block
-    public static final String PARTIAL_TERMFREQ_FILE = PARTIAL_FOLDER + "partial_termFreq.txt";   // file containing the TermFrequency (element of posting list) for each block
+    public static final String PARTIAL_DICTIONARY_FILE = PARTIAL_FOLDER + "partial_dictionary"; // file in which is stored the vocabulary in blocks
+    public static final String PARTIAL_DOCID_FILE = PARTIAL_FOLDER + "partial_docId";  // file containing the docId (element of posting list) for each block
+    public static final String PARTIAL_TERMFREQ_FILE = PARTIAL_FOLDER + "partial_termFreq";   // file containing the TermFrequency (element of posting list) for each block
 
-    public static final String DOCTABLE_FILE = MERGED_FOLDER + "documentTable.txt"; // file in which is stored the document table
-    public static final String DICTIONARY_FILE = MERGED_FOLDER + "dictionary.txt"; // file in which is stored the dictionary
-    public static final String DOCID_FILE = MERGED_FOLDER + "docId.txt";   // file containing the docId of the InvertedIndex merged
-    public static final String TERMFREQ_FILE = MERGED_FOLDER + "termFreq.txt";   // file containing the termFreq of the InvertedIndex merged
+    public static final String DOCTABLE_FILE = MERGED_FOLDER + "documentTable"; // file in which is stored the document table
+    public static final String DICTIONARY_FILE = MERGED_FOLDER + "dictionary"; // file in which is stored the dictionary
+    public static final String DOCID_FILE = MERGED_FOLDER + "docId";   // file containing the docId of the InvertedIndex merged
+    public static final String TERMFREQ_FILE = MERGED_FOLDER + "termFreq";   // file containing the termFreq of the InvertedIndex merged
 
-    public static final String BLOCKOFFSETS_FILE = PARTIAL_FOLDER + "blocks.txt"; // file containing the offset of each vocabulary block
-    public static final String FLAGS_FILE = RES_FOLDER + "flags.txt"; // file in which flags are stored
-    public static final String STATS_FILE = RES_FOLDER + "collectionStatistics.txt"; // file in which collection statistics are stored
+    public static final String BLOCKOFFSETS_FILE = PARTIAL_FOLDER + "blocks"; // file containing the offset of each vocabulary block
+    public static final String FLAGS_FILE = RES_FOLDER + "flags"; // file in which flags are stored
+    public static final String STATS_FILE = RES_FOLDER + "collectionStatistics"; // file in which collection statistics are stored
 
-    public static final String SKIP_FILE = MERGED_FOLDER + "skipInfo.txt";
+    public static final String SKIP_FILE = MERGED_FOLDER + "skipInfo";
 
     // -------------------------------- Constants for variable bytes -------------------------------------------
 
@@ -53,7 +54,8 @@ public final class Constants {
     // ---------------------------------------- Utilities for debugging -----------------------------------------------
 
     // variable that stipulates the behaviour for control printouts. If false there will be no printouts, if true there will be all printouts.
-    public static boolean verbose = true;
+    public static final boolean verbose = true;
+    public static final String LOG_PATH = DEBUG_FOLDER + "logger.log";
 
     public static String formatTime(long start, long end) {
 

@@ -11,7 +11,6 @@ import java.util.Scanner;
 import static it.unipi.dii.aide.mircv.QueryProcessor.queryStartControl;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
-import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.*;
 import static it.unipi.dii.aide.mircv.data_structures.Flags.*;
 
 public class Main {
@@ -86,6 +85,8 @@ public class Main {
 
 
                 case "q":       // query
+
+                    Flags.setConsiderSkippingBytes(true);
                     ArrayList<Integer> rankedResults;       // ArrayList that contain the ranked results of query
                     int numberOfResults = 0;    // take the integer entered by users that indicate the number of results wanted for query
                     // control check that all the files and resources required to execute a query are present

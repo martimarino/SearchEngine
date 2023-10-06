@@ -6,6 +6,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.*;
@@ -29,7 +30,6 @@ public final class PartialIndexBuilder {
      */
     public static void SPIMIalgorithm() {
 
-        Flags.setIsSPIMI(true);
         long memoryAvailable = (long) (Runtime.getRuntime().maxMemory() * MEMORY_THRESHOLD);
         int docCounter = 1;         // counter for DocID
         int termCounter = 0;        // counter for TermID
@@ -111,8 +111,6 @@ public final class PartialIndexBuilder {
 
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            Flags.setIsSPIMI(false);
         }
     }
 
@@ -146,6 +144,7 @@ public final class PartialIndexBuilder {
             invertedIndex.get(term).get(size - 1).addTermFreq(1);
             return false; // No need to increment df
         }
+
     }
 
     // method to free memory by deleting the information in document table, dictionary,and inverted index

@@ -1,13 +1,10 @@
 package it.unipi.dii.aide.mircv.utils;
 
-import java.io.File;
+import java.io.*;
 
 import it.unipi.dii.aide.mircv.data_structures.SkipInfo;
 import org.apache.commons.io.FileUtils;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
@@ -100,7 +97,7 @@ public final class FileSystem {
         }
     }
 
-    public static void saveDocsInFileSkipInfo(SkipInfo si, String tempFileName) throws FileNotFoundException {
+    public static void saveDocsInFileSkipInfo(SkipInfo si, String tempFileName) {
         // ----------- debug file ---------------
         File outputf = new File(tempFileName);
 
@@ -108,6 +105,30 @@ public final class FileSystem {
 
             outputWriter.print(si.toString());
             outputWriter.println();
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
         }
     }
+
+
+//    public static void saveStructureToFile(ArrayList<String> data, String fileName) {
+//        try (FileWriter writer = new FileWriter(DEBUG_FOLDER + fileName, false)) {
+//            for (String line : data) {
+//                writer.write(line);
+//                writer.write(System.lineSeparator());
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    public static void appendStringToFile(String data, String fileName) {
+//        try (FileWriter writer = new FileWriter(DEBUG_FOLDER + fileName, true)) {
+//            writer.write(data);
+//            writer.write(System.lineSeparator());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
 }
