@@ -12,6 +12,7 @@ import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.readC
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readCompressedPostingListFromDisk;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readPostingListFromDisk;
 import static it.unipi.dii.aide.mircv.data_structures.Flags.readFlagsFromDisk;
+//import static it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder.dictionaryBlockOffsets;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 
 /**
@@ -29,6 +30,8 @@ public final class QueryProcessor {
     private static final HashMap<Double, Boolean> scoreWithMaxDoc = new HashMap<>();
     public static HashMap<Integer, DocumentElement> documentTable = new HashMap<>();    // hash table DocID to related DocElement
     static it.unipi.dii.aide.mircv.data_structures.Dictionary dictionary = new Dictionary();    // dictionary in memory
+
+    static PriorityQueue<QueryProcessor.PostingBlock> pq;
 
     /**
      * fuction to manage the query request. Prepare and execute the query and return the results.
@@ -292,8 +295,6 @@ public final class QueryProcessor {
         }
         else
         {
-
-
             /*// old version
             startTime = System.currentTimeMillis();         // start time of hash map ordering
             for (double num : orderedList) {
@@ -411,9 +412,12 @@ public final class QueryProcessor {
         // ordered list of the DocID present in the all posting lists of the term present in the query
         ArrayList<Integer> orderedList = new ArrayList<>();
         LinkedHashMap<Integer, Integer> hashDocID = new LinkedHashMap<>();  //hashmap to get all DocID without copies
+        long startTime,endTime;                 // variables to calculate the execution time
+
+        // /* OLD VERSION -- start
         int currentDocID = 0;                                // var to contain the current DocID
 
-        long startTime = System.currentTimeMillis();         // start time to take th DocID list
+        startTime = System.currentTimeMillis();         // start time to take th DocID list
         // scan all posting lists passed as parameters
         for (int i = 0; i < postingLists.length; i++)
         {
@@ -433,22 +437,85 @@ public final class QueryProcessor {
         for (Map.Entry<Integer, Integer> entry : hashDocID.entrySet()) {
             orderedList.add(entry.getKey());
         }
-        long endTime = System.currentTimeMillis();          // end time to take th DocID list
-        System.out.println(ANSI_YELLOW + "\n*** TAKE DID LIST in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
+        endTime = System.currentTimeMillis();          // end time to take th DocID list
+        System.out.println(ANSI_YELLOW + "\n*** TAKE DID LIST (no PQ) in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
         startTime = System.currentTimeMillis();         // start time of DocID list ordering
         Collections.sort(orderedList);          // order the list of DocID
         endTime = System.currentTimeMillis();           // end time of DocID list ordering
         // shows query execution time
-        System.out.println(ANSI_YELLOW + "\n*** ORDERED DID LIST in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
+        System.out.println(ANSI_YELLOW + "\n*** ORDERED DID LIST (no PQ) in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
         printDebug("Ordered List of DocID for the query:  " + orderedList);     // print orderedList
 
+        System.out.println("Ordered List (no PQ) of DocID dim: " + orderedList.size());     // print orderedList
         hashDocID.clear();          // clear linkHashMap
+        // */ OLD VERSION - end
+
+        ///* NEW VERSION (priority queue) - start
+        // clear the previus work without PQ
+        orderedList = new ArrayList<>();
+        hashDocID.clear();
+
+        // create PQ
+        //PriorityQueue<QueryProcessor.PostingBlock> pq = new PriorityQueue<>(postingLists.length, new CompareTerm());
+        pq = new PriorityQueue<>(postingLists.length, new CompareTerm());
+        int[] postingListsIndex = getPostingListsIndex(postingLists); // contain the current position index for the posting list of each term in the query
+        QueryProcessor.PostingBlock currentPostingBlock;     // var that contain the PostBlock extract from pq in the current iteration
+
+        startTime = System.currentTimeMillis();         // start time to take th DocID list
+        // take first DocID from posting lists
+        for (int i = 0; i < postingLists.length; i++)
+        {
+            pq.add(new QueryProcessor.PostingBlock(postingLists[i].get(0).getDocId(), i));     // add to the priority queue a TermBlock element (term + its blocks number)
+        }
+
+        while(!pq.isEmpty()) //
+        {
+            //qSystem.out.println("PQ:\n" + pq);               // print priority queue
+            currentPostingBlock = pq.poll();                // take lowest element (DID and index)
+            currentDocID = currentPostingBlock.getDID();
+            hashDocID.put(currentDocID,1);  // put DocID in hashtable
+            // scann all current position in posting list and update indexes
+            for (int i = 0; i < postingLists.length; i++)
+            {
+                // check if the DocID in the posting list is the same in currentPostingBlock and check if there is another posting in the posting lists
+                if ( (postingListsIndex[i] < postingLists[i].size()) && (currentDocID == postingLists[i].get(postingListsIndex[i]).getDocId()) )
+                {
+                    // check if is the posting list of the currentPostingBlock
+                    if ( i != currentPostingBlock.getIndex())
+                    {
+                        pq.poll();                  // remove one element in pq
+                    }
+                    postingListsIndex[i]++;     // update index
+                    // check if there is another posting in the posting lists
+                    if (postingListsIndex[i] < postingLists[i].size())
+                        pq.add(new QueryProcessor.PostingBlock(postingLists[i].get(postingListsIndex[i]).getDocId(), i));  // insert new posting in pq
+                }
+            }
+        }
+        // pass from hashMap to ArrayList
+        for (Map.Entry<Integer, Integer> entry : hashDocID.entrySet()) {
+            orderedList.add(entry.getKey());
+        }
+        endTime = System.currentTimeMillis();           // end time of DocID list ordering
+        // shows query execution time
+        System.out.println(ANSI_YELLOW + "\n*** TAKE AND ORDERED DID LIST (PQ) in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
+
+        System.out.println("Ordered List (PQ) of DocID dim: " + orderedList.size());     // print orderedList
+        // NEW VERSION (priority queue) - end
+        // */
 
         return orderedList;
     }
 
+    /**
+     * function to put in hashMap the document related its score
+     *
+     * @param score             score of the document
+     * @param DocID             DocID of the document
+     * @param numberOfResults   maximum number of document to keep for each score
+     */
     private static void addToScoreToDocID (double score, int DocID,int numberOfResults)
     {
         ArrayList<Integer> values;
@@ -499,6 +566,55 @@ public final class QueryProcessor {
         return postingListsIndex;
     }
     // -------- end: utilities function --------
+
+    // -------- start: utilities for priority queue --------
+    /**
+     * class to define PostingBlock. The priority queue contains instances of PostingBlock
+     */
+    private static class PostingBlock {
+        int DocID;                  // DocID
+        int indexOfPostingList;     // reference to the posting list (index in the array of posting lists of the query) containing DcoID
+
+        // constructor with parameters
+        public PostingBlock(int DocID, int indexOfPostingList) {
+            this.DocID = DocID;
+            this.indexOfPostingList = indexOfPostingList;
+        }
+
+        public int getDID() {
+            return DocID;
+        }
+
+        public int getIndex() {
+            return indexOfPostingList;
+        }
+
+        @Override
+        public String toString() {
+            return "PB{" +
+                    "DocID = '" + DocID + '\'' +
+                    ", index of pl =" + indexOfPostingList +
+                    '}';
+        }
+    }
+
+    /**
+     * class to compare the block, allows the order of the priority queue
+     */
+    private static class CompareTerm implements Comparator<QueryProcessor.PostingBlock> {
+        @Override
+        public int compare(QueryProcessor.PostingBlock pb1, QueryProcessor.PostingBlock pb2) {
+            // comparing terms
+            int DocIDComparison = Integer.compare(pb1.getDID(), pb2.getDID());
+            // if the DocID are equal, compare by block number
+            if (DocIDComparison == 0) {
+                return Integer.compare(pb1.getIndex(), pb2.getIndex());
+            }
+
+            return DocIDComparison;
+        }
+    }
+    // -------- end: utilities for priority queue --------
 }
 
 /*
