@@ -7,6 +7,7 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
+import static it.unipi.dii.aide.mircv.utils.Logger.dict_logger;
 
 /**
  *  Stores unique terms and their statistics
@@ -178,18 +179,18 @@ public class DictionaryElem {
             //put every char into charbuffer
             for(int i = 0; i < term.length(); i++)
                 charBuffer.put(i, term.charAt(i));
+
             // write docno, docid and doclength into document file
             buffer.put(StandardCharsets.UTF_8.encode(charBuffer));      // write term
             buffer.putInt(df);                            // write Df
             buffer.putInt(cf);                            // write Cf
             buffer.putLong(offsetTermFreq);               // write offset Tf
             buffer.putLong(offsetDocId);                  // write offset DID
-            if(Flags.considerSkippingBytes())
-                if(Flags.isCompressionEnabled()) { // if in merge phase, need to store also the size of DocID and Term Frequency compressed values
+            if(Flags.considerSkippingBytes()) {
+                if (Flags.isCompressionEnabled()) { // if in merge phase, need to store also the size of DocID and Term Frequency compressed values
                     buffer.putInt(termFreqSize);
                     buffer.putInt(docIdSize);
                 }
-            if(Flags.considerSkippingBytes()) {
                 buffer.putLong(skipOffset);
                 buffer.putInt(skipArrLen);
             }
@@ -198,6 +199,7 @@ public class DictionaryElem {
 //                buffer.putDouble(maxTf);
 //                buffer.putDouble(maxTFIDF);
 //            }
+            if(debug) dict_logger.logInfo(this.toString());
 
             PARTIAL_DICTIONARY_OFFSET += getDictElemSize();       // update offset
 

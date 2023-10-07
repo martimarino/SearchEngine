@@ -8,6 +8,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
+import static it.unipi.dii.aide.mircv.utils.Logger.collStats_logger;
 
 /**
  * class to contain the statistics of the collection
@@ -59,7 +60,7 @@ public final class CollectionStatistics {
         try (
                 RandomAccessFile statsRAF = new RandomAccessFile(new File(STATS_FILE), "rw")
         ) {
-            ByteBuffer statsBuffer = ByteBuffer.allocate(INT_BYTES * 1 + DOUBLE_BYTES * 1);   // bytes to read from disk
+            ByteBuffer statsBuffer = ByteBuffer.allocate(INT_BYTES + DOUBLE_BYTES);   // bytes to read from disk
             statsRAF.getChannel().position(0);
 
             statsRAF.getChannel().read(statsBuffer);            // Read flag values from file
@@ -88,10 +89,12 @@ public final class CollectionStatistics {
                 RandomAccessFile docStats = new RandomAccessFile(STATS_FILE, "rw");
                 FileChannel channel = docStats.getChannel()
         ) {
-            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, (long) (INT_BYTES * 1 + DOUBLE_BYTES * 1)); // integer size * number of int to store (1) + double size * number of double to store (1)
+            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, INT_BYTES + DOUBLE_BYTES); // integer size * number of int to store (1) + double size * number of double to store (1)
 
             buffer.putInt(nDocs);           // write total number of document in collection
             buffer.putDouble(totDocLen);    // write sum of the all document length in the collection
+
+            if(debug) collStats_logger.logInfo("nDocs: " + getNDocs() + "\ntotDocLen: " + getTotDocLen());
 
         } catch (IOException ioe) {
             ioe.printStackTrace();

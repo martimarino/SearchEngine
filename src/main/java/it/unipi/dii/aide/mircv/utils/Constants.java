@@ -40,9 +40,6 @@ public final class Constants {
     public static int N_POSTINGS = 0;                  // Number of partial postings to save in the file
 
     public static final int SKIP_POINTERS_THRESHOLD = 1024;
-    // 4 (docId) + 8 (docId offset) + 8 (frequency offset) = 20 bytes
-    public static final int SKIP_BLOCK_DIMENSION = 20;
-    public static final int MAX_TERM_LEN = 20; // in bytes
 
     // -------------------------------------- Constants for file offsets ----------------------------------------------
 
@@ -55,7 +52,7 @@ public final class Constants {
 
     // variable that stipulates the behaviour for control printouts. If false there will be no printouts, if true there will be all printouts.
     public static final boolean verbose = true;
-    public static final String LOG_PATH = DEBUG_FOLDER + "logger.log";
+    public static final boolean debug = false;
 
     public static String formatTime(long start, long end) {
 

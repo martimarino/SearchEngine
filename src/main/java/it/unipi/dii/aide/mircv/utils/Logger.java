@@ -6,29 +6,35 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static it.unipi.dii.aide.mircv.utils.Constants.LOG_PATH;
+import static it.unipi.dii.aide.mircv.utils.Constants.DEBUG_FOLDER;
 
 public final class Logger {
 
-    private static String logFileName = LOG_PATH;
+    private static String logFileName;
+
+    public static Logger dict_logger = new Logger("dict.txt");
+    public static Logger docId_logger = new Logger("docid.txt");
+    public static Logger termFreq_logger = new Logger("termFreq.txt");
+    public static Logger collStats_logger = new Logger("collStats.txt");
+    public static Logger docTable_logger = new Logger("docTable.txt");
 
     public Logger(String logFileName) {
-        Logger.logFileName = logFileName;
+        Logger.logFileName = DEBUG_FOLDER + logFileName;
     }
 
-    public static void logInfo(String message) {
+    public void logInfo(String message) {
         log("INFO", message);
     }
 
-    public static void logWarning(String message) {
+    public void logWarning(String message) {
         log("WARNING", message);
     }
 
-    public static void logError(String message) {
+    public void logError(String message) {
         log("ERROR", message);
     }
 
-    private static void log(String logLevel, String message) {
+    private void log(String logLevel, String message) {
         String formattedLog = getFormattedLog(logLevel, message);
 
         try (PrintWriter writer = new PrintWriter(new FileWriter(logFileName, true))) {
@@ -38,7 +44,7 @@ public final class Logger {
         }
     }
 
-    private static String getFormattedLog(String logLevel, String message) {
+    private String getFormattedLog(String logLevel, String message) {
         Date now = new Date();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String formattedDate = dateFormat.format(now);

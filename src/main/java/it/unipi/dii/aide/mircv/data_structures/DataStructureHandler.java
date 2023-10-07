@@ -12,12 +12,10 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
-import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.getDictElemSize;
 import static it.unipi.dii.aide.mircv.data_structures.DocumentElement.*;
 import static it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
-//import static it.unipi.dii.aide.mircv.utils.FileSystem.appendStringToFile;
-//import static it.unipi.dii.aide.mircv.utils.FileSystem.saveStructureToFile;
+import static it.unipi.dii.aide.mircv.utils.Logger.*;
 
 /**
  * This class handles the storage and retrieval of data structures used for document indexing.
@@ -50,6 +48,9 @@ public final class DataStructureHandler {
                 buffer.put(StandardCharsets.UTF_8.encode(charBuffer));
                 buffer.putInt(de.getDocid());
                 buffer.putInt(de.getDoclength());
+
+                if(debug)
+                    docTable_logger.logInfo(de.toString());
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -157,6 +158,10 @@ public final class DataStructureHandler {
             for (Posting posting : pl) {
                 bufferdocid.putInt(posting.getDocId());
                 buffertermfreq.putInt(posting.getTermFreq());
+                if(debug) {
+                    docId_logger.logInfo(String.valueOf(posting.getDocId()));
+                    termFreq_logger.logInfo(String.valueOf(posting.getTermFreq()));
+                }
             }
 
         } catch (IOException e) {

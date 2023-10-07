@@ -13,7 +13,6 @@ import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.*;
 import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.getDictElemSize;
 import static it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
-import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 import static java.lang.Math.min;
 
 /**
@@ -27,7 +26,6 @@ public final class IndexMerger {
     private IndexMerger() {
         throw new UnsupportedOperationException();
     }
-
 
     static int i = 0;       // counter used only for control prints
     /**

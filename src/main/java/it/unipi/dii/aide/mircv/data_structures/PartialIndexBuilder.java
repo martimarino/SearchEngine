@@ -96,6 +96,7 @@ public final class PartialIndexBuilder {
                     storeIndexAndDictionaryIntoDisk();  //store index and dictionary to disk
                     storeDocumentTableIntoDisk(); // store document table one document at a time for each block
 
+
                     freeMemory();
                     System.gc();
                     System.out.println("********** Free memory **********");

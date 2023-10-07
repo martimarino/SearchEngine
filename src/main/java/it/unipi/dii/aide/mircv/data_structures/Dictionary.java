@@ -86,7 +86,7 @@ public class Dictionary {
                 String term = charBuffer.toString().split("\0")[0];     // read term
 
                 if(term.equals("epstein"))
-                    printDebug("TERM: " + term + " duplicated");
+                    printDebug("TERM: " + term);
 
                 dictElem.setTerm(term);                           //split using end string character
                 buffer.position(TERM_DIM);                  //skip docno
