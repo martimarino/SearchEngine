@@ -11,6 +11,7 @@ import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.store
 import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.getDictElemSize;
 import static it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder.dictionaryBlockOffsets;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
+import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.*;
 import static it.unipi.dii.aide.mircv.utils.Logger.*;
 import static java.lang.Math.min;
 

@@ -59,6 +59,7 @@ public class Main {
                     continue;                                   // go next while cycle
 
                 case "i":
+                    DataStructureHandler.openFiles("i");
                     file_cleaner();                             // delete all created files
 
                     setSws(getUserChoice(sc, "stopwords removal"));    // take user preferences on the removal of stopwords
@@ -80,14 +81,12 @@ public class Main {
                     printTime("\nBlocks merged in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
                     continue;                           // go next while iteration
                 case "d":
-
+                    DataStructureHandler.openFiles("q");
                     Flags.setConsiderSkippingBytes(true);
 
                     if(!Query.queryStartControl())
                         continue;
 
-                    String term = "0000";
-                    printDebug(Query.dictionary.getTermStat(term).toString());
                     printUI("Insert query: \n");
                     String q = sc.nextLine();           // take user's query
                     getNumberOfResults(q, sc);
@@ -101,7 +100,7 @@ public class Main {
                     continue;                           // go next while iteration
 
                 case "q":       // query
-
+                    DataStructureHandler.openFiles("q");
                     Flags.setConsiderSkippingBytes(true);
                     ArrayList<Integer> rankedResults;       // ArrayList that contain the ranked results of query
                     int numberOfResults = 0;    // take the integer entered by users that indicate the number of results wanted for query
@@ -213,7 +212,7 @@ public class Main {
                     String queryType = sc.nextLine().toLowerCase();
                     if (queryType.equals("c") || queryType.equals("d")){
                         try {
-                            executeQuery(query, k, queryType);
+                            executeQueryPQ(query, k, queryType);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }

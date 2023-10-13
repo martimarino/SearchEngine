@@ -69,12 +69,12 @@ class QueryTest {
                 String time = "query \"" + query + " \" time : " + (endTime - startTime) + "ms";
                 System.out.println(time);
                 avgTime += (endTime - startTime);
-                long startTimeAle = System.currentTimeMillis();
-                QueryProcessor.queryManager(query, false, true, numberOfResults);
+                /*long startTimeAle = System.currentTimeMillis();
+                Query.queryManager(query, false, true, numberOfResults);
                 long endTimeAle = System.currentTimeMillis();
                 String timeAle = "query \"" + query + " \" time : " + (endTimeAle - startTimeAle) + "ms";
                 System.out.println(time);
-                avgTimeAle += (endTimeAle - startTimeAle);
+                avgTimeAle += (endTimeAle - startTimeAle);*/
                 nQuery++;
 
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
@@ -93,7 +93,7 @@ class QueryTest {
             if(nQuery > 0) {
                 String AvgPQ = "Average time PQ: " + (avgTimePQ / (nQuery)) + "ms";
                 String Avg = "Average time: " + (avgTime / (nQuery)) + "ms";
-                String AleAvg =  "Average time Ale: " + (avgTimeAle / (nQuery)) + "ms";
+                //String AleAvg =  "Average time Ale: " + (avgTimeAle / (nQuery)) + "ms";
 
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
 
@@ -104,14 +104,14 @@ class QueryTest {
                     writer.newLine();
                     writer.write(Avg);
                     writer.newLine();
-                    writer.write(AleAvg);
-                    writer.newLine();
+                    //writer.write(AleAvg);
+                    //writer.newLine();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 printTime(AvgPQ);
                 printTime(Avg);
-                printTime(AleAvg);
+                //printTime(AleAvg);
             }
         } catch (Exception e) {
             System.out.println(e);
