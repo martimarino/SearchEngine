@@ -1,8 +1,7 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
-import it.unipi.dii.aide.mircv.TextProcessor;
-import it.unipi.dii.aide.mircv.compression.Unary;
 import it.unipi.dii.aide.mircv.QueryProcessor;
+import it.unipi.dii.aide.mircv.compression.Unary;
 import it.unipi.dii.aide.mircv.Query;
 import it.unipi.dii.aide.mircv.compression.VariableBytes;
 
@@ -50,8 +49,6 @@ public final class DataStructureHandler {
                 buffer.putInt(de.getDocid());
                 buffer.putInt(de.getDoclength());
 
-                if(debug)
-                    docTable_logger.logInfo(de.toString());
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -77,7 +74,6 @@ public final class DataStructureHandler {
             for (int i = 0; i < dictionaryBlockOffsets.size(); i++) {
                 printDebug("OFFSET BLOCK " + i + ": " + dictionaryBlockOffsets.get(i));
                 buffer.putLong(dictionaryBlockOffsets.get(i)); //store into file the dictionary offset of the i-th block
-                printDebug(String.valueOf(dictionaryBlockOffsets.get(i)));
             }
 
             System.out.println(dictionaryBlockOffsets.size() + " blocks stored");
@@ -112,9 +108,6 @@ public final class DataStructureHandler {
                 DictionaryElem dictElem = dictionary.getTermStat(term);
                 dictElem.setOffsetTermFreq(INDEX_OFFSET);
                 dictElem.setOffsetDocId(INDEX_OFFSET);
-
-                if(term.equals("0000"))
-                    printDebug("term: 0000 " + dictionary.getTermToTermStat().get("0000") +  " block " + (dictionaryBlockOffsets.size()-1) + " size: " + posList.size());
 
                 // Create buffers for docid and termfreq
                 MappedByteBuffer buffer_docid = docidChannel.map(FileChannel.MapMode.READ_WRITE, docidChannel.size(), (long) posList.size() * INT_BYTES); // from 0 to number of postings * int dimension
@@ -158,12 +151,7 @@ public final class DataStructureHandler {
             for (Posting posting : pl) {
                 bufferdocid.putInt(posting.getDocId());
                 buffertermfreq.putInt(posting.getTermFreq());
-                if(debug) {
-                    docId_logger.logInfo(String.valueOf(posting.getDocId()));
-                    termFreq_logger.logInfo(String.valueOf(posting.getTermFreq()));
-                }
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         }

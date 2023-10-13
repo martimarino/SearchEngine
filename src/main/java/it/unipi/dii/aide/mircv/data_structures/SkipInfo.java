@@ -8,9 +8,13 @@ public class SkipInfo {
 
     public static final int SKIPPING_INFO_SIZE = 3 * Long.BYTES;
 
-    private long maxDocId;
-    private long docIdOffset;
-    private long freqOffset;
+    private long maxDocId;      // max docid of the block
+    private long docIdOffset;   // docid offset of the first posting of the block
+    private long freqOffset;    // termfreq offset of the first posting of the block
+
+    public SkipInfo() {
+
+    }
 
     public SkipInfo(long maxDocId, long docIdOffset, long freqOffset) {
         this.maxDocId = maxDocId;

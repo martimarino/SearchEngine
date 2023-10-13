@@ -1,8 +1,8 @@
 package it.unipi.dii.aide.mircv;
-import it.unipi.dii.aide.mircv.compression.Unary;
 import it.unipi.dii.aide.mircv.data_structures.*;
 import it.unipi.dii.aide.mircv.data_structures.Dictionary;
 import it.unipi.dii.aide.mircv.utils.FileSystem;
+import it.unipi.dii.aide.mircv.utils.TextProcessor;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
@@ -170,9 +170,9 @@ public final class QueryProcessor {
                     String term = processedQuery.get(j);
                     assert term != null;
                     int df = dictionary.getTermToTermStat().get(term).getDf();
-                    partialScore += ScoringTFIDF(currentP.getTermFreq(), df);
+                    partialScore += scoringTFIDF(currentP.getTermFreq(), df);
 
-//                    printDebug("DAAT: posting del termine: " + processedQuery.get(j) + " in array pos: " + j + " ha DID: " + currentDID + " and partialScore: " + partialScore);
+                    printDebug("DAAT: posting del termine: " + processedQuery.get(j) + " in array pos: " + j + " ha DID: " + currentDID + " and partialScore: " + partialScore);
                 } else if (isConjunctive) {
                     // must take only the document in which there are all term (DID that compare in all posting lists of the terms)
                     partialScore = 0;       // reset the partial score
@@ -194,7 +194,7 @@ public final class QueryProcessor {
                     tableDAAT.put(currentDID, partialScore);     // add DID and related score to HashMap     NEW VERSION
                     addToScoreToDocID(partialScore, currentDID, numberOfResults); // add DID to the related DID in hashmap
                 }
-//                printDebug("Final TFIDF scoring for DID = " + currentDID + " is: " + tableDAAT.get(currentDID));
+                printDebug("Final TFIDF scoring for DID = " + currentDID + " is: " + tableDAAT.get(currentDID));
             }
         }
 
@@ -211,7 +211,7 @@ public final class QueryProcessor {
      * @return  the TFIDF score for one term and one document. The total score for a document will be the sum of the
      *          result of this function for each term that is both in the document and in the query
      */
-    private static Double ScoringTFIDF(int termFreq, int postListLength)
+    private static Double scoringTFIDF(int termFreq, int postListLength)
     {
         double TFweight, IDFweight, scoreTFIDF;     // variables to calculate the TFIDF score value
 
@@ -223,7 +223,7 @@ public final class QueryProcessor {
         IDFweight = Math.log10(((double) CollectionStatistics.getNDocs() / postListLength));    // calculate IDF weight
         scoreTFIDF = TFweight * IDFweight;          // calculate TFIDF weight from Tf and IDF weight values
 
-//        printDebug("ScoringTFIDF - TFweight = " + TFweight + " IDFweight = " + IDFweight + " scoreTFIDF = " + scoreTFIDF);
+        printDebug("ScoringTFIDF - TFweight = " + TFweight + " IDFweight = " + IDFweight + " scoreTFIDF = " + scoreTFIDF);
 
         return scoreTFIDF;
     }
@@ -246,7 +246,7 @@ public final class QueryProcessor {
         if (numResults < 0 || tableDAAT.isEmpty())
             return rankedResults;
 
-//        printDebug("HashMAp: " + tableDAAT);
+        printDebug("HashMAp: " + tableDAAT);
 
         // take ranked list of DocID
         for (Map.Entry<Integer, Double> entry : tableDAAT.entrySet()) {
@@ -380,7 +380,7 @@ public final class QueryProcessor {
             // take posting list for each term in query
             for (String term : processedQuery)
             {
-//                printDebug("DAAT: retrieve posting list of  " + term);
+                printDebug("DAAT: retrieve posting list of  " + term);
 
                 DictionaryElem de = dictionary.getTermToTermStat().get(term);
 
@@ -446,7 +446,7 @@ public final class QueryProcessor {
         // shows query execution time
         System.out.println(ANSI_YELLOW + "\n*** ORDERED DID LIST (no PQ) in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")" + ANSI_RESET);
 
-//        printDebug("Ordered List of DocID for the query:  " + orderedList);     // print orderedList
+        printDebug("Ordered List of DocID for the query:  " + orderedList);     // print orderedList
 
         System.out.println("Ordered List (no PQ) of DocID dim: " + orderedList.size());     // print orderedList
         hashDocID.clear();          // clear linkHashMap

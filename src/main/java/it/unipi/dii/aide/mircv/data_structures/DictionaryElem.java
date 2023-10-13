@@ -32,7 +32,7 @@ public class DictionaryElem {
     private int termFreqSize; //dimension in byte of compressed termfreq of the posting list
     //skipping
     private long skipOffset;    // offset of the skip element
-    private int skipArrLen;       // len of the skip array
+    private int skipArrLen;       // how many skip blocks
 
     private double idf;
 //    private double maxTf;
@@ -47,7 +47,7 @@ public class DictionaryElem {
         this.termFreqSize = 0;
         this.skipOffset = -1;
         this.skipArrLen = -1;
-//        this.idf = 0;
+        this.idf = 0;
 //        this.maxTf = 0;
 //        this.maxTFIDF = 0;
     }
@@ -66,7 +66,7 @@ public class DictionaryElem {
         this.termFreqSize = 0;
         this.skipOffset = 0;
         this.skipArrLen = 0;
-//        this.idf = 0;
+        this.idf = 0;
 //        this.maxTf = 0;
 //        this.maxTFIDF = 0;
     }
@@ -85,7 +85,7 @@ public class DictionaryElem {
 
     public void setTerm(String term) { this.term = term; }
 
-//    public double getIdf() { return idf; }
+    public double getIdf() { return idf; }
 //
 //    public double getMaxTf() { return maxTf; }
 //
@@ -152,8 +152,8 @@ public class DictionaryElem {
                 ", docIdSize=" + docIdSize +
                 ", termFreqSize=" + termFreqSize +
                 ", offsetSkip=" + skipOffset +
-                ", skipSize=" + skipArrLen +
-//                ", idf=" + idf +
+                ", skipArrLen=" + skipArrLen +
+                ", idf=" + idf +
 //                ", maxTf=" + maxTf +
 //                ", maxTFIDF=" + maxTFIDF +
                 '}';
@@ -200,7 +200,6 @@ public class DictionaryElem {
 //                buffer.putDouble(maxTf);
 //                buffer.putDouble(maxTFIDF);
 //            }
-            if(debug) dict_logger.logInfo(this.toString());
 
             PARTIAL_DICTIONARY_OFFSET += getDictElemSize();       // update offset
 
@@ -261,9 +260,4 @@ public class DictionaryElem {
 //    }
     public double computeIdf() {return Math.log10(CollectionStatistics.getNDocs() / (double)this.df);
 }
-
-
-    public double getIdf() {
-        return idf;
-    }
 }

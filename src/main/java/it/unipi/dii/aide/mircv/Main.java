@@ -1,17 +1,20 @@
 package it.unipi.dii.aide.mircv;
 
-import it.unipi.dii.aide.mircv.compression.Unary;
-import it.unipi.dii.aide.mircv.compression.VariableBytes;
-import it.unipi.dii.aide.mircv.data_structures.*;
+import it.unipi.dii.aide.mircv.data_structures.DataStructureHandler;
+import it.unipi.dii.aide.mircv.data_structures.Flags;
+import it.unipi.dii.aide.mircv.data_structures.IndexMerger;
+import it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import static it.unipi.dii.aide.mircv.QueryProcessor.queryStartControl;
-import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
-import static it.unipi.dii.aide.mircv.utils.Constants.*;
+//import static it.unipi.dii.aide.mircv.QueryProcessor.queryStartControl;
 import static it.unipi.dii.aide.mircv.data_structures.Flags.*;
+import static it.unipi.dii.aide.mircv.utils.Constants.*;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.delete_mergedFiles;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.file_cleaner;
+import static it.unipi.dii.aide.mircv.Query.*;
 import static it.unipi.dii.aide.mircv.Query.*;
 
 public class Main {
@@ -26,13 +29,13 @@ public class Main {
             // print of the user interface
             printUI(
                     "\n********** SEARCH ENGINE **********" +
-                    "\n\tSelect an option:" +
-                    "\n\t  m -> try merge only" +
-                    "\n\t  i -> build the index" +
-                    "\n\t  d -> offset debug" +
-                    "\n\t  q -> query mode" +
-                    "\n\t  x -> exit" +
-                    "\n***********************************\n");
+                            "\n\tSelect an option:" +
+                            "\n\t  m -> try merge only" +
+                            "\n\t  i -> build the index" +
+                            "\n\t  d -> debug" +
+                            "\n\t  q -> query mode" +
+                            "\n\t  x -> exit" +
+                            "\n***********************************\n");
             String mode = sc.nextLine();        // take user's choice
 
             // switch to run user's choice
@@ -83,8 +86,8 @@ public class Main {
                     if(!Query.queryStartControl())
                         continue;
 
-                  /*  String term = "0000";
-                    printDebug(QueryProcessor.dictionary.getTermStat(term).toString());*/
+                    String term = "0000";
+                    printDebug(Query.dictionary.getTermStat(term).toString());
                     printUI("Insert query: \n");
                     String q = sc.nextLine();           // take user's query
                     getNumberOfResults(q, sc);
@@ -199,21 +202,27 @@ public class Main {
         else                                // there aren't results
             printUI("No results found for this query.");
     }
-    public static void getNumberOfResults(String query, Scanner sc){
+
+    private static void getNumberOfResults(String query, Scanner sc){
         while(true) {
             printUI("Insert number of results (10 or 20): \n");
             int k = Integer.parseInt(sc.nextLine());
             if(k == 10 || k == 20) {
-                try {
-                    executeQuery(query, k);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+                while(true) {
+                    printUI("Choice conjunctive or disjunctive (press C or D)");
+                    String queryType = sc.nextLine().toLowerCase();
+                    if (queryType.equals("c") || queryType.equals("d")){
+                        try {
+                            executeQuery(query, k, queryType);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        return;
+                    }
                 }
-                return;
             }
 
         }
     }
+
 }
-
-

@@ -52,7 +52,6 @@ public final class Constants {
 
     // variable that stipulates the behaviour for control printouts. If false there will be no printouts, if true there will be all printouts.
     public static final boolean verbose = true;
-    public static final boolean debug = false;
 
     public static String formatTime(long start, long end) {
 
