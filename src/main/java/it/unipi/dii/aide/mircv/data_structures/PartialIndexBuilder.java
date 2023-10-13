@@ -107,8 +107,6 @@ public final class PartialIndexBuilder {
             CollectionStatistics.storeCollectionStatsIntoDisk();         // store collection statistics into disk
 
 //            spimi_logger.logInfo("CollectionStats -> nDocs:" + CollectionStatistics.getNDocs() + ", totDocLen: " + CollectionStatistics.getTotDocLen());
-
-
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -81,4 +81,5 @@ public class PostingList {
     public Posting getCurrPosting() {
         return currPosting;
     }
+    public void setCurrPosting(Posting p){ this.currPosting = p;}
 }

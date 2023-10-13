@@ -9,9 +9,9 @@ class PartialIndexBuilderTest {
 
     @Test
     void name() {
-
-        Constants.COLLECTION_PATH = "src/main/resources/small_collection.tar.gz";
+        Constants.MEMORY_THRESHOLD = 0.008;
+        Constants.COLLECTION_PATH = "src/test/resources/small_collection.tar.gz";
         PartialIndexBuilder.SPIMIalgorithm();
-        
+
     }
 }

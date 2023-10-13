@@ -7,7 +7,6 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
-import static it.unipi.dii.aide.mircv.utils.Logger.dict_logger;
 
 /**
  *  Stores unique terms and their statistics

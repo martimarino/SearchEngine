@@ -23,7 +23,7 @@ public final class Query {
     static ArrayList<String> query;
 
     public static HashMap<Integer, DocumentElement> documentTable = new HashMap<>();    // docID to DocElement
-    static Dictionary dictionary = new Dictionary();
+    public static Dictionary dictionary = new Dictionary();
 
     static int k;
     static HashMap<Integer, Double> topKresults = new HashMap<>();
@@ -199,7 +199,7 @@ public final class Query {
     private static void DocumentAtATime(ArrayList<String> query, int k){
 
         ArrayList<PostingList> postingLists = new ArrayList<>();
-        PriorityQueue<ResBlock> resultQueueInverse = new PriorityQueue<>(k,new CompareResInv());
+        PriorityQueue<ResultBlock> resultQueueInverse = new PriorityQueue<>(k,new CompareResInverse());
         PriorityQueue<ResultBlock> resultQueue = new PriorityQueue<>(k,new CompareRes());
         ArrayList<Double> idf = new ArrayList<>();
 
@@ -219,7 +219,6 @@ public final class Query {
                 PostingList pl = new PostingList(readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf(), docIdChannel, termFreqChannel), null);
                 postingLists.add(pl);
             }
-
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -228,12 +227,9 @@ public final class Query {
         int current = minDocID(postingLists);
 
         ArrayList<Boolean> notNext = new ArrayList<Boolean>();
-        Posting[] currentPostings = new Posting[postingLists.size()];
 
         for(int i = 0; i < postingLists.size(); i++) {
             notNext.add(false);
-            if (postingLists.get(i).postingIterator.hasNext())
-                currentPostings[i] = postingLists.get(i).postingIterator.next();
         }
 
         while(current != -1){
@@ -243,18 +239,18 @@ public final class Query {
             for(int i = 0; i < postingLists.size(); i++)
             {
                 if(postingLists.get(i).postingIterator.hasNext()) {
-                    if (currentPostings[i].getDocId() == current) {
-                        score = score + computeTfidf(idf.get(i), currentPostings[i]);
-                        currentPostings[i] = postingLists.get(i).postingIterator.next();
+                    if (postingLists.get(i).getCurrPosting().getDocId() == current) {
+                        score = score + computeTfidf(idf.get(i), postingLists.get(i).getCurrPosting());
+                        postingLists.get(i).setCurrPosting(postingLists.get(i).postingIterator.next());
                     }
-                    if(currentPostings[i].getDocId() < next)
-                        next = currentPostings[i].getDocId();
+                    if(postingLists.get(i).getCurrPosting().getDocId() < next)
+                        next = postingLists.get(i).getCurrPosting().getDocId();
                 }else{
                     notNext.set(i, true);
                 }
             }
             if(resultQueue.size() < k)
-            resultQueue.add(new ResultBlock("", current, score));
+                resultQueue.add(new ResultBlock("", current, score));
             else if(resultQueue.size() == k && resultQueue.peek().getScore() < score)
             {
                 resultQueue.poll();
@@ -267,18 +263,11 @@ public final class Query {
 
         while(!resultQueue.isEmpty()) {
             ResultBlock r = resultQueue.poll();
-            resultQueueInverse.add(new ResBlock(r.getDocId(), r.getScore()));
+            resultQueueInverse.add(new ResultBlock("", r.getDocId(),r.getScore()));
         }
 
-        int index = 0;
-
         while(!resultQueueInverse.isEmpty()) {
-            if (index < k) {
-                printUI(resultQueueInverse.poll().toString());
-                index++;
-            }else{
-                break;
-            }
+                printUI(documentTable.get(resultQueueInverse.poll().getDocId()).getDocno());
         }
     }
 
@@ -295,8 +284,6 @@ public final class Query {
         }
         return Collections.min(first_docids);
     }
-
-
 
     private static class ResBlock{
         private int docId;

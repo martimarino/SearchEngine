@@ -45,8 +45,6 @@ class QueryTest {
     @Test
     void name() {
         ArrayList<Integer> result = new ArrayList<>();
-        boolean isConjunctive = true;
-        boolean isDisjunctive = false;
         int numberOfResults = 10;
         int avgTimePQ = 0;
         int avgTime = 0;

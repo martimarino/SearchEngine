@@ -86,8 +86,6 @@ public class Main {
                     if(!Query.queryStartControl())
                         continue;
 
-                    String term = "0000";
-                    printDebug(Query.dictionary.getTermStat(term).toString());
                     printUI("Insert query: \n");
                     String q = sc.nextLine();           // take user's query
                     getNumberOfResults(q, sc);
