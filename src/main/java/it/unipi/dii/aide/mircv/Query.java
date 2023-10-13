@@ -7,8 +7,6 @@ import it.unipi.dii.aide.mircv.query.*;
 import it.unipi.dii.aide.mircv.utils.FileSystem;
 import it.unipi.dii.aide.mircv.utils.TextProcessor;
 
-import it.unipi.dii.aide.mircv.utils.FileSystem;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -18,7 +16,6 @@ import java.util.*;
 import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.readCollectionStatsFromDisk;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readPostingListFromDisk;
 import static it.unipi.dii.aide.mircv.data_structures.Flags.readFlagsFromDisk;
-import static it.unipi.dii.aide.mircv.score.Score.computeTFIDF;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 
 public final class Query {
@@ -219,7 +216,7 @@ public final class Query {
                     continue;
                 }
                 idf.add(de.getIdf());
-                PostingList pl = new PostingList(readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf(), docIdChannel, termFreqChannel));
+                PostingList pl = new PostingList(readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf(), docIdChannel, termFreqChannel), null);
                 postingLists.add(pl);
             }
 
@@ -258,7 +255,7 @@ public final class Query {
             }
             if(resultQueue.size() < k)
             resultQueue.add(new ResultBlock("", current, score));
-            else if(resultQueue.size() == k && resultQueue.peek().score < score)
+            else if(resultQueue.size() == k && resultQueue.peek().getScore() < score)
             {
                 resultQueue.poll();
                 resultQueue.add(new ResultBlock("", current, score));
@@ -270,7 +267,7 @@ public final class Query {
 
         while(!resultQueue.isEmpty()) {
             ResultBlock r = resultQueue.poll();
-            resultQueueInverse.add(new ResBlock(r.docId, r.score));
+            resultQueueInverse.add(new ResBlock(r.getDocId(), r.getScore()));
         }
 
         int index = 0;
@@ -304,7 +301,6 @@ public final class Query {
     private static class ResBlock{
         private int docId;
         private double score;
-
 
         public ResBlock(int docId, double score) {
             this.docId = docId;
@@ -347,135 +343,6 @@ public final class Query {
 
             return scoreCompare;
         }
-    }
-
-    /**
-     * class to define DAATBlock. The priority queue contains instances of DAATBlock
-     */
-    private static class DAATBlock {
-
-        private String term;
-        private int docId;                  // DocID
-        private double score;     // reference to the posting list (index in the array of posting lists of the query) containing DcoID
-
-        // constructor with parameters
-        public DAATBlock(String term, int docId, double score) {
-            this.term = term;
-            this.docId = docId;
-            this.score = score;
-        }
-
-        public int getDocId() {
-            return docId;
-        }
-
-        public double getScore() {
-            return score;
-        }
-
-        public String getTerm() {
-            return term;
-        }
-
-        public void setTerm(String term) {
-            this.term = term;
-        }
-
-        public void setDocId(int docId) {
-            this.docId = docId;
-        }
-
-        public void setScore(double score) {
-            this.score = score;
-        }
-
-        @Override
-        public String toString() {
-            return "DAATBlock{" +
-                    "term='" + term + '\'' +
-                    ", docId=" + docId +
-                    ", score=" + score +
-                    '}';
-        }
-
-    }
-
-
-
-
-
-
-
-        public int getDocId() {
-            return docId;
-        }
-
-        public double getScore() {
-            return score;
-        }
-
-        public String getDocNo() {
-            return docNo;
-        }
-
-        public void setDocNo(String docNo) {
-            this.docNo = docNo;
-        }
-
-        public void setDocId(int docId) {
-            this.docId = docId;
-        }
-
-        public void setScore(double score) {
-            this.score = score;
-        }
-
-        @Override
-        public String toString() {
-            return "ResultBlock{" +
-                    "docNo=" + docNo +
-                    ", docId=" + docId +
-                    ", score=" + score +
-                    '}';
-        }
-
-    }
-    private static class CompareRes implements Comparator<ResultBlock> {
-        @Override
-        public int compare(ResultBlock pb1, ResultBlock pb2) {
-
-            int scoreCompare = Double.compare(pb1.getScore(), pb2.getScore());
-
-            if(scoreCompare == 0)
-                return Integer.compare(pb1.getDocId(), pb2.getDocId());
-
-            return scoreCompare;
-        }
-    }
-
-    private static class CompareResInverse implements Comparator<ResultBlock> {
-        @Override
-        public int compare(ResultBlock pb1, ResultBlock pb2) {
-
-            int scoreCompare = Double.compare(pb2.getScore(), pb1.getScore());
-
-            if(scoreCompare == 0)
-                return Integer.compare(pb1.getDocId(), pb2.getDocId());
-
-            return scoreCompare;
-        }
-    }
-
-    private static class PostingList {
-
-        public ArrayList<Posting> list;
-        public Iterator<Posting> postingIterator;
-
-        public PostingList(ArrayList<Posting> list) {
-            this.list = list;
-            this.postingIterator = list.iterator();
-        }
-
     }
 
 }
