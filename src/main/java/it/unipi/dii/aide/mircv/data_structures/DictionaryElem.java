@@ -18,7 +18,7 @@ public class DictionaryElem {
         // if compression case, need to store 2 more integers (dimension of compressed DocID and Term Frequency values)
         int DICT_ELEM_SIZE = TERM_DIM + 2*Integer.BYTES + 2*Long.BYTES;
         return DICT_ELEM_SIZE + ((Flags.considerSkippingBytes() && Flags.isCompressionEnabled()) ? 2*Integer.BYTES : 0)
-                              + ((Flags.considerSkippingBytes()) ? (Long.BYTES + Integer.BYTES) : 0);
+                              + ((Flags.considerSkippingBytes()) ? (2*Long.BYTES + Integer.BYTES) : 0);
     }
 
     private String term;        //32 byte
@@ -34,7 +34,7 @@ public class DictionaryElem {
     private long skipOffset;    // offset of the skip element
     private int skipArrLen;       // len of the skip array
 
-//    private double idf;
+    private double idf;
 //    private double maxTf;
 //    private double maxTFIDF;        // upper bound
 
@@ -193,6 +193,7 @@ public class DictionaryElem {
                 }
                 buffer.putLong(skipOffset);
                 buffer.putInt(skipArrLen);
+                buffer.putDouble(idf);
             }
 //            if(Flags.isScoringEnabled()) {
 //                buffer.putDouble(idf);
@@ -239,19 +240,30 @@ public class DictionaryElem {
 //                idf = buffer.getDouble();
 //                maxTf = buffer.getDouble();
 //                maxTFIDF = buffer.getDouble();
+                idf = buffer.getDouble();
             }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
 
     }
 
-//    public void computeIdf() {
-//        this.idf = Math.log10(CollectionStatistics.getNDocs() / (double)this.df);
-//    }
+    public void setIdf() {
+        this.idf = Math.log10(CollectionStatistics.getNDocs() / (double)this.df);
+    }
+    public void assignIdf(double idf){
+        this.idf = idf;
+    }
 //
 //    public void computeMaxTFIDF() {
 //        this.maxTFIDF = (1 + Math.log10(this.maxTf)) * this.idf;
 //    }
+    public double computeIdf() {return Math.log10(CollectionStatistics.getNDocs() / (double)this.df);
+}
 
+
+    public double getIdf() {
+        return idf;
+    }
 }

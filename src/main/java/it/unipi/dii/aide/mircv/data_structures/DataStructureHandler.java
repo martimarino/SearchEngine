@@ -3,6 +3,7 @@ package it.unipi.dii.aide.mircv.data_structures;
 import it.unipi.dii.aide.mircv.TextProcessor;
 import it.unipi.dii.aide.mircv.compression.Unary;
 import it.unipi.dii.aide.mircv.QueryProcessor;
+import it.unipi.dii.aide.mircv.Query;
 import it.unipi.dii.aide.mircv.compression.VariableBytes;
 
 import java.io.*;
@@ -112,7 +113,6 @@ public final class DataStructureHandler {
                 dictElem.setOffsetTermFreq(INDEX_OFFSET);
                 dictElem.setOffsetDocId(INDEX_OFFSET);
 
-
                 if(term.equals("0000"))
                     printDebug("term: 0000 " + dictionary.getTermToTermStat().get("0000") +  " block " + (dictionaryBlockOffsets.size()-1) + " size: " + posList.size());
 
@@ -192,7 +192,7 @@ public final class DataStructureHandler {
                 if(indexBuilding)
                     PartialIndexBuilder.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
                 else
-                    QueryProcessor.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
+                    Query.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
             }
         }
     }

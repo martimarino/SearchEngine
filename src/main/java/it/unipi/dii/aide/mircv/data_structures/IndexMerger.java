@@ -40,10 +40,10 @@ public final class IndexMerger {
         // array containing the current read offset for each block
         ArrayList<Long> currentBlockOffset = new ArrayList<>(nrBlocks);
         currentBlockOffset.addAll(dictionaryBlockOffsets);
-
+        System.out.println("nr blocks: " + nrBlocks);
         // var which indicates the steps of 'i' progression print during merge
         System.out.println("Compression " + Flags.isCompressionEnabled());
-
+        int index = 0;
         // open file and create channels for reading the partial dictionary and index file and write the complete index and dictionary file
         try (
                 // open partial files to read the partial dictionary and index
@@ -141,7 +141,6 @@ public final class IndexMerger {
 //                        tempDE.computeIdf();
 //                        tempDE.computeMaxTFIDF();
 
-
                         assert tempPL != null;
 
                         int lenPL = tempPL.size();
@@ -185,8 +184,9 @@ public final class IndexMerger {
                             else
                                 storePostingListIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);  // write InvertedIndexElem to disk
                         }
+                        tempDE.setIdf();
                         tempDE.storeDictionaryElemIntoDisk(outDictionaryChannel);
-
+                        index++;
                         Flags.setConsiderSkippingBytes(false);
 
                         //set temp variables values

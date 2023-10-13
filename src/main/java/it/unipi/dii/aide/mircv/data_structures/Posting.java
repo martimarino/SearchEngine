@@ -16,6 +16,11 @@ public class Posting {
         this.termFreq = termFreq;
     }
 
+    public Posting() {
+        this.docId = 0;
+        this.termFreq = 0;
+    }
+
     public void addTermFreq(int n){
         this.termFreq += n;
     }

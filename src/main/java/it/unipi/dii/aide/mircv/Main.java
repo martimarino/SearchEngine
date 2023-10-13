@@ -12,6 +12,7 @@ import static it.unipi.dii.aide.mircv.QueryProcessor.queryStartControl;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import static it.unipi.dii.aide.mircv.data_structures.Flags.*;
+import static it.unipi.dii.aide.mircv.Query.*;
 
 public class Main {
 
@@ -77,12 +78,24 @@ public class Main {
                     continue;                           // go next while iteration
                 case "d":
 
-                    queryStartControl();
-                    String term = "0000";
-                    printDebug(QueryProcessor.dictionary.getTermStat(term).toString());
+                    Flags.setConsiderSkippingBytes(true);
+
+                    if(!Query.queryStartControl())
+                        continue;
+
+                  /*  String term = "0000";
+                    printDebug(QueryProcessor.dictionary.getTermStat(term).toString());*/
+                    printUI("Insert query: \n");
+                    String q = sc.nextLine();           // take user's query
+                    getNumberOfResults(q, sc);
+                    // control check of the query
+                    if (q == null || q.isEmpty()) {
+                        printError("Error: the query is empty. Please, retry.");
+                        continue;                           // go next while iteration
+                    }
+
 
                     continue;                           // go next while iteration
-
 
                 case "q":       // query
 
@@ -175,7 +188,7 @@ public class Main {
      *
      * @param rankedResults the results returned by the query
      */
-    private static void printQueryResults(ArrayList<Integer> rankedResults)
+    public static void printQueryResults(ArrayList<Integer> rankedResults)
     {
         if (rankedResults.size() != 0)      // there are results
         {
@@ -186,7 +199,21 @@ public class Main {
         else                                // there aren't results
             printUI("No results found for this query.");
     }
+    public static void getNumberOfResults(String query, Scanner sc){
+        while(true) {
+            printUI("Insert number of results (10 or 20): \n");
+            int k = Integer.parseInt(sc.nextLine());
+            if(k == 10 || k == 20) {
+                try {
+                    executeQuery(query, k);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                return;
+            }
 
+        }
+    }
 }
 
 

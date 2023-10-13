@@ -55,7 +55,6 @@ public final class QueryProcessor {
             printDebug("Query before processed: " + query);
             processedQuery = TextProcessor.preprocessText(query); // Preprocessing of document text
             printDebug("Query after processed: " + processedQuery);
-            printDebug(dictionary.getTermStat("0000").toString());
 
             // control for correct form
             if ( (isConjunctive && isDisjunctive) || !(isConjunctive || isDisjunctive))     // query is Conjunctive or Disjunctive cannot be both or neither
@@ -103,6 +102,7 @@ public final class QueryProcessor {
             dictionary.readDictionaryFromDisk();
             long endTime = System.currentTimeMillis();
             printTime( "Dictionary loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+            System.out.println("Vocabulary size: " + dictionary.getTermToTermStat().size());
         }
         if(documentTable.isEmpty())
         {
@@ -362,7 +362,7 @@ public final class QueryProcessor {
      * @return  an array of posting lists (ArrayList of posting). the array has length equal to the number of terms,
      *          and the i-th position in the array contains the posting list of the i-th term in the processedQuery
      */
-    private static ArrayList<Posting>[] retrieveAllPostListsFromQuery(ArrayList<String> processedQuery)
+    public static ArrayList<Posting>[] retrieveAllPostListsFromQuery(ArrayList<String> processedQuery)
     {
         // array of arrayList (posting list) that contain all the posting lists for each term in the query
         ArrayList<Posting>[] postingLists = new ArrayList[processedQuery.size()];
@@ -385,13 +385,13 @@ public final class QueryProcessor {
                 DictionaryElem de = dictionary.getTermToTermStat().get(term);
 
                 if (dictionary.getTermToTermStat().containsKey(term))
-
                     if(Flags.isCompressionEnabled())
                         postingLists[iterator] = readCompressedPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(), de.getTermFreqSize(), de.getDocIdSize(), de.getDf(), docIdChannel, termFreqChannel); //read compressed posting list
                     else // take the postingList of term
                         postingLists[iterator] = readPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(),de.getDf(),docIdChannel,termFreqChannel);
 
                 iterator++;                 // update iterator
+
             }
             return postingLists;
 
@@ -542,6 +542,7 @@ public final class QueryProcessor {
             scoreToDocID.put(score,values);     // add to hashMap
             //System.out.println("*** addToScoreToDocID: new value = " + scoreToDocID.get(score) + " for score: " + score);
         }
+
     }
 
     // new version to substitute remove wit get in the posting lists

@@ -13,7 +13,7 @@ public final class Constants {
 
     // -------------------------------- Constants for file paths -------------------------------------------
 
-    public final static String COLLECTION_PATH = RES_FOLDER + "collection.tar.gz";
+    public static String COLLECTION_PATH = RES_FOLDER + "collection.tar.gz";
 
     public static final String PARTIAL_DICTIONARY_FILE = PARTIAL_FOLDER + "partial_dictionary"; // file in which is stored the vocabulary in blocks
     public static final String PARTIAL_DOCID_FILE = PARTIAL_FOLDER + "partial_docId";  // file containing the docId (element of posting list) for each block
