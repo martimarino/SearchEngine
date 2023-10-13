@@ -1,15 +1,14 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
-import it.unipi.dii.aide.mircv.TextProcessor;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
+import it.unipi.dii.aide.mircv.utils.TextProcessor;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.*;
+//import static it.unipi.dii.aide.mircv.utils.Logger.spimi_logger;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -32,13 +31,11 @@ public final class PartialIndexBuilder {
 
         long memoryAvailable = (long) (Runtime.getRuntime().maxMemory() * MEMORY_THRESHOLD);
         int docCounter = 1;         // counter for DocID
-        int termCounter = 0;        // counter for TermID
         int totDocLen = 0;          // variable for the sum of the lengths of all documents
 
         File file = new File(COLLECTION_PATH);
         try (
-            final TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(new GzipCompressorInputStream(new FileInputStream(file)));
-
+                final TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(new GzipCompressorInputStream(new FileInputStream(file)));
         ) {
             TarArchiveEntry tarArchiveEntry = tarArchiveInputStream.getNextTarEntry();
             BufferedReader buffer_collection;
@@ -74,13 +71,11 @@ public final class PartialIndexBuilder {
                     if(term.length() > TERM_DIM)
                         term = term.substring(0,TERM_DIM);                  // truncate term
 
-                    // control check if the current term has already been found or is the first time
-                    if (!dictionary.getTermToTermStat().containsKey(term))
-                        termCounter++;                  // update TermID counter
-
                     assert !term.equals("");
 
-                    DictionaryElem dictElem = dictionary.getOrCreateTerm(term,termCounter);     // Dictionary build
+                    DictionaryElem dictElem = dictionary.getOrCreateTerm(term);     // Dictionary build
+
+//                    spimi_logger.logInfo(term);
 
                     if(addTerm(term, docCounter, 0))
                         dictElem.addDf(1);
@@ -96,6 +91,7 @@ public final class PartialIndexBuilder {
                     storeIndexAndDictionaryIntoDisk();  //store index and dictionary to disk
                     storeDocumentTableIntoDisk(); // store document table one document at a time for each block
 
+//                    spimi_logger.logInfo("************************************");
 
                     freeMemory();
                     System.gc();
@@ -109,6 +105,9 @@ public final class PartialIndexBuilder {
             CollectionStatistics.setNDocs(docCounter);        // set total number of Document in the collection
             CollectionStatistics.setTotDocLen(totDocLen);     // set the sum of the all document length in the collection
             CollectionStatistics.storeCollectionStatsIntoDisk();         // store collection statistics into disk
+
+//            spimi_logger.logInfo("CollectionStats -> nDocs:" + CollectionStatistics.getNDocs() + ", totDocLen: " + CollectionStatistics.getTotDocLen());
+
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -145,7 +144,6 @@ public final class PartialIndexBuilder {
             invertedIndex.get(term).get(size - 1).addTermFreq(1);
             return false; // No need to increment df
         }
-
     }
 
     // method to free memory by deleting the information in document table, dictionary,and inverted index

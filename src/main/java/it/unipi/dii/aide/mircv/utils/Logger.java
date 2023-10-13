@@ -10,16 +10,15 @@ import static it.unipi.dii.aide.mircv.utils.Constants.DEBUG_FOLDER;
 
 public final class Logger {
 
-    private static String logFileName;
+    private final String logFileName;
 
-    public static Logger dict_logger = new Logger("dict.txt");
-    public static Logger docId_logger = new Logger("docid.txt");
-    public static Logger termFreq_logger = new Logger("termFreq.txt");
-    public static Logger collStats_logger = new Logger("collStats.txt");
-    public static Logger docTable_logger = new Logger("docTable.txt");
+//    public static Logger spimi_logger = new Logger("spimi.log");
+//    public static Logger merge_logger = new Logger("merge.log");
+//    public static Logger query_logger = new Logger("query.log");
+//    public static Logger term_logger = new Logger("0000.log");
 
     public Logger(String logFileName) {
-        Logger.logFileName = DEBUG_FOLDER + logFileName;
+        this.logFileName = DEBUG_FOLDER + logFileName;
     }
 
     public void logInfo(String message) {

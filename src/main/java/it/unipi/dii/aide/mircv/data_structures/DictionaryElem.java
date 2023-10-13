@@ -7,7 +7,6 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
-import static it.unipi.dii.aide.mircv.utils.Logger.dict_logger;
 
 /**
  *  Stores unique terms and their statistics
@@ -32,9 +31,9 @@ public class DictionaryElem {
     private int termFreqSize; //dimension in byte of compressed termfreq of the posting list
     //skipping
     private long skipOffset;    // offset of the skip element
-    private int skipArrLen;       // len of the skip array
+    private int skipArrLen;       // how many skip blocks
 
-//    private double idf;
+    private double idf;
 //    private double maxTf;
 //    private double maxTFIDF;        // upper bound
 
@@ -47,7 +46,7 @@ public class DictionaryElem {
         this.termFreqSize = 0;
         this.skipOffset = -1;
         this.skipArrLen = -1;
-//        this.idf = 0;
+        this.idf = 0;
 //        this.maxTf = 0;
 //        this.maxTFIDF = 0;
     }
@@ -66,7 +65,7 @@ public class DictionaryElem {
         this.termFreqSize = 0;
         this.skipOffset = 0;
         this.skipArrLen = 0;
-//        this.idf = 0;
+        this.idf = 0;
 //        this.maxTf = 0;
 //        this.maxTFIDF = 0;
     }
@@ -85,7 +84,7 @@ public class DictionaryElem {
 
     public void setTerm(String term) { this.term = term; }
 
-//    public double getIdf() { return idf; }
+    public double getIdf() { return idf; }
 //
 //    public double getMaxTf() { return maxTf; }
 //
@@ -152,8 +151,8 @@ public class DictionaryElem {
                 ", docIdSize=" + docIdSize +
                 ", termFreqSize=" + termFreqSize +
                 ", offsetSkip=" + skipOffset +
-                ", skipSize=" + skipArrLen +
-//                ", idf=" + idf +
+                ", skipArrLen=" + skipArrLen +
+                ", idf=" + idf +
 //                ", maxTf=" + maxTf +
 //                ", maxTFIDF=" + maxTFIDF +
                 '}';
@@ -199,7 +198,6 @@ public class DictionaryElem {
 //                buffer.putDouble(maxTf);
 //                buffer.putDouble(maxTFIDF);
 //            }
-            if(debug) dict_logger.logInfo(this.toString());
 
             PARTIAL_DICTIONARY_OFFSET += getDictElemSize();       // update offset
 
@@ -246,10 +244,10 @@ public class DictionaryElem {
 
     }
 
-//    public void computeIdf() {
-//        this.idf = Math.log10(CollectionStatistics.getNDocs() / (double)this.df);
-//    }
-//
+    public double computeIdf() {
+        return Math.log10(CollectionStatistics.getNDocs() / (double)this.df);
+    }
+
 //    public void computeMaxTFIDF() {
 //        this.maxTFIDF = (1 + Math.log10(this.maxTf)) * this.idf;
 //    }

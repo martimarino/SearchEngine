@@ -1,8 +1,8 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
-import it.unipi.dii.aide.mircv.TextProcessor;
-import it.unipi.dii.aide.mircv.compression.Unary;
 import it.unipi.dii.aide.mircv.QueryProcessor;
+import it.unipi.dii.aide.mircv.compression.Unary;
+import it.unipi.dii.aide.mircv.Query;
 import it.unipi.dii.aide.mircv.compression.VariableBytes;
 
 import java.io.*;
@@ -49,8 +49,6 @@ public final class DataStructureHandler {
                 buffer.putInt(de.getDocid());
                 buffer.putInt(de.getDoclength());
 
-                if(debug)
-                    docTable_logger.logInfo(de.toString());
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -76,7 +74,6 @@ public final class DataStructureHandler {
             for (int i = 0; i < dictionaryBlockOffsets.size(); i++) {
                 printDebug("OFFSET BLOCK " + i + ": " + dictionaryBlockOffsets.get(i));
                 buffer.putLong(dictionaryBlockOffsets.get(i)); //store into file the dictionary offset of the i-th block
-                printDebug(String.valueOf(dictionaryBlockOffsets.get(i)));
             }
 
             System.out.println(dictionaryBlockOffsets.size() + " blocks stored");
@@ -158,11 +155,14 @@ public final class DataStructureHandler {
             for (Posting posting : pl) {
                 bufferdocid.putInt(posting.getDocId());
                 buffertermfreq.putInt(posting.getTermFreq());
-                if(debug) {
-                    docId_logger.logInfo(String.valueOf(posting.getDocId()));
-                    termFreq_logger.logInfo(String.valueOf(posting.getTermFreq()));
-                }
             }
+
+//            StringBuilder s = new StringBuilder("PL -> ");
+//            for (Posting p : pl) {
+//                s.append(" tf: " + p.getTermFreq());
+//                s.append(" docid: " + p.getDocId());
+//            }
+//            merge_logger.logInfo(String.valueOf(s));
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -192,7 +192,7 @@ public final class DataStructureHandler {
                 if(indexBuilding)
                     PartialIndexBuilder.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
                 else
-                    QueryProcessor.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
+                    Query.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
             }
         }
     }
@@ -282,6 +282,9 @@ public final class DataStructureHandler {
             docid.add(ps.getDocId());
         }
 
+//        merge_logger.logInfo("tf: " + tf);
+//        merge_logger.logInfo("docid: " + docid);
+
         byte[] compressedTf = Unary.integersCompression(tf);
         byte[] compressedDocId = VariableBytes.integersCompression(docid);
         // Create buffers for docid and termfreq
@@ -294,6 +297,8 @@ public final class DataStructureHandler {
 
             length[0] = compressedTf.length;
             length[1] = compressedDocId.length;
+
+
             return length;
 
         } catch (IOException e) {

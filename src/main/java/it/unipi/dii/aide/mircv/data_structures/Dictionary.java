@@ -29,7 +29,7 @@ public class Dictionary {
      * Function which returns, if present, the DictionaryElem associated with the term passed as a parameter.
      * Otherwise, it creates a new DictionaryElem associated with the term, inserts it in the HashMap and returns it.
      */
-    public DictionaryElem getOrCreateTerm(String term, int termCounter) {
+    public DictionaryElem getOrCreateTerm(String term) {
         return termToTermStat.computeIfAbsent(term, t -> new DictionaryElem(term));
     }
 
@@ -66,7 +66,8 @@ public class Dictionary {
 
         MappedByteBuffer buffer;    // get first term of the block
         try (
-                FileChannel channel = new RandomAccessFile(DICTIONARY_FILE, "rw").getChannel()
+                RandomAccessFile dict_raf = new RandomAccessFile(DICTIONARY_FILE, "rw");
+                FileChannel channel = dict_raf.getChannel()
         ) {
             long len = channel.size();          // size of the dictionary saved into disk
 

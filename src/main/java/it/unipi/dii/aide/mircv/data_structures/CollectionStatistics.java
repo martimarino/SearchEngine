@@ -8,7 +8,6 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
-import static it.unipi.dii.aide.mircv.utils.Logger.collStats_logger;
 
 /**
  * class to contain the statistics of the collection
@@ -93,8 +92,6 @@ public final class CollectionStatistics {
 
             buffer.putInt(nDocs);           // write total number of document in collection
             buffer.putDouble(totDocLen);    // write sum of the all document length in the collection
-
-            if(debug) collStats_logger.logInfo("nDocs: " + getNDocs() + "\ntotDocLen: " + getTotDocLen());
 
         } catch (IOException ioe) {
             ioe.printStackTrace();
