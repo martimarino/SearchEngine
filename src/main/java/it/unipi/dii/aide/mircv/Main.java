@@ -42,6 +42,7 @@ public class Main {
             switch (mode) {
 
                 case "m":       // per debugging, prova solo il merge
+
                     delete_mergedFiles();
                     //setCompression(true);  // take user preferences on the compression
 
@@ -59,7 +60,6 @@ public class Main {
                     continue;                                   // go next while cycle
 
                 case "i":
-                    DataStructureHandler.openFiles("i");
                     file_cleaner();                             // delete all created files
 
                     setSws(getUserChoice(sc, "stopwords removal"));    // take user preferences on the removal of stopwords
@@ -80,8 +80,8 @@ public class Main {
                     endTime = System.currentTimeMillis();           // end time of merge blocks
                     printTime("\nBlocks merged in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
                     continue;                           // go next while iteration
+
                 case "d":
-                    DataStructureHandler.openFiles("q");
                     Flags.setConsiderSkippingBytes(true);
 
                     if(!Query.queryStartControl())
@@ -100,7 +100,7 @@ public class Main {
                     continue;                           // go next while iteration
 
                 case "q":       // query
-                    DataStructureHandler.openFiles("q");
+
                     Flags.setConsiderSkippingBytes(true);
                     ArrayList<Integer> rankedResults;       // ArrayList that contain the ranked results of query
                     int numberOfResults = 0;    // take the integer entered by users that indicate the number of results wanted for query
@@ -150,8 +150,8 @@ public class Main {
                     startTime = System.currentTimeMillis();         // start time of execute query
 
                     // do query and retry the results
-                    rankedResults = QueryProcessor.queryManager(query,isConjunctive,isDisjunctive,numberOfResults);
-                    printQueryResults(rankedResults);               // print the results of the query
+//                    rankedResults = QueryProcessor.queryManager(query,isConjunctive,isDisjunctive,numberOfResults);
+//                    printQueryResults(rankedResults);               // print the results of the query
 
                     endTime = System.currentTimeMillis();           // end time of execute query
 

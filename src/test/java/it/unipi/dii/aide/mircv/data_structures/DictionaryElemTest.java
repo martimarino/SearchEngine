@@ -18,10 +18,10 @@ class DictionaryElemTest {
             dictFile = new RandomAccessFile(DICTIONARY_FILE, "rw");
             FileChannel outDictionaryChannel = dictFile.getChannel();
             DictionaryElem de = new DictionaryElem();
-            de.readDictionaryElemFromDisk(0, outDictionaryChannel);
+            de.readDictionaryElemFromDisk(0);
             System.out.println("dictionary: " + de.toString());
             DictionaryElem de1 = new DictionaryElem();
-            de1.readDictionaryElemFromDisk(56, outDictionaryChannel);
+            de1.readDictionaryElemFromDisk(56);
             System.out.println("dictionary 1: " + de1.toString());
         } catch (FileNotFoundException e) {
             e.printStackTrace();

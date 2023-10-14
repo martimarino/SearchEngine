@@ -6,12 +6,16 @@ import it.unipi.dii.aide.mircv.data_structures.Dictionary;
 import it.unipi.dii.aide.mircv.query.*;
 import it.unipi.dii.aide.mircv.utils.FileSystem;
 import it.unipi.dii.aide.mircv.utils.TextProcessor;
+
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.*;
 
 import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.readCollectionStatsFromDisk;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readPostingListFromDisk;
 import static it.unipi.dii.aide.mircv.data_structures.Flags.readFlagsFromDisk;
+import static it.unipi.dii.aide.mircv.query.Conjunctive.executeConjunctive;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 
 public final class Query {
@@ -19,7 +23,7 @@ public final class Query {
     static ArrayList<String> query;
 
     public static HashMap<Integer, DocumentElement> documentTable = new HashMap<>();    // docID to DocElement
-    static Dictionary dictionary = new Dictionary();
+    public static Dictionary dictionary = new Dictionary();
 
     static int k;
     static HashMap<Integer, Double> topKresults = new HashMap<>();
@@ -65,12 +69,24 @@ public final class Query {
 
     public static void executeQuery(String q, int k, String q_type) throws IOException {
 
-        long startTime = System.currentTimeMillis();
-        query = TextProcessor.preprocessText(q);
-        Query.k = k;
-        DocumentAtATime(query, k);
-        long endTime = System.currentTimeMillis();
-        printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+        try (
+                RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
+                RandomAccessFile termfreq_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
+                RandomAccessFile skip_raf = new RandomAccessFile(SKIP_FILE, "rw");
+        ) {
+            docId_channel = docid_raf.getChannel();
+            termFreq_channel = termfreq_raf.getChannel();
+            skip_channel = skip_raf.getChannel();
+
+            long startTime = System.currentTimeMillis();
+            query = TextProcessor.preprocessText(q);
+            Query.k = k;
+            DocumentAtATime(query, k);
+            long endTime = System.currentTimeMillis();
+            printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
     public static void executeQueryPQ(String q, int k, String q_type) throws IOException {
@@ -88,28 +104,21 @@ public final class Query {
 
         HashMap<String, PostingList> postingLists = new HashMap<>();
 
-        try (
-                RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
-                RandomAccessFile termfreq_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
-                RandomAccessFile skip_raf = new RandomAccessFile(SKIP_FILE, "rw");
+        try {
 
-                FileChannel docIdChannel = docid_raf.getChannel();
-                FileChannel termFreqChannel = termfreq_raf.getChannel();
-                FileChannel skipChannel = skip_raf.getChannel()
-        ) {
             if(queryType.equals("c")) {
-                Conjunctive.executeConjunctive(query_terms, k, docIdChannel, termFreqChannel, skipChannel);
+                executeConjunctive(query_terms, k);
                 return;
             }
             pq_DAAT = new PriorityQueue<>(query_terms.size(), new CompareScore());
             // retrieve the posting list of every query term
             for (String t : query_terms) {
                 DictionaryElem de = dictionary.getTermStat(t);
-                SkipList sl = new SkipList(de.getSkipOffset(), de.getSkipArrLen(), skipChannel);
-                PostingList pl = new PostingList(readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf(), docIdChannel, termFreqChannel), sl);
+                SkipList sl = new SkipList(de.getSkipOffset(), de.getSkipArrLen());
+                PostingList pl = new PostingList(readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf()), sl);
                 postingLists.put(t, pl);
-                pq_DAAT.add(new DAATBlock(t, pl.list.get(0).getDocId(), computeTFIDF(dictionary.getTermToTermStat().get(t).getTerm(), pl.list.get(0))));
-                postingLists.get(t).postingIterator.next();
+                pq_DAAT.add(new DAATBlock(t, pl.list.get(0).getDocId(), computeTfidf(dictionary.getTermToTermStat().get(t).getIdf(), pl.list.get(0))));
+                postingLists.get(t).next(de);
             }
 
             DAATBlock acc = null;
@@ -155,7 +164,7 @@ public final class Query {
                 Iterator<Posting> iterToAdvance = postingLists.get(pb.getTerm()).postingIterator;
                 if(iterToAdvance.hasNext()){
                     Posting currentPosting = iterToAdvance.next();
-                    pq_DAAT.add(new DAATBlock(pb.getTerm(), currentPosting.getDocId(), computeTFIDF(pb.getTerm(), currentPosting)));
+                    pq_DAAT.add(new DAATBlock(pb.getTerm(), currentPosting.getDocId(), computeTfidf(dictionary.getTermToTermStat().get(pb.getTerm()).getIdf(), currentPosting)));
                 }
 
             }
@@ -195,41 +204,27 @@ public final class Query {
     private static void DocumentAtATime(ArrayList<String> query, int k){
 
         ArrayList<PostingList> postingLists = new ArrayList<>();
-        PriorityQueue<ResBlock> resultQueueInverse = new PriorityQueue<>(k,new CompareResInv());
+        PriorityQueue<ResultBlock> resultQueueInverse = new PriorityQueue<>(k,new CompareResInverse());
         PriorityQueue<ResultBlock> resultQueue = new PriorityQueue<>(k,new CompareRes());
         ArrayList<Double> idf = new ArrayList<>();
 
-        try (
-                RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
-                RandomAccessFile termfreq_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
 
-                FileChannel docIdChannel = docid_raf.getChannel();
-                FileChannel termFreqChannel = termfreq_raf.getChannel();
-        ) {
-            for (String t : query) {
-                DictionaryElem de = dictionary.getTermStat(t);
-                if(de == null) {
-                    continue;
-                }
-                idf.add(de.getIdf());
-                PostingList pl = new PostingList(readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf(), docIdChannel, termFreqChannel), null);
-                postingLists.add(pl);
+        for (String t : query) {
+            DictionaryElem de = dictionary.getTermStat(t);
+            if(de == null) {
+                continue;
             }
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+            idf.add(de.getIdf());
+            PostingList pl = new PostingList(readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf()), null);
+            postingLists.add(pl);
         }
+
         int current = minDocID(postingLists);
 
         ArrayList<Boolean> notNext = new ArrayList<Boolean>();
-        Posting[] currentPostings = new Posting[postingLists.size()];
 
         for(int i = 0; i < postingLists.size(); i++) {
             notNext.add(false);
-            if (postingLists.get(i).postingIterator.hasNext())
-                currentPostings[i] = postingLists.get(i).postingIterator.next();
         }
 
         while(current != -1){
@@ -239,18 +234,18 @@ public final class Query {
             for(int i = 0; i < postingLists.size(); i++)
             {
                 if(postingLists.get(i).postingIterator.hasNext()) {
-                    if (currentPostings[i].getDocId() == current) {
-                        score = score + computeTfidf(idf.get(i), currentPostings[i]);
-                        currentPostings[i] = postingLists.get(i).postingIterator.next();
+                    if (postingLists.get(i).getCurrPosting().getDocId() == current) {
+                        score = score + computeTfidf(idf.get(i), postingLists.get(i).getCurrPosting());
+                        postingLists.get(i).setCurrPosting(postingLists.get(i).postingIterator.next());
                     }
-                    if(currentPostings[i].getDocId() < next)
-                        next = currentPostings[i].getDocId();
+                    if(postingLists.get(i).getCurrPosting().getDocId() < next)
+                        next = postingLists.get(i).getCurrPosting().getDocId();
                 }else{
                     notNext.set(i, true);
                 }
             }
             if(resultQueue.size() < k)
-            resultQueue.add(new ResultBlock("", current, score));
+                resultQueue.add(new ResultBlock("", current, score));
             else if(resultQueue.size() == k && resultQueue.peek().getScore() < score)
             {
                 resultQueue.poll();
@@ -263,18 +258,11 @@ public final class Query {
 
         while(!resultQueue.isEmpty()) {
             ResultBlock r = resultQueue.poll();
-            resultQueueInverse.add(new ResBlock(r.getDocId(), r.getScore()));
+            resultQueueInverse.add(new ResultBlock("", r.getDocId(),r.getScore()));
         }
 
-        int index = 0;
-
         while(!resultQueueInverse.isEmpty()) {
-            if (index < k) {
-                printUI(resultQueueInverse.poll().toString());
-                index++;
-            }else{
-                break;
-            }
+            printUI(documentTable.get(resultQueueInverse.poll().getDocId()).getDocno());
         }
     }
 

@@ -1,9 +1,10 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
 import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Iterator;
+
+import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 
 public class SkipList {
 
@@ -16,13 +17,13 @@ public class SkipList {
     private double maxBM25;
 
 
-    public SkipList(long offset, int nSkipBlocks, FileChannel skipFileChannel) throws IOException {
+    public SkipList(long offset, int nSkipBlocks) throws IOException {
 
         this.arr_skipInfo = new ArrayList<>();
 
         for(int i = 0; i < nSkipBlocks; i++) {
             SkipInfo skipInfo = new SkipInfo();
-            skipInfo.readSkipInfoFromDisk(offset, skipFileChannel);
+            skipInfo.readSkipInfoFromDisk(offset);
             arr_skipInfo.add(skipInfo);
         }
 

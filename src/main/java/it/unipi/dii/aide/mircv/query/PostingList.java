@@ -14,7 +14,7 @@ public class PostingList {
     public ArrayList<Posting> list;
     public Iterator<Posting> postingIterator;
 
-    private Posting currPosting;
+    public Posting currPosting;
 
     public SkipList sl;
 
@@ -22,19 +22,17 @@ public class PostingList {
         this.list = list;
         this.postingIterator = list.iterator();
         this.sl = sl;
-        this.currPosting = postingIterator.next();
     }
 
     public PostingList() {
         this.sl = null;
-
-
     }
 
     //moves sequentially the iterator to the next posting
-    public void next (DictionaryElem de, FileChannel docIdChannel, FileChannel termFreqChannel) {
+    public boolean next (DictionaryElem de) {
 
-        if (currPosting.getDocId() == sl.getCurrSkipInfo().getMaxDocId()) {
+        // se ho finito il blocco carico il nuovo
+        if (sl != null && currPosting.getDocId() == sl.getCurrSkipInfo().getMaxDocId() && sl.getSkipInfoIterator().hasNext()) {
 
             list.clear();
             sl.next();
@@ -42,18 +40,22 @@ public class PostingList {
             SkipInfo si = sl.getCurrSkipInfo();
 
             if(Flags.isCompressionEnabled())
-                list = readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), de.getTermFreqSize(), de.getDocIdSize(), de.getSkipArrLen(), docIdChannel, termFreqChannel);
+                list = readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), de.getTermFreqSize(), de.getDocIdSize(), de.getSkipArrLen());
             else
-                list = readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), de.getSkipArrLen(), docIdChannel, termFreqChannel);
+                list = readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), de.getSkipArrLen());
 
         }
+        // leggo il primo elemento del
         postingIterator = list.iterator();
+        if (!postingIterator.hasNext())
+            return false;
         currPosting = postingIterator.next();
+        return true;
     }
 
     // advances the iterator forward to the next posting with a document identifier greater than or equal to
     // d ⇒ skipping
-    public boolean nextGEQ(int docId, DictionaryElem de, FileChannel docIdChannel, FileChannel termFreqChannel) {
+    public boolean nextGEQ (int docId, DictionaryElem de) {
 
         // if not in the right block
         if(sl.getCurrSkipInfo().getMaxDocId() < docId) {
@@ -68,9 +70,9 @@ public class PostingList {
         SkipInfo si = sl.getCurrSkipInfo();
 
         if(Flags.isCompressionEnabled())
-            list = readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), de.getTermFreqSize(), de.getDocIdSize(), de.getSkipArrLen(), docIdChannel, termFreqChannel);
+            list = readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), de.getTermFreqSize(), de.getDocIdSize(), de.getSkipArrLen());
         else
-            list = readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), de.getSkipArrLen(), docIdChannel, termFreqChannel);
+            list = readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), de.getSkipArrLen());
 
         postingIterator = list.iterator();
         currPosting = postingIterator.next();

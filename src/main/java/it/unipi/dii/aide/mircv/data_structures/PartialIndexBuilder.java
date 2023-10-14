@@ -1,6 +1,7 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
 import java.io.*;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,7 +9,9 @@ import java.util.HashMap;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import it.unipi.dii.aide.mircv.utils.TextProcessor;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.*;
-//import static it.unipi.dii.aide.mircv.utils.Logger.spimi_logger;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.blocks_channel;
+import static it.unipi.dii.aide.mircv.utils.Logger.spimi_logger;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -23,6 +26,8 @@ public final class PartialIndexBuilder {
     static HashMap<String, ArrayList<Posting>> invertedIndex = new HashMap<>();   // hash table Term to related Posting list
 
     static ArrayList<Long> dictionaryBlockOffsets = new ArrayList<>();                         // Offsets of the dictionary blocks
+    
+    static ArrayList<String> termList = new ArrayList<>();
 
     /**
      * Implements the SPIMI algorithm for indexing large collections.
@@ -35,8 +40,22 @@ public final class PartialIndexBuilder {
 
         File file = new File(COLLECTION_PATH);
         try (
+                // open partial files to write the partial dictionary and index
+                RandomAccessFile partialDocidFile = new RandomAccessFile(PARTIAL_DOCID_FILE, "rw");
+                RandomAccessFile partialTermfreqFile = new RandomAccessFile(PARTIAL_TERMFREQ_FILE, "rw");
+                RandomAccessFile partialDictFile = new RandomAccessFile(PARTIAL_DICTIONARY_FILE, "rw");
+                RandomAccessFile blocksFile = new RandomAccessFile(BLOCKOFFSETS_FILE, "rw");
+                RandomAccessFile docTableFile = new RandomAccessFile(DOCTABLE_FILE, "rw");
+
                 final TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(new GzipCompressorInputStream(new FileInputStream(file)));
         ) {
+
+            partialDict_channel = partialDictFile.getChannel();
+            partialDocId_channel = partialDocidFile.getChannel();
+            partialTermFreq_channel = partialTermfreqFile.getChannel();
+            blocks_channel = blocksFile.getChannel();
+            docTable_channel = docTableFile.getChannel();
+
             TarArchiveEntry tarArchiveEntry = tarArchiveInputStream.getNextTarEntry();
             BufferedReader buffer_collection;
             if(tarArchiveEntry == null)
@@ -65,6 +84,7 @@ public final class PartialIndexBuilder {
                 DocumentElement de = new DocumentElement(docno, docCounter, preprocessed.size());   // create new Document element
                 documentTable.put(docCounter, de);      // add current Document into Document Table in memory
                 totDocLen += preprocessed.size();       // add current document length
+
                 // scan all term in the current document
                 for (String term : preprocessed) {
                     // control check if the length of the current term is greater than the maximum allowed
@@ -75,13 +95,16 @@ public final class PartialIndexBuilder {
 
                     DictionaryElem dictElem = dictionary.getOrCreateTerm(term);     // Dictionary build
 
-//                    spimi_logger.logInfo(term);
-
-                    if(addTerm(term, docCounter, 0))
+                    if(addTerm(term, docCounter))
                         dictElem.addDf(1);
                     dictElem.addCf(1);
 
                     N_POSTINGS++;
+
+                    if(!termList.contains(term))
+                        termList.add(term);
+
+                    appendStringToFile(term, "partialDict_" + dictionaryBlockOffsets.size() + ".txt");
                 }
                 docCounter++;       // update DocID counter
 
@@ -90,8 +113,6 @@ public final class PartialIndexBuilder {
 
                     storeIndexAndDictionaryIntoDisk();  //store index and dictionary to disk
                     storeDocumentTableIntoDisk(); // store document table one document at a time for each block
-
-//                    spimi_logger.logInfo("************************************");
 
                     freeMemory();
                     System.gc();
@@ -106,8 +127,15 @@ public final class PartialIndexBuilder {
             CollectionStatistics.setTotDocLen(totDocLen);     // set the sum of the all document length in the collection
             CollectionStatistics.storeCollectionStatsIntoDisk();         // store collection statistics into disk
 
-//            spimi_logger.logInfo("CollectionStats -> nDocs:" + CollectionStatistics.getNDocs() + ", totDocLen: " + CollectionStatistics.getTotDocLen());
-
+            if(log) {
+                spimi_logger.logInfo("CollectionStats -> nDocs:" + CollectionStatistics.getNDocs() + ", totDocLen: " + CollectionStatistics.getTotDocLen());
+                spimi_logger.logInfo("**** Dictionary ****");
+                for(String s : termList)
+                    spimi_logger.logInfo(s);
+                spimi_logger.logInfo("dictionary size = " + termList.size());
+            }
+            printDebug("termCounter = " + termList.size());
+            printDebug("dict size file = " + partialDict_channel.size());
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -119,7 +147,7 @@ public final class PartialIndexBuilder {
      * @return false if the term has been already encountered in the current document,
      *         true if the term has been encountered for the first time in the current document or if the term was for the first time encountered
      * ***/
-    private static boolean addTerm(String term, int docId, int tf) {
+    private static boolean addTerm(String term, int docId) {
         // Initialize term frequency to 1 if tf is not provided (tf = 0 during index construction)
         int termFreq = 1;
 

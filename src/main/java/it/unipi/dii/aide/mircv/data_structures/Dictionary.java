@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.getDictElemSize;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 
 public class Dictionary {
 
@@ -65,15 +66,12 @@ public class Dictionary {
         long position = 0;      // indicate the position where read at each iteration
 
         MappedByteBuffer buffer;    // get first term of the block
-        try (
-                RandomAccessFile dict_raf = new RandomAccessFile(DICTIONARY_FILE, "rw");
-                FileChannel channel = dict_raf.getChannel()
-        ) {
-            long len = channel.size();          // size of the dictionary saved into disk
+        try {
+            long len = dict_channel.size();          // size of the dictionary saved into disk
 
             // scan all Dictionary Element saved into disk
             while(position < len) {
-                buffer = channel.map(FileChannel.MapMode.READ_ONLY, position, getDictElemSize());// read one DictionaryElem
+                buffer = dict_channel.map(FileChannel.MapMode.READ_ONLY, position, getDictElemSize());// read one DictionaryElem
                 position += getDictElemSize();                     // update read position
 
                 DictionaryElem dictElem = new DictionaryElem();       // create new DictionaryElem
@@ -98,7 +96,7 @@ public class Dictionary {
                 }
                 dictElem.setSkipOffset(buffer.getLong());
                 dictElem.setSkipOffset(buffer.getInt());
-                dictElem.assignIdf(buffer.getDouble());
+                dictElem.setIdf(buffer.getDouble());
                 termToTermStat.put(term, dictElem);   // add DictionaryElem into memory
             }
 

@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
+import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.FLAGS_FILE;
 
 public final class Flags {
@@ -42,10 +43,11 @@ public final class Flags {
         System.out.println("Storing flags into disk...");
 
         try (
-            RandomAccessFile raf = new RandomAccessFile(FLAGS_FILE, "rw");
-            FileChannel channel = raf.getChannel()
+                RandomAccessFile raf = new RandomAccessFile(FLAGS_FILE, "rw");
         ) {
-            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, (long) Integer.BYTES * 3); //offset_size (size of dictionary offset) * number of blocks
+            flags_channel = raf.getChannel();
+
+            MappedByteBuffer buffer = flags_channel.map(FileChannel.MapMode.READ_WRITE, 0, (long) Integer.BYTES * 3); //offset_size (size of dictionary offset) * number of blocks
 
             buffer.putInt(isSwsEnabled() ? 1 : 0);             // write stop words removal user's choice
             buffer.putInt(isCompressionEnabled() ? 1 : 0);     // write compression user's choice
@@ -61,14 +63,12 @@ public final class Flags {
 
         System.out.println("Loading flags from disk...");
 
-        try (
-            RandomAccessFile flagsRaf = new RandomAccessFile(new File(FLAGS_FILE), "rw"))
-        {
+        try {
             ByteBuffer flagsBuffer = ByteBuffer.allocate(12);
-            flagsRaf.getChannel().position(0);
+            flags_channel.position(0);
 
             // Read flag values from file
-            flagsRaf.getChannel().read(flagsBuffer);
+            flags_channel.read(flagsBuffer);
             // Move to the beginning of file for reading
             flagsBuffer.rewind();
 
@@ -100,14 +100,6 @@ public final class Flags {
 
         return docFlags.exists();
     }
-
-//    public static boolean isSPIMI() {
-//        return isSPIMI;
-//    }
-//
-//    public static void setIsSPIMI(boolean isSPIMI) {
-//        Flags.isSPIMI = isSPIMI;
-//    }
 
     public static boolean considerSkippingBytes() {
         return skip_flag;
