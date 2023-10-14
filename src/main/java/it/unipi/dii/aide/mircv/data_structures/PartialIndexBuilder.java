@@ -121,7 +121,7 @@ public final class PartialIndexBuilder {
      * ***/
     private static boolean addTerm(String term, int docId, int tf) {
         // Initialize term frequency to 1 if tf is not provided (tf = 0 during index construction)
-        int termFreq = (tf != 0) ? tf : 1;
+        int termFreq = 1;
 
         // Get or create the PostingList associated with the term
         if(!invertedIndex.containsKey(term))
@@ -133,11 +133,6 @@ public final class PartialIndexBuilder {
         if (invertedIndex.get(term).isEmpty() || invertedIndex.get(term).get(size - 1).getDocId() != docId) {
             // Add a new posting for the current document
             invertedIndex.get(term).add(new Posting(docId, termFreq));
-
-            // Print term frequency and term frequency in the current posting (only during index construction)
-            if (tf != 0)
-                printDebug("TF: " + tf + " TERMFREQ: " + termFreq);
-
             return true; // Increment df only if it's a new document
         } else {
             // Increment the term frequency for the current document

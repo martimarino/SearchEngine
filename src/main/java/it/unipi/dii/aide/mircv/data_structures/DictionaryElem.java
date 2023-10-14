@@ -161,14 +161,15 @@ public class DictionaryElem {
 
     /**
      * function to store one dictionary elem into disk
-     *
-     * @param channel   indicate the file where to write
      */
     void storeDictionaryElemIntoDisk(FileChannel channel){
 
         try {
-            MappedByteBuffer buffer;
-            buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), getDictElemSize());
+            if(!Flags.considerSkippingBytes())
+                buffer = partialDict_channel.map(FileChannel.MapMode.READ_WRITE, partialDict_channel.size(), getDictElemSize());
+            else{
+                buffer = dict_channel.map(FileChannel.MapMode.READ_WRITE, dict_channel.size(), getDictElemSize());
+            }
 
             // Buffer not created
             if(buffer == null)

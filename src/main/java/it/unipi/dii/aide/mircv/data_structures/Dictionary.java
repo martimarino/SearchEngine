@@ -86,9 +86,6 @@ public class Dictionary {
 
                 String term = charBuffer.toString().split("\0")[0];     // read term
 
-                if(term.equals("epstein"))
-                    printDebug("TERM: " + term);
-
                 dictElem.setTerm(term);                           //split using end string character
                 buffer.position(TERM_DIM);                  //skip docno
                 dictElem.setDf(buffer.getInt());                  // read and set Df

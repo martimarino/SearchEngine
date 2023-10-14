@@ -93,6 +93,8 @@ public final class IndexMerger {
                 assert currentTermBlock != null;
                 term = currentTermBlock.getTerm();          // get the term
                 block_id = currentTermBlock.getBlock();     // get the blockID
+                if(term.equals("zoom")) {
+                    printDebug(term);
 
                 // If condition to verify if there are other elements -> SEE NOTE 2
                 if (currentBlockOffset.get(block_id) + getDictElemSize()  < (block_id == (currentBlockOffset.size()-1) ? dictChannel.size() : dictionaryBlockOffsets.get(block_id +1))){
@@ -141,6 +143,10 @@ public final class IndexMerger {
 //                        tempDE.computeIdf();
 //                        tempDE.computeMaxTFIDF();
 
+                        if(tempDE.getTerm().equals("of") && log){
+                            merge_logger.logInfo("DE: " + tempDE);
+                            merge_logger.logInfo("POS: " + tempPL);
+                        }
 
                         assert tempPL != null;
 
@@ -178,6 +184,12 @@ public final class IndexMerger {
                             }
                         }
                         else {
+                            if (debug) {
+                                appendStringToFile(tempDE.getTerm(), "merge_pl.txt");
+                                appendStringToFile(tempDE.getTerm(), "merge_docid.txt");
+                                appendStringToFile(tempDE.getTerm(), "merge_tf.txt");
+                            }
+
                             if(Flags.isCompressionEnabled()){
                                 int[] compressedLength = DataStructureHandler.storeCompressedPostingIntoDisk(tempPL, outTermFreqChannel, outDocIdChannel);//store index with compression - unary compression for termfreq
                                 assert compressedLength != null;
@@ -190,7 +202,6 @@ public final class IndexMerger {
                         tempDE.setIdf();
                         tempDE.storeDictionaryElemIntoDisk(outDictionaryChannel);
                         termCounter++;
-
                         Flags.setConsiderSkippingBytes(false);
 
                         //set temp variables values
@@ -199,12 +210,11 @@ public final class IndexMerger {
                     }
                 }
                 currentDE = new DictionaryElem();
-                termCounter++;
 
                 // update the offset of next element to read from the block read in this iteration
                 currentBlockOffset.set(block_id, currentBlockOffset.get(block_id) + getDictElemSize());
             }
-
+            printDebug("Num terms: " + termCounter);
             printDebug("Merge ended, total number of iterations (i) is: " + termCounter);
 //            delete_tempFiles();                                                                       !!!!!!!!!!!!!!!!
         } catch (IOException e) {
