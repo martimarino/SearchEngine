@@ -42,6 +42,7 @@ public class Main {
             switch (mode) {
 
                 case "m":       // per debugging, prova solo il merge
+
                     delete_mergedFiles();
                     //setCompression(true);  // take user preferences on the compression
 
@@ -79,8 +80,8 @@ public class Main {
                     endTime = System.currentTimeMillis();           // end time of merge blocks
                     printTime("\nBlocks merged in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
                     continue;                           // go next while iteration
-                case "d":
 
+                case "d":
                     Flags.setConsiderSkippingBytes(true);
 
                     if(!Query.queryStartControl())
@@ -149,8 +150,8 @@ public class Main {
                     startTime = System.currentTimeMillis();         // start time of execute query
 
                     // do query and retry the results
-                    rankedResults = QueryProcessor.queryManager(query,isConjunctive,isDisjunctive,numberOfResults);
-                    printQueryResults(rankedResults);               // print the results of the query
+//                    rankedResults = QueryProcessor.queryManager(query,isConjunctive,isDisjunctive,numberOfResults);
+//                    printQueryResults(rankedResults);               // print the results of the query
 
                     endTime = System.currentTimeMillis();           // end time of execute query
 
@@ -211,7 +212,7 @@ public class Main {
                     String queryType = sc.nextLine().toLowerCase();
                     if (queryType.equals("c") || queryType.equals("d")){
                         try {
-                            executeQuery(query, k, queryType);
+                            executeQueryPQ(query, k, queryType);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }

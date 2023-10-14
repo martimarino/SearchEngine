@@ -12,7 +12,7 @@ public final class Score {
     public static double computeTFIDF(String term, Posting p) {
 
         double tf = 1 + Math.log10(p.getTermFreq());
-        double idf = Query.dictionary.getTermToTermStat().get(term).computeIdf();
+        double idf = Query.dictionary.getTermToTermStat().get(term).getIdf();
 
         return tf*idf;
     }

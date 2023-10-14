@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
+import static it.unipi.dii.aide.mircv.utils.FileSystem.skip_channel;
+
 public class SkipInfo {
 
     public static final int SKIPPING_INFO_SIZE = 3 * Long.BYTES;
@@ -55,10 +57,10 @@ public class SkipInfo {
                 '}';
     }
 
-    public void storeSkipInfoToDisk(FileChannel skipFileChannel) throws IOException {
+    public void storeSkipInfoToDisk() throws IOException {
 
         ByteBuffer skipPointsBuffer = ByteBuffer.allocate(SKIPPING_INFO_SIZE);
-        skipFileChannel.position(skipFileChannel.size());
+        skip_channel.position(skip_channel.size());
 
         skipPointsBuffer.putLong(this.maxDocId);
         skipPointsBuffer.putLong(this.docIdOffset);
@@ -67,16 +69,16 @@ public class SkipInfo {
         skipPointsBuffer = ByteBuffer.wrap(skipPointsBuffer.array());
 
         while(skipPointsBuffer.hasRemaining())
-            skipFileChannel.write(skipPointsBuffer);
+            skip_channel.write(skipPointsBuffer);
     }
 
-    public void readSkipInfoFromDisk(long start, FileChannel skipFileChannel) throws IOException {
+    public void readSkipInfoFromDisk(long start) throws IOException {
         ByteBuffer skipPointsBuffer = ByteBuffer.allocate(SKIPPING_INFO_SIZE);
 
-        skipFileChannel.position(start);
+        skip_channel.position(start);
 
         while (skipPointsBuffer.hasRemaining())
-            skipFileChannel.read(skipPointsBuffer);
+            skip_channel.read(skipPointsBuffer);
 
         skipPointsBuffer.rewind();
         this.setMaxDocId(skipPointsBuffer.getLong());

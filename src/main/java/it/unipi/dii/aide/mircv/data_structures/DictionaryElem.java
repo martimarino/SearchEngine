@@ -7,6 +7,8 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
+import static it.unipi.dii.aide.mircv.utils.Logger.spimi_logger;
 
 /**
  *  Stores unique terms and their statistics
@@ -29,10 +31,12 @@ public class DictionaryElem {
     // compression
     private int docIdSize;  // dimension in byte of compressed docid of the posting list
     private int termFreqSize; //dimension in byte of compressed termfreq of the posting list
+
     //skipping
     private long skipOffset;    // offset of the skip element
     private int skipArrLen;       // how many skip blocks
 
+    //scoring
     private double idf;
 //    private double maxTf;
 //    private double maxTFIDF;        // upper bound
@@ -160,23 +164,25 @@ public class DictionaryElem {
 
     /**
      * function to store one dictionary elem into disk
-     *
-     * @param channel   indicate the file where to write
      */
-    void storeDictionaryElemIntoDisk(FileChannel channel){
+    void storeDictionaryElemIntoDisk(){
 
+        MappedByteBuffer buffer;
         try {
-            MappedByteBuffer buffer;
-            buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), getDictElemSize());
+            if(!Flags.considerSkippingBytes())
+                buffer = partialDict_channel.map(FileChannel.MapMode.READ_WRITE, partialDict_channel.size(), getDictElemSize());
+            else{
+                buffer = dict_channel.map(FileChannel.MapMode.READ_WRITE, dict_channel.size(), getDictElemSize());
+            }
 
             // Buffer not created
-            if(buffer == null)
+            if (buffer == null)
                 return;
 
             //allocate bytes for docno
             CharBuffer charBuffer = CharBuffer.allocate(TERM_DIM);
             //put every char into charbuffer
-            for(int i = 0; i < term.length(); i++)
+            for (int i = 0; i < term.length(); i++)
                 charBuffer.put(i, term.charAt(i));
 
             // write docno, docid and doclength into document file
@@ -193,6 +199,10 @@ public class DictionaryElem {
                 buffer.putLong(skipOffset);
                 buffer.putInt(skipArrLen);
                 buffer.putDouble(idf);
+
+                if(debug) {
+                    appendStringToFile(this.toString(), "merge_de.txt");
+                }
             }
 //            if(Flags.isScoringEnabled()) {
 //                buffer.putDouble(idf);
@@ -200,10 +210,18 @@ public class DictionaryElem {
 //                buffer.putDouble(maxTFIDF);
 //            }
 
+            if(debug && !Flags.considerSkippingBytes()) {
+                appendStringToFile(this.toString(), "spimi_de.txt");
+            }
+
             PARTIAL_DICTIONARY_OFFSET += getDictElemSize();       // update offset
 
-            if(term.equals(""))
-                printError("TERMINE VUOTO");
+            assert !term.isEmpty();
+
+            if (term.equals("of")) {
+                if (log)
+                    spimi_logger.logInfo(this.toString());
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -214,13 +232,12 @@ public class DictionaryElem {
      * function to read one Dictionary Element from disk
      *
      * @param start     offset of the document reading from document file
-     * @param channel   indicate the file from which to read
      * @return a DictionaryElem with the value read from disk
      */
-    public void readDictionaryElemFromDisk(long start, FileChannel channel){
+    public void readDictionaryElemFromDisk(long start){
 
         try {
-            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, start,  getDictElemSize()); // get first term of the block
+            MappedByteBuffer buffer = partialDict_channel.map(FileChannel.MapMode.READ_ONLY, start,  getDictElemSize()); // get first term of the block
             CharBuffer.allocate(TERM_DIM);              //allocate a charbuffer of the dimension reserved to docno
             CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
 
@@ -235,10 +252,11 @@ public class DictionaryElem {
             if(Flags.considerSkippingBytes()) {
                 skipOffset = buffer.getLong();
                 skipArrLen = buffer.getInt();
-//                idf = buffer.getDouble();
+                idf = buffer.getDouble();
+            }
+            if(Flags.isScoringEnabled()) {
 //                maxTf = buffer.getDouble();
 //                maxTFIDF = buffer.getDouble();
-                idf = buffer.getDouble();
             }
 
         } catch (IOException e) {

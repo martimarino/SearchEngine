@@ -4,9 +4,7 @@ import it.unipi.dii.aide.mircv.Query;
 import it.unipi.dii.aide.mircv.data_structures.*;
 
 import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.PriorityQueue;
 
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readCompressedPostingListFromDisk;
@@ -18,71 +16,91 @@ public final class Conjunctive {
     static int currentDocId;
     static int k;
 
-    static PriorityQueue<DAATBlock> pq = new PriorityQueue<>();
-    static PriorityQueue<ResultBlock> results = new PriorityQueue<>(k, new CompareRes());
-
+    static PriorityQueue<ResultBlock> results;
     static ArrayList<PostingList> conjPostingLists = new ArrayList<>();    // posting lists of query terms
 
 
 
-    public static void executeConjunctive(ArrayList<String> query, int k, FileChannel docIdChannel, FileChannel termFreqChannel, FileChannel skipChannel) throws IOException {
+    public static void executeConjunctive(ArrayList<String> query, int k) throws IOException {
 
-        HashMap<String, DictionaryElem> arr_de = new HashMap<>();       // array of DictElem of query terms
+        ArrayList<DictionaryElem> arr_de = new ArrayList<>();       // array of DictElem of query terms
         Conjunctive.k = k;
+        results = new PriorityQueue<>(k, new CompareRes());
 
         // retrieve the (partial or complete) posting list of every query term
         for (String t : query) {
+
             DictionaryElem de = Query.dictionary.getTermStat(t);
             if (de == null){
                printError("Term " + t + " not present in dictionary!");
                return;
             }
 
-            arr_de.put(t, de);
+            arr_de.add(de);
             PostingList tempPL = new PostingList();
 
             if (de.getSkipArrLen() > 0) {   // if there are skipping blocks read partial postings of the first block
-                SkipList skipList = new SkipList(de.getSkipOffset(), de.getSkipArrLen(), skipChannel);
+                SkipList skipList = new SkipList(de.getSkipOffset(), de.getSkipArrLen());
                 SkipInfo skipInfo = skipList.getCurrSkipInfo();
 
                 if(Flags.isCompressionEnabled())
-                    tempPL.list = readCompressedPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), de.getTermFreqSize(), de.getDocIdSize(), de.getSkipArrLen(), docIdChannel, termFreqChannel);
+                    tempPL.list = readCompressedPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), de.getTermFreqSize(), de.getDocIdSize(), de.getSkipArrLen());
                 else
-                    tempPL.list = readPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), de.getSkipArrLen(), docIdChannel, termFreqChannel);
+                    tempPL.list = readPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), de.getSkipArrLen());
 
                 tempPL.sl = skipList;
 
             } else {    // read all postings
                 if(Flags.isCompressionEnabled())
-                    tempPL.list = readCompressedPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(), de.getTermFreqSize(), de.getDocIdSize(), de.getDf(), docIdChannel, termFreqChannel);
+                    tempPL.list = readCompressedPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(), de.getTermFreqSize(), de.getDocIdSize(), de.getDf());
                 else
-                    tempPL.list = readPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(),de.getDf(),docIdChannel,termFreqChannel);
-
-                conjPostingLists.add(tempPL);
+                    tempPL.list = readPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(),de.getDf());
             }
-            pq.add(new DAATBlock(t, tempPL.list.get(0).getDocId(), de.getIdf()));
+            conjPostingLists.add(tempPL);
         }
 
-        while (!pq.isEmpty()) {
+        // order posting lists by lenght
+        conjPostingLists.sort((pl1, pl2) -> {
+            int size1 = pl1.list.size();
+            int size2 = pl2.list.size();
 
-            DAATBlock polled = pq.poll();
+            if (size1 < size2) {
+                return -1;
+            } else if (size1 > size2) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+
+        // scorro la lista più corta
+        while (conjPostingLists.get(0).currPosting != null) {
+
+            Posting polled = conjPostingLists.get(0).currPosting;
             currentDocId = polled.getDocId();
-            DictionaryElem currDE = arr_de.get(polled.getTerm());
+            DictionaryElem currDE = arr_de.get(0);
 
             // if the min docid is present for all terms
-            if(checkDocidInAllPostingLists(currDE, docIdChannel, termFreqChannel)) {
-                if(results.peek().getScore() < currDE.getIdf())
-                    results.add(new ResultBlock(Query.documentTable.get(currentDocId).getDocno(), currentDocId, currDE.computeIdf()));
+            if(checkSameDocid(currDE)) {
+                if(results.peek().getScore() < currDE.getIdf()) {       // sostituisco elemento con peggior score con quello corrente
+                    results.poll();
+                    results.add(new ResultBlock(Query.documentTable.get(currentDocId).getDocno(), currentDocId, currDE.getIdf()));
+                }
             }
+            conjPostingLists.get(0).next(arr_de.get(0));
 
+        }
+
+        for (int i = 0; i < k && !results.isEmpty(); i++) {
+            System.out.println(results.poll());
         }
 
     }
 
-    private static boolean checkDocidInAllPostingLists(DictionaryElem de, FileChannel docIdChannel, FileChannel termFreqChannel) {
+    private static boolean checkSameDocid(DictionaryElem de) {
 
         for (PostingList pl : conjPostingLists) {
-            pl.nextGEQ(currentDocId, de, docIdChannel, termFreqChannel);
+            pl.nextGEQ(currentDocId, de);
 
             if(pl.getCurrPosting() == null)
                 return false;
@@ -90,6 +108,5 @@ public final class Conjunctive {
 
         return true;
     }
-
 
 }

@@ -13,7 +13,8 @@ public final class Constants {
 
     // -------------------------------- Constants for file paths -------------------------------------------
 
-    public static String COLLECTION_PATH = RES_FOLDER + "collection.tar.gz";
+//    public static String COLLECTION_PATH = RES_FOLDER + "collection.tar.gz";
+    public static String COLLECTION_PATH = "src/test/resources/small_collection.tar.gz";
 
     public static final String PARTIAL_DICTIONARY_FILE = PARTIAL_FOLDER + "partial_dictionary"; // file in which is stored the vocabulary in blocks
     public static final String PARTIAL_DOCID_FILE = PARTIAL_FOLDER + "partial_docId";  // file containing the docId (element of posting list) for each block
@@ -46,12 +47,15 @@ public final class Constants {
     public static long PARTIAL_DICTIONARY_OFFSET = 0;          // Offset of the terms in the dictionary
     public static long INDEX_OFFSET = 0;               // Offset of the termfreq and docid in index
 
-    public static double MEMORY_THRESHOLD = 0.8;
+    public static double MEMORY_THRESHOLD = 0.008;
 
     // ---------------------------------------- Utilities for debugging -----------------------------------------------
 
     // variable that stipulates the behaviour for control printouts. If false there will be no printouts, if true there will be all printouts.
     public static final boolean verbose = true;
+    public static final boolean log = true;
+    public static boolean debug = false;
+
 
     public static String formatTime(long start, long end) {
 
