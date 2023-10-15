@@ -123,6 +123,14 @@ public final class PartialIndexBuilder {
                 }
             }
 
+            if (!dictionary.getTermToTermStat().isEmpty()) {
+                storeIndexAndDictionaryIntoDisk();  //store index and dictionary to disk
+                storeDocumentTableIntoDisk(); // store document table one document at a time for each block
+                freeMemory();
+                System.gc();
+                System.out.println("********** Free memory **********");
+            }
+
             DataStructureHandler.storeBlockOffsetsIntoDisk();
 
             CollectionStatistics.setNDocs(docCounter);        // set total number of Document in the collection
