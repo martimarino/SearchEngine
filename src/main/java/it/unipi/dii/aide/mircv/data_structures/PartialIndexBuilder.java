@@ -108,7 +108,7 @@ public final class PartialIndexBuilder {
                 }
                 docCounter++;       // update DocID counter
 
-                if(Runtime.getRuntime().totalMemory() > memoryAvailable) {
+                if(Runtime.getRuntime().totalMemory() > memoryAvailable){
                     System.out.println("********** Memory full **********");
 
                     storeIndexAndDictionaryIntoDisk();  //store index and dictionary to disk
