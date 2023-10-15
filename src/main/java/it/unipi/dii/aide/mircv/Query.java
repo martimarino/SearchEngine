@@ -37,6 +37,7 @@ public final class Query {
     public Query()  { throw new UnsupportedOperationException(); }
 
     public static boolean queryStartControl() throws IOException {
+
         // -- control for file into disk
         if (!FileSystem.areThereAllMergedFiles() ||
                 !Flags.isThereFlagsFile() ||
@@ -49,15 +50,13 @@ public final class Query {
         readCollectionStatsFromDisk();
 
         // -- control for structures in memory - if not load them from disk
-        if (!dictionary.dictionaryIsSet())
-        {
+        if (!dictionary.dictionaryIsSet()) {
             long startTime = System.currentTimeMillis();
             Query.dictionary.readDictionaryFromDisk();
             long endTime = System.currentTimeMillis();
-            printTime( "Dictionary loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+            printTime("Dictionary loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
         }
-        if(documentTable.isEmpty())
-        {
+        if (documentTable.isEmpty()) {
             long startTime = System.currentTimeMillis();
             DataStructureHandler.readDocumentTableFromDisk(false);
             long endTime = System.currentTimeMillis();
@@ -95,7 +94,13 @@ public final class Query {
 
         HashMap<String, PostingList> postingLists = new HashMap<>();
 
-        try {
+        try(RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
+            RandomAccessFile tf_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
+            RandomAccessFile skip_raf = new RandomAccessFile(SKIP_FILE, "rw")){
+
+            docId_channel = docid_raf.getChannel();
+            termFreq_channel = tf_raf.getChannel();
+            skip_channel = skip_raf.getChannel();
 
             if(queryType.equals("c")) {
                 executeConjunctive();
@@ -194,23 +199,14 @@ public final class Query {
         PriorityQueue<ResultBlock> resultQueue = new PriorityQueue<>(k,new CompareRes());
         ArrayList<Double> idf = new ArrayList<>();
 
+        try(RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
+            RandomAccessFile tf_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
+            RandomAccessFile skip_raf = new RandomAccessFile(SKIP_FILE, "rw")
+        ){
+            docId_channel = docid_raf.getChannel();
+            termFreq_channel = tf_raf.getChannel();
+            skip_channel = skip_raf.getChannel();
 
-        for (String t : query) {
-            DictionaryElem de = dictionary.getTermStat(t);
-            if(de == null) {
-                continue;
-            }
-            idf.add(de.getIdf());
-            PostingList pl = new PostingList(readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf()), null);
-            postingLists.add(pl);
-        }
-        try(
-                RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
-                RandomAccessFile termfreq_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
-                RandomAccessFile skip_raf = new RandomAccessFile(SKIP_FILE, "rw");
-                FileChannel docIdChannel = docid_raf.getChannel();
-                FileChannel termFreqChannel = termfreq_raf.getChannel();
-        ) {
             for (String t : query) {
                 DictionaryElem de = dictionary.getTermStat(t);
                 if(de == null) {
@@ -220,56 +216,56 @@ public final class Query {
                 PostingList pl = new PostingList(readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf()), null);
                 postingLists.add(pl);
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        int current = minDocID(postingLists);
 
-        ArrayList<Boolean> notNext = new ArrayList<Boolean>();
+            int current = minDocID(postingLists);
 
-        for(int i = 0; i < postingLists.size(); i++) {
-            notNext.add(false);
-        }
+            ArrayList<Boolean> notNext = new ArrayList<Boolean>();
 
-        while(current != -1){
-            double score = 0;
-            int next = Integer.MAX_VALUE;
+            for(int i = 0; i < postingLists.size(); i++) {
+                notNext.add(false);
+            }
 
-            for(int i = 0; i < postingLists.size(); i++)
-            {
-                if(postingLists.get(i).postingIterator.hasNext()) {
-                    if (postingLists.get(i).getCurrPosting().getDocId() == current) {
-                        score = score + computeTfidf(idf.get(i), postingLists.get(i).getCurrPosting());
-                        postingLists.get(i).setCurrPosting(postingLists.get(i).postingIterator.next());
+            while(current != -1){
+
+                double score = 0;
+                int next = Integer.MAX_VALUE;
+
+                for(int i = 0; i < postingLists.size(); i++)
+                {
+                    if(postingLists.get(i).postingIterator.hasNext()) {
+                        if (postingLists.get(i).getCurrPosting().getDocId() == current) {
+                            score = score + computeTFIDF(idf.get(i), postingLists.get(i).getCurrPosting());
+                            postingLists.get(i).setCurrPosting(postingLists.get(i).postingIterator.next());
+                        }
+                        if(postingLists.get(i).getCurrPosting().getDocId() < next)
+                            next = postingLists.get(i).getCurrPosting().getDocId();
+                    }else{
+                        notNext.set(i, true);
                     }
-                    if(postingLists.get(i).getCurrPosting().getDocId() < next)
-                        next = postingLists.get(i).getCurrPosting().getDocId();
-                }else{
-                    notNext.set(i, true);
                 }
+                if(resultQueue.size() < k)
+                    resultQueue.add(new ResultBlock("", current, score));
+                else if(resultQueue.size() == k && resultQueue.peek().getScore() < score)
+                {
+                    resultQueue.poll();
+                    resultQueue.add(new ResultBlock("", current, score));
+                }
+                current = next;
+                if(!notNext.contains(false))
+                    current = -1;
             }
-            if(resultQueue.size() < k)
-                resultQueue.add(new ResultBlock("", current, score));
-            else if(resultQueue.size() == k && resultQueue.peek().getScore() < score)
-            {
-                resultQueue.poll();
-                resultQueue.add(new ResultBlock("", current, score));
+
+            while(!resultQueue.isEmpty()) {
+                ResultBlock r = resultQueue.poll();
+                resultQueueInverse.add(new ResultBlock("", r.getDocId(),r.getScore()));
             }
-            current = next;
-            if(!notNext.contains(false))
-                current = -1;
-        }
 
-        while(!resultQueue.isEmpty()) {
-            ResultBlock r = resultQueue.poll();
-            resultQueueInverse.add(new ResultBlock("", r.getDocId(),r.getScore()));
-        }
+            while(!resultQueueInverse.isEmpty()) {
+                    printUI(documentTable.get(resultQueueInverse.poll().getDocId()).getDocno());
 
-        while(!resultQueueInverse.isEmpty()) {
-                printUI(documentTable.get(resultQueueInverse.poll().getDocId()).getDocno());
-
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

@@ -66,7 +66,8 @@ public class Dictionary {
         long position = 0;      // indicate the position where read at each iteration
 
         MappedByteBuffer buffer;    // get first term of the block
-        try {
+        try(RandomAccessFile dict_raf = new RandomAccessFile(DICTIONARY_FILE, "rw")) {
+            dict_channel = dict_raf.getChannel();
             long len = dict_channel.size();          // size of the dictionary saved into disk
 
             // scan all Dictionary Element saved into disk

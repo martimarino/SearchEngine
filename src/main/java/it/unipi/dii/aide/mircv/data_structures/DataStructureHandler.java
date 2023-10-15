@@ -15,8 +15,6 @@ import static it.unipi.dii.aide.mircv.data_structures.DocumentElement.*;
 import static it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
-import static it.unipi.dii.aide.mircv.utils.Logger.spimi_logger;
-
 
 /**
  * This class handles the storage and retrieval of data structures used for document indexing.

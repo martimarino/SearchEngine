@@ -22,6 +22,7 @@ public class PostingList {
         this.list = list;
         this.postingIterator = list.iterator();
         this.sl = sl;
+        this.currPosting = postingIterator.next();
     }
 
     public PostingList() {

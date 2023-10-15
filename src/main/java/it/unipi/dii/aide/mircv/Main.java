@@ -205,7 +205,7 @@ public class Main {
     private static void getNumberOfResults(String query, Scanner sc){
         while(true) {
             printUI("Insert number of results (10 or 20): \n");
-            int k = Integer.parseInt(sc.nextLine());
+            int k = Integer.parseInt(sc.nextLine().trim());
             if(k == 10 || k == 20) {
                 while(true) {
                     printUI("Choice conjunctive or disjunctive (press C or D)");
