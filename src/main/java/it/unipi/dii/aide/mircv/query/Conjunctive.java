@@ -21,8 +21,7 @@ public final class Conjunctive {
     static ArrayList<PostingList> conjPostingLists = new ArrayList<>();    // posting lists of query terms
     static ArrayList<DictionaryElem> arr_de = new ArrayList<>();       // array of DictElem of query terms
 
-
-
+    
     public static void executeConjunctive() throws IOException {
 
 
@@ -56,6 +55,7 @@ public final class Conjunctive {
                 else
                     tempPL = new PostingList(readPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(),de.getDf()), null);
             }
+            i++;
             conjPostingLists.add(tempPL);
         }
 

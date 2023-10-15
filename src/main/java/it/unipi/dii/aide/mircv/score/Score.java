@@ -9,11 +9,17 @@ public final class Score {
         throw new UnsupportedOperationException();
     }
 
-    public static double computeTFIDF(String term, Posting p) {
+   /* public static double computeTFIDF(String term, Posting p) {
 
         double tf = 1 + Math.log10(p.getTermFreq());
         double idf = Query.dictionary.getTermToTermStat().get(term).getIdf();
 
+        return tf*idf;
+    }*/
+
+    public static double computeTFIDF(Double idf, Posting p) {
+
+        double tf = 1 + Math.log10(p.getTermFreq());
         return tf*idf;
     }
 
