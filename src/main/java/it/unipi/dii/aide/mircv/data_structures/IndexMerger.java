@@ -1,5 +1,7 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
+import it.unipi.dii.aide.mircv.utils.Logger;
+
 import java.io.*;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -162,7 +164,9 @@ public final class IndexMerger {
                         tempDE.setOffsetTermFreq(termFreq_channel.size());
                         tempDE.setOffsetDocId(docId_channel.size());
 
-                        tempDE.computeIdf();
+                        if(tempDE.getTerm().equals("home"))
+                            printDebug(tempPL.toString());
+
 //                        tempDE.computeMaxTFIDF();
 
                         if(tempDE.getTerm().equals("of") && log){
@@ -221,7 +225,7 @@ public final class IndexMerger {
                             else
                                 storePostingListIntoDisk(tempPL);  // write InvertedIndexElem to disk
                         }
-                        tempDE.computeIdf();
+                        tempDE.assignIdf(tempDE.computeIdf());
                         tempDE.storeDictionaryElemIntoDisk();
                         termCounter++;
                         Flags.setConsiderSkippingBytes(false);

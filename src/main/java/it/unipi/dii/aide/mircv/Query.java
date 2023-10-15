@@ -12,6 +12,7 @@ import java.io.RandomAccessFile;
 import java.util.*;
 
 import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.readCollectionStatsFromDisk;
+import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readCompressedPostingListFromDisk;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readPostingListFromDisk;
 import static it.unipi.dii.aide.mircv.data_structures.Flags.readFlagsFromDisk;
@@ -113,7 +114,11 @@ public final class Query {
                 SkipList sl = null;
                 if(de.getSkipOffset() != -1)
                     sl = new SkipList(de.getSkipOffset(), de.getSkipArrLen());
-                PostingList pl = new PostingList(readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf()), sl);
+                PostingList pl;
+                if(Flags.isCompressionEnabled())
+                    pl = new PostingList(readCompressedPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getTermFreqSize(), de.getDocIdSize(), de.getDf()), null);
+                else
+                    pl = new PostingList(readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf()), null);
                 postingLists.put(t, pl);
                 pq_DAAT.add(new DAATBlock(t, pl.list.get(0).getDocId(), computeTFIDF(dictionary.getTermToTermStat().get(t).getIdf(), pl.list.get(0))));
                 postingLists.get(t).next(de);
@@ -213,8 +218,13 @@ public final class Query {
                     continue;
                 }
                 idf.add(de.getIdf());
-                PostingList pl = new PostingList(readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf()), null);
+                PostingList pl;
+                if(Flags.isCompressionEnabled())
+                    pl = new PostingList(readCompressedPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getTermFreqSize(), de.getDocIdSize(), de.getDf()), null);
+                else
+                    pl = new PostingList(readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf()), null);
                 postingLists.add(pl);
+                printDebug(pl.toString());
             }
 
             int current = minDocID(postingLists);
