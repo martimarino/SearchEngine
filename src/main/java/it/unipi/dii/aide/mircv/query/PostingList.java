@@ -2,7 +2,6 @@ package it.unipi.dii.aide.mircv.query;
 
 import it.unipi.dii.aide.mircv.data_structures.*;
 
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -18,7 +17,7 @@ public class PostingList {
 
     public SkipList sl;     // null if no skipping for that term
 
-    public PostingList(ArrayList<Posting> list, SkipList sl) {
+    public PostingList (ArrayList<Posting> list, SkipList sl) {
         this.list = list;
         this.postingIterator = list.iterator();
         this.sl = sl;
@@ -47,7 +46,7 @@ public class PostingList {
 
         }
         // leggo il primo elemento del
-        postingIterator = list.iterator();
+
         if (!postingIterator.hasNext())
             return false;
         currPosting = postingIterator.next();

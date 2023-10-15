@@ -21,14 +21,14 @@ import static it.unipi.dii.aide.mircv.utils.Constants.*;
 
 public final class Query {
 
-    public static ArrayList<String> query;
+    private static ArrayList<String> query;
 
     public static HashMap<Integer, DocumentElement> documentTable = new HashMap<>();    // docID to DocElement
     public static Dictionary dictionary = new Dictionary();
 
     public static int k;
     static HashMap<Integer, Double> topKresults = new HashMap<>();
-    static ArrayList<String> query_terms;
+    public static ArrayList<String> query_terms;
 
     private static String queryType;
 

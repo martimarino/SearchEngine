@@ -1,7 +1,5 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
-import it.unipi.dii.aide.mircv.utils.Logger;
-
 import java.io.*;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -225,7 +223,7 @@ public final class IndexMerger {
                             else
                                 storePostingListIntoDisk(tempPL);  // write InvertedIndexElem to disk
                         }
-                        tempDE.assignIdf(tempDE.computeIdf());
+                        tempDE.setIdf(tempDE.computeIdf());
                         tempDE.storeDictionaryElemIntoDisk();
                         termCounter++;
                         Flags.setConsiderSkippingBytes(false);

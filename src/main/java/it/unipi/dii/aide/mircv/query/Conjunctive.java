@@ -2,6 +2,7 @@ package it.unipi.dii.aide.mircv.query;
 
 import it.unipi.dii.aide.mircv.Query;
 import it.unipi.dii.aide.mircv.data_structures.*;
+import it.unipi.dii.aide.mircv.score.Score;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.PriorityQueue;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readCompressedPostingListFromDisk;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readPostingListFromDisk;
 import static it.unipi.dii.aide.mircv.utils.Constants.printError;
+import static it.unipi.dii.aide.mircv.utils.Constants.printUI;
 
 public final class Conjunctive {
 
@@ -17,16 +19,18 @@ public final class Conjunctive {
 
     static PriorityQueue<ResultBlock> results;
     static ArrayList<PostingList> conjPostingLists = new ArrayList<>();    // posting lists of query terms
+    static ArrayList<DictionaryElem> arr_de = new ArrayList<>();       // array of DictElem of query terms
 
 
 
     public static void executeConjunctive() throws IOException {
 
-        ArrayList<DictionaryElem> arr_de = new ArrayList<>();       // array of DictElem of query terms
-        results = new PriorityQueue<>(Query.k, new CompareRes());
+
+        results = new PriorityQueue<>(Query.k, new CompareResInverse());
+        int i = 0;
 
         // retrieve the (partial or complete) posting list of every query term
-        for (String t : Query.query) {
+        for (String t : Query.query_terms) {
 
             DictionaryElem de = Query.dictionary.getTermStat(t);
             if (de == null){
@@ -34,25 +38,23 @@ public final class Conjunctive {
                return;
             }
 
+            PostingList tempPL;
             arr_de.add(de);
-            PostingList tempPL = new PostingList();
 
             if (de.getSkipArrLen() > 0) {   // if there are skipping blocks read partial postings of the first block
                 SkipList skipList = new SkipList(de.getSkipOffset(), de.getSkipArrLen());
                 SkipInfo skipInfo = skipList.getCurrSkipInfo();
 
                 if(Flags.isCompressionEnabled())
-                    tempPL.list = readCompressedPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), de.getTermFreqSize(), de.getDocIdSize(), de.getSkipArrLen());
+                    tempPL = new PostingList(readCompressedPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), de.getTermFreqSize(), de.getDocIdSize(), de.getSkipArrLen()), skipList);
                 else
-                    tempPL.list = readPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), de.getSkipArrLen());
-
-                tempPL.sl = skipList;
+                    tempPL = new PostingList(readPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), de.getSkipArrLen()), skipList);
 
             } else {    // read all postings
                 if(Flags.isCompressionEnabled())
-                    tempPL.list = readCompressedPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(), de.getTermFreqSize(), de.getDocIdSize(), de.getDf());
+                    tempPL = new PostingList(readCompressedPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(), de.getTermFreqSize(), de.getDocIdSize(), de.getDf()), null);
                 else
-                    tempPL.list = readPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(),de.getDf());
+                    tempPL = new PostingList(readPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(),de.getDf()), null);
             }
             conjPostingLists.add(tempPL);
         }
@@ -71,40 +73,85 @@ public final class Conjunctive {
             }
         });
 
+        arr_de.sort((DictionaryElem o1, DictionaryElem o2) -> {
+            int df1 = o1.getDf();
+            int df2 = o2.getDf();
+
+            if (df1 < df2) {
+                return -1;
+            } else if (df1 > df2) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+
+
+        DictionaryElem firstDE = arr_de.get(0); // ordinare de crescenti
+
         // scorro la lista più corta
-        while (conjPostingLists.get(0).currPosting != null) {
+        while (conjPostingLists.get(0).postingIterator.hasNext()) {
 
             Posting polled = conjPostingLists.get(0).currPosting;
             currentDocId = polled.getDocId();
-            DictionaryElem currDE = arr_de.get(0);
 
             // if the min docid is present for all terms
-            if(checkSameDocid(currDE)) {
-                if(results.peek().getScore() < currDE.getIdf()) {       // sostituisco elemento con peggior score con quello corrente
-                    results.poll();
-                    results.add(new ResultBlock(Query.documentTable.get(currentDocId).getDocno(), currentDocId, currDE.getIdf()));
+            if(checkSameDocid()) {
+
+                double score = 0;
+
+                for(int j = 0; j < conjPostingLists.size(); j++)
+                    score += Score.computeTFIDF(arr_de.get(j).getIdf(), conjPostingLists.get(j).currPosting);
+
+                System.out.println("Score: " + score);
+
+                if(results.isEmpty() || results.size() < Query.k)
+                    results.add(new ResultBlock(Query.documentTable.get(currentDocId).getDocno(), currentDocId, score));
+                else if (results.peek().getScore() < firstDE.getIdf()) {     // sostituisco elemento con peggior score con quello corrente
+                    if(results.size() == Query.k) {
+                        results.poll();
+                        results.add(new ResultBlock(Query.documentTable.get(currentDocId).getDocno(), currentDocId, score));
+                    }
                 }
+
             }
             conjPostingLists.get(0).next(arr_de.get(0));
 
         }
 
-        for (int i = 0; i < Query.k && !results.isEmpty(); i++) {
+        printUI("\nResults:");
+        for (int j = 0; j < Query.k && !results.isEmpty(); j++) {
             System.out.println(results.poll());
         }
 
     }
 
-    private static boolean checkSameDocid(DictionaryElem de) {
+    private static boolean checkSameDocid () {
 
-        for (PostingList pl : conjPostingLists) {
-            pl.nextGEQ(currentDocId, de);
+        System.out.println("Check for id: " + currentDocId);
 
+        ArrayList<Boolean> check = new ArrayList<>();
+
+        for (int j = 0; j < conjPostingLists.size(); j++) {
+
+            PostingList pl = conjPostingLists.get(j);
+
+            if(pl.getCurrPosting().getDocId() == currentDocId)
+                check.add(true);
+            else {
+                if (pl.sl != null)
+                    pl.nextGEQ(currentDocId, arr_de.get(j));
+                else
+                    while (pl.getCurrPosting().getDocId() < currentDocId)
+                        pl.next(arr_de.get(j));
+            }
+
+//            if(pl.getCurrPosting() == null || !(pl.getCurrPosting().getDocId() == currentDocId))
             if(pl.getCurrPosting() == null)
                 return false;
         }
-
-        return true;
+        System.out.println((!check.contains(false) ? "check ok" : "check not ok"));
+        return !check.contains(false);
     }
 
 }
