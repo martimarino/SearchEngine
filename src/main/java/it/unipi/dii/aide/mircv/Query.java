@@ -7,8 +7,10 @@ import it.unipi.dii.aide.mircv.query.*;
 import it.unipi.dii.aide.mircv.utils.FileSystem;
 import it.unipi.dii.aide.mircv.utils.TextProcessor;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
 import java.util.*;
 
 import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.readCollectionStatsFromDisk;
@@ -69,27 +71,17 @@ public final class Query {
 
     public static void executeQuery(String q, int k, String q_type) throws IOException {
 
-        try (
-                RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
-                RandomAccessFile termfreq_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
-                RandomAccessFile skip_raf = new RandomAccessFile(SKIP_FILE, "rw");
-        ) {
-            docId_channel = docid_raf.getChannel();
-            termFreq_channel = termfreq_raf.getChannel();
-            skip_channel = skip_raf.getChannel();
-
             long startTime = System.currentTimeMillis();
             query = TextProcessor.preprocessText(q);
             Query.k = k;
             DocumentAtATime(query, k);
             long endTime = System.currentTimeMillis();
             printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
 
     }
     public static void executeQueryPQ(String q, int k, String q_type) throws IOException {
+
         long startTime = System.currentTimeMillis();
         query_terms = TextProcessor.preprocessText(q);
         Query.k = k;
@@ -218,7 +210,10 @@ public final class Query {
             PostingList pl = new PostingList(readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf()), null);
             postingLists.add(pl);
         }
-
+        try(
+                RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
+                RandomAccessFile termfreq_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
+                RandomAccessFile skip_raf = new RandomAccessFile(SKIP_FILE, "rw");
                 FileChannel docIdChannel = docid_raf.getChannel();
                 FileChannel termFreqChannel = termfreq_raf.getChannel();
         ) {
@@ -228,7 +223,7 @@ public final class Query {
                     continue;
                 }
                 idf.add(de.getIdf());
-                PostingList pl = new PostingList(readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf(), docIdChannel, termFreqChannel), null);
+                PostingList pl = new PostingList(readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf()), null);
                 postingLists.add(pl);
             }
         } catch (FileNotFoundException e) {
@@ -277,8 +272,6 @@ public final class Query {
             ResultBlock r = resultQueue.poll();
             resultQueueInverse.add(new ResultBlock("", r.getDocId(),r.getScore()));
         }
-
-        int index = 0;
 
         while(!resultQueueInverse.isEmpty()) {
                 printUI(documentTable.get(resultQueueInverse.poll().getDocId()).getDocno());
