@@ -172,17 +172,26 @@ public final class DataStructureHandler {
 
     // function to read all document table from disk and put it in memory (HashMap documentTable)
     public static void readDocumentTableFromDisk(boolean indexBuilding) throws IOException {
+
         System.out.println("Loading document table from disk...");
 
-        DocumentElement de = new DocumentElement();
+        try (RandomAccessFile docTableFile = new RandomAccessFile(DOCTABLE_FILE, "r")) {
 
-        // for to read all DocumentElement stored into disk
-        for (int i = 0; i < docTable_channel.size(); i += DOCELEM_SIZE) {
-            de.readDocumentElementFromDisk(i, docTable_channel); // get the ith DocElem
-            if(indexBuilding)
-                PartialIndexBuilder.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
-            else
-                Query.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
+            docTable_channel = docTableFile.getChannel();
+
+            DocumentElement de = new DocumentElement();
+
+            // for to read all DocumentElement stored into disk
+            for (int i = 0; i < docTable_channel.size(); i += DOCELEM_SIZE) {
+                de.readDocumentElementFromDisk(i, docTable_channel); // get the ith DocElem
+                if (indexBuilding)
+                    PartialIndexBuilder.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
+                else
+                    Query.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
+            }
+
+        }catch (IOException ioe) {
+            ioe.printStackTrace();
         }
 
     }

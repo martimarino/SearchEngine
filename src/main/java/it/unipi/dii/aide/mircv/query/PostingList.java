@@ -16,7 +16,7 @@ public class PostingList {
 
     public Posting currPosting;
 
-    public SkipList sl;
+    public SkipList sl;     // null if no skipping for that term
 
     public PostingList(ArrayList<Posting> list, SkipList sl) {
         this.list = list;

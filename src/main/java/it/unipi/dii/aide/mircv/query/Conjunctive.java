@@ -14,21 +14,19 @@ import static it.unipi.dii.aide.mircv.utils.Constants.printError;
 public final class Conjunctive {
 
     static int currentDocId;
-    static int k;
 
     static PriorityQueue<ResultBlock> results;
     static ArrayList<PostingList> conjPostingLists = new ArrayList<>();    // posting lists of query terms
 
 
 
-    public static void executeConjunctive(ArrayList<String> query, int k) throws IOException {
+    public static void executeConjunctive() throws IOException {
 
         ArrayList<DictionaryElem> arr_de = new ArrayList<>();       // array of DictElem of query terms
-        Conjunctive.k = k;
-        results = new PriorityQueue<>(k, new CompareRes());
+        results = new PriorityQueue<>(Query.k, new CompareRes());
 
         // retrieve the (partial or complete) posting list of every query term
-        for (String t : query) {
+        for (String t : Query.query) {
 
             DictionaryElem de = Query.dictionary.getTermStat(t);
             if (de == null){
@@ -91,7 +89,7 @@ public final class Conjunctive {
 
         }
 
-        for (int i = 0; i < k && !results.isEmpty(); i++) {
+        for (int i = 0; i < Query.k && !results.isEmpty(); i++) {
             System.out.println(results.poll());
         }
 
