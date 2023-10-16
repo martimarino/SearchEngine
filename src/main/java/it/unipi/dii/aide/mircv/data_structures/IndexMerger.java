@@ -74,8 +74,7 @@ public final class IndexMerger {
             // array containing the current read offset for each block
             ArrayList<Long> currentBlockOffset = new ArrayList<>(nrBlocks);
             currentBlockOffset.addAll(dictionaryBlockOffsets);
-            if(Flags.isScoringEnabled())
-                readDocumentTableFromDisk(2);
+            readDocumentTableFromDisk(2);
 
             printDebug("dictionaryBlockOffsets = " + dictionaryBlockOffsets);
 
@@ -169,16 +168,6 @@ public final class IndexMerger {
                         tempDE.setOffsetTermFreq(termFreq_channel.size());
                         tempDE.setOffsetDocId(docId_channel.size());
 
-                        if(tempDE.getTerm().equals("home"))
-                            printDebug(tempPL.toString());
-
-//                        tempDE.computeMaxTFIDF();
-
-                        if(tempDE.getTerm().equals("of") && log){
-                            merge_logger.logInfo("DE: " + tempDE);
-                            merge_logger.logInfo("POS: " + tempPL);
-                        }
-
                         assert tempPL != null;
                         int lenPL = tempPL.size();
                         int[] tempCompressedLength = new int[2];
@@ -194,10 +183,8 @@ public final class IndexMerger {
                                 if (Flags.isCompressionEnabled()) {
                                     SkipInfo sp = new SkipInfo(subPL.get(subPL.size()-1).getDocId(), docId_channel.size(), termFreq_channel.size());
                                     sp.storeSkipInfoToDisk();
-                                    if(Flags.isScoringEnabled())
-                                        tempDE.setMaxBM25(computeMaxBM25(tempSubPL, tempDE.getIdf()));
-                                    else
-                                        tempDE.setMaxTFIDF(computeMaxTFIDF(tempSubPL, tempDE.getIdf()));
+                                    tempDE.setMaxBM25(computeMaxBM25(tempSubPL, tempDE.getIdf()));
+                                    tempDE.setMaxTFIDF(computeMaxTFIDF(tempSubPL, tempDE.getIdf()));
                                     int[] compressedLength = DataStructureHandler.storeCompressedPostingIntoDisk(tempSubPL);//store index with compression - unary compression for termfreq
                                     assert compressedLength != null;
                                     tempCompressedLength[0] += compressedLength[0];
@@ -205,10 +192,9 @@ public final class IndexMerger {
                                 } else {
                                     SkipInfo sp = new SkipInfo(subPL.get(subPL.size()-1).getDocId(), docId_channel.size(),  termFreq_channel.size());
                                     sp.storeSkipInfoToDisk();
-                                    if(Flags.isScoringEnabled())
-                                        tempDE.setMaxBM25(storePostingListIntoDisk(tempSubPL, tempDE.getIdf()));  // write InvertedIndexElem to disk
-                                    else
-                                        tempDE.setMaxTFIDF(storePostingListIntoDisk(tempSubPL, tempDE.getIdf()));
+                                    double[] score = storePostingListIntoDisk(tempSubPL, tempDE.getIdf());
+                                    tempDE.setMaxBM25(score[0]);
+                                    tempDE.setMaxTFIDF(score[1]);
                                 }
                                 nSkip++;
 
@@ -228,20 +214,17 @@ public final class IndexMerger {
                             }
 
                             if(Flags.isCompressionEnabled()){
-                                if(Flags.isScoringEnabled())
-                                    tempDE.setMaxBM25(computeMaxBM25(tempPL, tempDE.getIdf()));
-                                else
-                                    tempDE.setMaxTFIDF(computeMaxTFIDF(tempPL, tempDE.getIdf()));
+                                tempDE.setMaxBM25(computeMaxBM25(tempPL, tempDE.getIdf()));
+                                tempDE.setMaxTFIDF(computeMaxTFIDF(tempPL, tempDE.getIdf()));
                                 int[] compressedLength = DataStructureHandler.storeCompressedPostingIntoDisk(tempPL);//store index with compression - unary compression for termfreq
                                 assert compressedLength != null;
                                 tempDE.setTermFreqSize(compressedLength[0]);
                                 tempDE.setDocIdSize(compressedLength[1]);
                             }
                             else {
-                                if(Flags.isScoringEnabled())
-                                    tempDE.setMaxBM25(storePostingListIntoDisk(tempPL, tempDE.getIdf()));  // write InvertedIndexElem to disk
-                                else
-                                    tempDE.setMaxTFIDF(storePostingListIntoDisk(tempPL, tempDE.getIdf()));
+                                double[] score = storePostingListIntoDisk(tempPL, tempDE.getIdf());
+                                tempDE.setMaxBM25(score[0]);
+                                tempDE.setMaxTFIDF(score[1]);
                                 }
                             }
                         printDebug("MAXBM25: " + tempDE.getMaxBM25() + " MAXTFIDF: " + tempDE.getMaxTFIDF());

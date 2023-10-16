@@ -7,6 +7,7 @@ import it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Scanner;
 
 //import static it.unipi.dii.aide.mircv.QueryProcessor.queryStartControl;
@@ -64,7 +65,6 @@ public class Main {
 
                     setSws(getUserChoice(sc, "stopwords removal"));    // take user preferences on the removal of stopwords
                     setCompression(getUserChoice(sc, "compression"));  // take user preferences on the compression
-                    setScoring(getUserChoice(sc, "scoring"));          // take user preferences on the scoring
 
                     storeFlagsIntoDisk();      // store Flags
                     // Do SPIMI Algorithm
@@ -89,14 +89,18 @@ public class Main {
 
                     printUI("Insert query: \n");
                     String q = sc.nextLine();           // take user's query
-                    getNumberOfResults(q, sc);
-                    // control check of the query
-                    if (q == null || q.isEmpty()) {
+
+                    if(q == null || q.isEmpty()) //avoid empty queries
+                    {
                         printError("Error: the query is empty. Please, retry.");
-                        continue;                           // go next while iteration
+                        continue;
                     }
-
-
+                    printUI("Select scoring type (t for TFIDF, b for BM25): \n");
+                    String scoringType = sc.nextLine().toLowerCase().trim();
+                    if(scoringType != "t" || scoringType != "b")
+                        scoringType = "t";
+                            // take user preferences on the scoring
+                    getNumberOfResults(q, sc, scoringType);
                     continue;                           // go next while iteration
 
                 case "q":       // query
@@ -112,7 +116,7 @@ public class Main {
                     printUI("Insert query: \n");
                     String query = sc.nextLine();           // take user's query
                     // control check of the query
-                    if (query == null || query.isEmpty()) {
+                    if (query == null || query.isEmpty() || query.equals("")) {
                         printError("Error: the query is empty. Please, retry.");
                         continue;                           // go next while iteration
                     }
@@ -202,7 +206,7 @@ public class Main {
             printUI("No results found for this query.");
     }
 
-    private static void getNumberOfResults(String query, Scanner sc){
+    private static void getNumberOfResults(String query, Scanner sc, String score){
         while(true) {
             printUI("Insert number of results (10 or 20): \n");
             int k = Integer.parseInt(sc.nextLine().trim());
@@ -212,7 +216,7 @@ public class Main {
                     String queryType = sc.nextLine().toLowerCase();
                     if (queryType.equals("c") || queryType.equals("d")){
                         try {
-                            executeQuery(query, k, queryType);
+                            executeQuery(query, k, queryType, score.equals("t")? false : true); //score true if BM25, false if TFIDF
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }

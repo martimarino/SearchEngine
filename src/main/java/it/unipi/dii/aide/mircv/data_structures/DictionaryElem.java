@@ -20,7 +20,7 @@ public class DictionaryElem {
         int DICT_ELEM_SIZE = TERM_DIM + 2*Integer.BYTES + 2*Long.BYTES;
         return DICT_ELEM_SIZE + ((Flags.considerSkippingBytes() && Flags.isCompressionEnabled()) ? 2*Integer.BYTES : 0)
                               + ((Flags.considerSkippingBytes()) ? (2*Long.BYTES + Integer.BYTES) : 0)
-                                + ((Flags.considerSkippingBytes()) ? Long.BYTES : 0);
+                                + ((Flags.considerSkippingBytes()) ? (2*Long.BYTES) : 0);
     }
 
     private String term;        //32 byte
@@ -201,10 +201,8 @@ public class DictionaryElem {
                 buffer.putLong(skipOffset);
                 buffer.putInt(skipArrLen);
                 buffer.putDouble(idf);
-                if(Flags.isScoringEnabled())
-                    buffer.putDouble(maxBM25);
-                else
-                    buffer.putDouble(maxTFIDF);
+                buffer.putDouble(maxBM25);
+                buffer.putDouble(maxTFIDF);
 
                 if(debug) {
                     appendStringToFile(this.toString(), "merge_de.txt");

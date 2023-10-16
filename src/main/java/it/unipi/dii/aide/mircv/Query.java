@@ -13,6 +13,7 @@ import java.util.*;
 
 import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.readCollectionStatsFromDisk;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readCompressedPostingListFromDisk;
+import static it.unipi.dii.aide.mircv.score.Score.computeBM25;
 import static it.unipi.dii.aide.mircv.score.Score.computeTFIDF;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readPostingListFromDisk;
@@ -32,6 +33,7 @@ public final class Query {
     static ArrayList<String> query_terms;
 
     private static String queryType;
+    private static boolean scoreType;
 
     static PriorityQueue<DAATBlock> pq_DAAT;    // used during DAAT algorithm
     static PriorityQueue<ResultBlock> pq_res;   // contains results
@@ -68,19 +70,20 @@ public final class Query {
         return true;
     }
 
-    public static void executeQuery(String q, int k, String q_type) throws IOException {
+    public static void executeQuery(String q, int k, String q_type, boolean score) throws IOException {
 
             long startTime = System.currentTimeMillis();
             query = TextProcessor.preprocessText(q);
             Query.k = k;
             Query.queryType = q_type;
-            DocumentAtATime(query, k);
+            Query.scoreType = score;
+            DocumentAtATime(query);
             long endTime = System.currentTimeMillis();
             printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
 
 
     }
-    public static void executeQueryPQ(String q, int k, String q_type) throws IOException {
+    public static void executeQueryPQ(String q, int k, String q_type, boolean scoreType) throws IOException {
 
         long startTime = System.currentTimeMillis();
         query_terms = TextProcessor.preprocessText(q);
@@ -121,7 +124,13 @@ public final class Query {
                 else
                     pl = new PostingList(readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf()), null);
                 postingLists.put(t, pl);
-                pq_DAAT.add(new DAATBlock(t, pl.list.get(0).getDocId(), computeTFIDF(dictionary.getTermToTermStat().get(t).getIdf(), pl.list.get(0))));
+                double score;
+                if(scoreType)
+                    score = computeBM25(de.getIdf(), pl.getCurrPosting());
+                else
+                    score = computeTFIDF(de.getIdf(), pl.getCurrPosting());
+
+                pq_DAAT.add(new DAATBlock(t, pl.list.get(0).getDocId(), score));
                 postingLists.get(t).next(de);
             }
 
@@ -193,7 +202,7 @@ public final class Query {
 
 
 
-    private static void DocumentAtATime(ArrayList<String> query, int k){
+    private static void DocumentAtATime(ArrayList<String> query){
 
         ArrayList<PostingList> postingLists = new ArrayList<>();
         PriorityQueue<ResultBlock> resultQueueInverse = new PriorityQueue<>(k,new CompareResInverse());
@@ -240,7 +249,10 @@ public final class Query {
                 {
                     if(postingLists.get(i).postingIterator.hasNext()) {
                         if (postingLists.get(i).getCurrPosting().getDocId() == current) {
-                            score = score + computeTFIDF(idf.get(i), postingLists.get(i).getCurrPosting());
+                            if(scoreType)
+                                score = score + computeBM25(idf.get(i), postingLists.get(i).getCurrPosting());
+                            else
+                                score = score + computeTFIDF(idf.get(i), postingLists.get(i).getCurrPosting());
                             postingLists.get(i).setCurrPosting(postingLists.get(i).postingIterator.next());
                         }
                         if(postingLists.get(i).getCurrPosting().getDocId() < next)

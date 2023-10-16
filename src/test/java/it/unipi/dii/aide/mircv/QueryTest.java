@@ -56,13 +56,13 @@ class QueryTest {
             while ((line = TSVReader.readLine()) != null) {
                 String query = line.split("\t")[1]; //splitting the line and adding its items in String[]
                 long startTimePQ = System.currentTimeMillis();
-                Query.executeQueryPQ(query, numberOfResults, "d");
+                Query.executeQueryPQ(query, numberOfResults, "d", false);
                 long endTimePQ = System.currentTimeMillis();
                 String PQtime = "query \"" + query + " \" time PQ : " + (endTimePQ - startTimePQ) + "ms";
                 System.out.println(PQtime);
                 avgTimePQ += (endTimePQ - startTimePQ);
                 long startTime = System.currentTimeMillis();
-                Query.executeQuery(query, numberOfResults, "d");
+                Query.executeQuery(query, numberOfResults, "d", false);
                 long endTime = System.currentTimeMillis();
                 String time = "query \"" + query + " \" time : " + (endTime - startTime) + "ms";
                 System.out.println(time);

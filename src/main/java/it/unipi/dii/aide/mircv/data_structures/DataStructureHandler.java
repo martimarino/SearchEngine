@@ -139,12 +139,18 @@ public final class DataStructureHandler {
     }
 
     // store one posting list of a term into the disk
-    public static double storePostingListIntoDisk(ArrayList<Posting> pl, double idf) {
+    public static double[] storePostingListIntoDisk(ArrayList<Posting> pl, double idf) {
 
         //number of postings in the posting list
         int len = pl.size();
-        double score = 0;
-        double currentScore = 0;
+        double scoreBM25 = 0;
+        double scoreTFIDF = 0;
+
+        double currentScoreBM25 = 0;
+        double currentScoreTFIDF = 0;
+
+        double[] score = new double[2];
+
         // Create buffers for docid and termfreq
         try {
             MappedByteBuffer bufferdocid = docId_channel.map(FileChannel.MapMode.READ_WRITE, docId_channel.size(), (long) len*Integer.BYTES); // from 0 to number of postings * int dimension
@@ -158,20 +164,23 @@ public final class DataStructureHandler {
                     appendStringToFile(String.valueOf(posting.getDocId()), "merge_docid.txt");
                     appendStringToFile(String.valueOf(posting.getTermFreq()), "merge_tf.txt");
                 }
-                if(Flags.isScoringEnabled())
-                    currentScore = Score.computeBM25(idf, posting);
-                else
-                    currentScore = Score.computeTFIDF(idf, posting);
 
-                if(currentScore > score)
-                    score = currentScore;
+                currentScoreBM25 = Score.computeBM25(idf, posting);
+                currentScoreTFIDF = Score.computeTFIDF(idf, posting);
 
+                if(currentScoreBM25 > scoreBM25)
+                    scoreBM25 = currentScoreBM25;
+
+                if(currentScoreTFIDF > scoreTFIDF)
+                    scoreTFIDF = currentScoreTFIDF;
             }
+            score[0] = scoreBM25;
+            score[1] = scoreTFIDF;
             return score;
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return 0;
+        return null;
     }
 
 
