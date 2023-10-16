@@ -21,16 +21,12 @@ import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
  */
 public final class DataStructureHandler {
 
-    static  MappedByteBuffer buffer;
-
-
     // -------- start: functions to store into disk --------
 
     // function to store the whole document table into disk
     static void storeDocumentTableIntoDisk() {
 
         try {
-
             MappedByteBuffer buffer = docTable_channel.map(FileChannel.MapMode.READ_WRITE, docTable_channel.size(), (long) DOCELEM_SIZE * PartialIndexBuilder.documentTable.size());
 
             // Buffer not created
@@ -54,7 +50,6 @@ public final class DataStructureHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     // function to store offset of the blocks into disk
@@ -124,9 +119,6 @@ public final class DataStructureHandler {
                     INDEX_OFFSET += INT_BYTES;
                 }
 
-//                if(log)
-//                    spimi_logger.logInfo("Posting list size = " + posList.size());
-
                 // store dictionary entry to disk
                 dictElem.storeDictionaryElemIntoDisk();
             }
@@ -169,7 +161,7 @@ public final class DataStructureHandler {
     // -------- start: functions to read from disk --------
 
     // function to read all document table from disk and put it in memory (HashMap documentTable)
-    public static void readDocumentTableFromDisk(boolean indexBuilding) throws IOException {
+    public static void readDocumentTableFromDisk(boolean indexBuilding) {
 
         System.out.println("Loading document table from disk...");
 

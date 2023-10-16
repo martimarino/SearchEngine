@@ -27,13 +27,12 @@ public final class Query {
     public static Dictionary dictionary = new Dictionary();
 
     public static int k;
-    static HashMap<Integer, Double> topKresults = new HashMap<>();
     public static ArrayList<String> query_terms;
 
     private static String queryType;
 
     static PriorityQueue<DAATBlock> pq_DAAT;    // used during DAAT algorithm
-    static PriorityQueue<ResultBlock> pq_res;   // contains results
+    public static PriorityQueue<ResultBlock> pq_res;   // contains results
 
     public Query()  { throw new UnsupportedOperationException(); }
 
@@ -69,14 +68,13 @@ public final class Query {
 
     public static void executeQuery(String q, int k, String q_type) throws IOException {
 
-            long startTime = System.currentTimeMillis();
-            query = TextProcessor.preprocessText(q);
-            Query.k = k;
-            Query.queryType = q_type;
-            DocumentAtATime(query, k);
-            long endTime = System.currentTimeMillis();
-            printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
-
+        long startTime = System.currentTimeMillis();
+        query = TextProcessor.preprocessText(q);
+        Query.k = k;
+        Query.queryType = q_type;
+        DocumentAtATime(query, k);
+        long endTime = System.currentTimeMillis();
+        printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
 
     }
     public static void executeQueryPQ(String q, int k, String q_type) throws IOException {
@@ -89,16 +87,18 @@ public final class Query {
         DAATalgorithm();
         long endTime = System.currentTimeMillis();
         printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+
     }
 
     private static void DAATalgorithm() {
 
         HashMap<String, PostingList> postingLists = new HashMap<>();
 
-        try(RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
-            RandomAccessFile tf_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
-            RandomAccessFile skip_raf = new RandomAccessFile(SKIP_FILE, "rw")){
-
+        try(
+                RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
+                RandomAccessFile tf_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
+                RandomAccessFile skip_raf = new RandomAccessFile(SKIP_FILE, "rw")
+        ){
             docId_channel = docid_raf.getChannel();
             termFreq_channel = tf_raf.getChannel();
             skip_channel = skip_raf.getChannel();
@@ -107,13 +107,17 @@ public final class Query {
                 executeConjunctive();
                 return;
             }
+
             pq_DAAT = new PriorityQueue<>(query_terms.size(), new CompareScore());
             // retrieve the posting list of every query term
             for (String t : query_terms) {
                 DictionaryElem de = dictionary.getTermStat(t);
-                SkipList sl = null;
-                if(de.getSkipOffset() != -1)
-                    sl = new SkipList(de.getSkipOffset(), de.getSkipArrLen());
+
+                if (de == null) {
+                    System.out.println("Term " + t + " not present in dictionary");
+                    return;
+                }
+
                 PostingList pl;
                 if(Flags.isCompressionEnabled())
                     pl = new PostingList(readCompressedPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getTermFreqSize(), de.getDocIdSize(), de.getDf()), null);
@@ -143,19 +147,9 @@ public final class Query {
                         counter++;
                     } else {
                         if (pq_res.size() == k) {
-                            assert pq_res.peek() != null;
                             if (acc.getScore() > pq_res.peek().getScore()) {
-                                if (queryType.equals("c")) {
-                                    if (counter == postingLists.size()) {
-                                        pq_res.poll();
-                                        pq_res.add(new ResultBlock(documentTable.get(acc.getDocId()).getDocno(), acc.getDocId(), acc.getScore()));
-                                    } else {
-
-                                    }
-                                } else if(queryType.equals("d")){
-                                    pq_res.poll();
-                                    pq_res.add(new ResultBlock(documentTable.get(acc.getDocId()).getDocno(), acc.getDocId(), acc.getScore()));
-                                }
+                                pq_res.poll();
+                                pq_res.add(new ResultBlock(documentTable.get(acc.getDocId()).getDocno(), acc.getDocId(), acc.getScore()));
                             }
                         }else if(pq_res.size() < k)
                             pq_res.add(new ResultBlock(documentTable.get(acc.getDocId()).getDocno(), acc.getDocId(), acc.getScore()));
@@ -169,11 +163,10 @@ public final class Query {
                     Posting currentPosting = iterToAdvance.next();
                     pq_DAAT.add(new DAATBlock(pb.getTerm(), currentPosting.getDocId(), computeTFIDF(dictionary.getTermToTermStat().get(pb.getTerm()).getIdf(), currentPosting)));
                 }
-
             }
 
             if(pq_res == null) {
-                printUI("No results found");
+                System.out.println("No results found");
                 return;
             }
 
@@ -182,8 +175,10 @@ public final class Query {
             for (int i = 0; i < k && !pq_res.isEmpty(); i++) {
                 inverseResultQueue.add(pq_res.poll());
             }
+
+            printUI("\nResults:\n");
             while(!inverseResultQueue.isEmpty())
-                printUI(inverseResultQueue.poll().toString());
+                System.out.println(inverseResultQueue.poll().toString());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -224,7 +219,6 @@ public final class Query {
                 else
                     pl = new PostingList(readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf()), null);
                 postingLists.add(pl);
-                printDebug(pl.toString());
             }
 
             int current = minDocID(postingLists);

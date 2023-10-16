@@ -61,7 +61,7 @@ public final class IndexMerger {
             skip_channel = skipFile.getChannel();
 
 
-            System.out.println("Merging partial files...");                     // print of the merging start
+            System.out.println("\nMerging partial files...");                     // print of the merging start
 
             int nrBlocks = dictionaryBlockOffsets.size();           // dictionary number
             DataStructureHandler.readBlockOffsetsFromDisk();        // get offsets of dictionary blocks from disk
@@ -101,16 +101,7 @@ public final class IndexMerger {
                 assert currentTermBlock != null;
                 term = currentTermBlock.getTerm();          // get the term
                 block_id = currentTermBlock.getBlock();     // get the blockID
-                if(term.equals("zoom")) {
-                    printDebug(term);
 
-                    // If condition to verify if there are other elements -> SEE NOTE 2
-
-                    printDebug("currentBlockOffset.get(block_id) = " + currentBlockOffset.get(block_id));
-                    printDebug("getDictElemSize() = " + getDictElemSize());
-                    printDebug("partialDict_channel.size() = " + partialDict_channel.size());
-                    printDebug("currentBlockOffset.size() = " + currentBlockOffset.size());
-                }
                 if (currentBlockOffset.get(block_id) + getDictElemSize() < (block_id == (currentBlockOffset.size()-1) ? partialDict_channel.size() : dictionaryBlockOffsets.get(block_id +1))){
                     buffer = partialDict_channel.map(FileChannel.MapMode.READ_ONLY, currentBlockOffset.get(block_id) + getDictElemSize(), TERM_DIM); // get first element of the block
                     String[] t = StandardCharsets.UTF_8.decode(buffer).toString().split("\0");      // get the term of element
@@ -124,11 +115,9 @@ public final class IndexMerger {
 //                printDebug("offsetDocid = " + currentDE.getOffsetDocId() + ", offset tf = " + currentDE.getOffsetTermFreq() + ", df = " + currentDE.getDf());
                 currentPL = readPostingListFromDisk(currentDE.getOffsetDocId(), currentDE.getOffsetTermFreq(), currentDE.getDf());
 
-                if(currentDE.getTerm().equals("of")){
-                    if(log){
-                        merge_logger.logInfo("DE: " + currentDE);
-                        merge_logger.logInfo("POS: " + currentPL);
-                    }
+                if(currentDE.getTerm().equals("of") && debug){
+                    appendStringToFile("(merge) CURRENT DE: " + currentDE, "of_debug.txt");
+                    appendStringToFile("(merge) CURRENT PL: " + currentPL, "of_debug.txt");
                 }
 
                 if (tempDE.getTerm().equals("")) {        // first iteration
@@ -167,9 +156,9 @@ public final class IndexMerger {
 
 //                        tempDE.computeMaxTFIDF();
 
-                        if(tempDE.getTerm().equals("of") && log){
-                            merge_logger.logInfo("DE: " + tempDE);
-                            merge_logger.logInfo("POS: " + tempPL);
+                        if(currentDE.getTerm().equals("of") && debug){
+                            appendStringToFile("(merge) TEMP DE: " + tempDE, "of_debug.txt");
+                            appendStringToFile("(merge) TEMP PL: " + tempPL, "of_debug.txt");
                         }
 
                         assert tempPL != null;
@@ -177,7 +166,7 @@ public final class IndexMerger {
                         int lenPL = tempPL.size();
                         int[] tempCompressedLength = new int[2];
                         if(lenPL >= SKIP_POINTERS_THRESHOLD) {
-                            int skipInterval = (int) Math.ceil(Math.sqrt(lenPL));        // one skip every rad(docs)
+                            int skipInterval = (int) Math.ceil(Math.sqrt(lenPL));        // one skip every sqrt(docs)
                             int nSkip = 0;
 
                             tempDE.setSkipOffset(skip_channel.size());
@@ -198,7 +187,6 @@ public final class IndexMerger {
                                     storePostingListIntoDisk(tempSubPL);  // write InvertedIndexElem to disk
                                 }
                                 nSkip++;
-
                             }
                             tempDE.setSkipArrLen(nSkip);
 
@@ -240,7 +228,6 @@ public final class IndexMerger {
             }
             printDebug("Num terms: " + termCounter);
             printDebug("Merge ended, total number of iterations (i) is: " + termCounter);
-            printDebug("dict file size: " + dict_channel.size());
 
 
 //            delete_tempFiles();                                                                       !!!!!!!!!!!!!!!!

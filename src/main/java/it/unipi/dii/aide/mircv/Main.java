@@ -12,10 +12,9 @@ import java.util.Scanner;
 //import static it.unipi.dii.aide.mircv.QueryProcessor.queryStartControl;
 import static it.unipi.dii.aide.mircv.data_structures.Flags.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
-import static it.unipi.dii.aide.mircv.utils.FileSystem.delete_mergedFiles;
-import static it.unipi.dii.aide.mircv.utils.FileSystem.file_cleaner;
 import static it.unipi.dii.aide.mircv.Query.*;
 import static it.unipi.dii.aide.mircv.Query.*;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 
 public class Main {
 
@@ -32,7 +31,6 @@ public class Main {
                             "\n\tSelect an option:" +
                             "\n\t  m -> try merge only" +
                             "\n\t  i -> build the index" +
-                            "\n\t  d -> debug" +
                             "\n\t  q -> query mode" +
                             "\n\t  x -> exit" +
                             "\n***********************************\n");
@@ -57,6 +55,7 @@ public class Main {
                     IndexMerger.mergeBlocks();                      // merge
                     endTime = System.currentTimeMillis();           // end time to merge blocks from disk
                     printTime( "Merged in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+                    closeChannels();
                     continue;                                   // go next while cycle
 
                 case "i":
@@ -79,85 +78,29 @@ public class Main {
                     IndexMerger.mergeBlocks();                      // merge blocks
                     endTime = System.currentTimeMillis();           // end time of merge blocks
                     printTime("\nBlocks merged in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+                    closeChannels();
                     continue;                           // go next while iteration
 
-                case "d":
-                    Flags.setConsiderSkippingBytes(true);
+                case "d", "q":
+                    while (true) {
+                        Flags.setConsiderSkippingBytes(true);
 
-                    if(!Query.queryStartControl())
-                        continue;
+                        if (!Query.queryStartControl())
+                            continue;
 
-                    printUI("Insert query: \n");
-                    String q = sc.nextLine();           // take user's query
-                    getNumberOfResults(q, sc);
-                    // control check of the query
-                    if (q == null || q.isEmpty()) {
-                        printError("Error: the query is empty. Please, retry.");
-                        continue;                           // go next while iteration
-                    }
-
-
-                    continue;                           // go next while iteration
-
-                case "q":       // query
-
-                    Flags.setConsiderSkippingBytes(true);
-                    ArrayList<Integer> rankedResults;       // ArrayList that contain the ranked results of query
-                    int numberOfResults = 0;    // take the integer entered by users that indicate the number of results wanted for query
-                    // control check that all the files and resources required to execute a query are present
-                    if (!queryStartControl()) {
-                        return;                           // go next while iteration
-                    }
-
-                    printUI("Insert query: \n");
-                    String query = sc.nextLine();           // take user's query
-                    // control check of the query
-                    if (query == null || query.isEmpty()) {
-                        printError("Error: the query is empty. Please, retry.");
-                        continue;                           // go next while iteration
-                    }
-
-                    boolean isConjunctive = false;          // true = Conjunctive query
-                    boolean isDisjunctive = false;          // true = Disjunctive query
-                    // do while for choosing Conjunctive(AND) or Disjunctive(OR) query
-                    do {
-                        printUI("Type C for choosing Conjunctive query or D for choosing Disjunctive queries.");
-                        try {
-                            String choice = sc.nextLine().toUpperCase();        // take the user's choice
-                            // check the user's input
-                            if (choice.equals("C")) {
-                                isConjunctive = true;           // set isConjunctive
-                            } else if (choice.equals("D")) {
-                                isDisjunctive = true;           // set isDisjunctive
-                            }
-                        } catch (NumberFormatException nfe) {
-                            printError("Insert a valid character.");
+                        printUI("Insert query (or press x to exit):");
+                        String q = sc.nextLine();           // take user's query
+                        if (q.equals("x"))
+                            return;
+                        getNumberOfResults(q, sc);
+                        // control check of the query
+                        if (q == null || q.isEmpty()) {
+                            printError("Error: the query is empty. Please, retry.");
+                            continue;                           // go next while iteration
                         }
-                    } while (!(isConjunctive || isDisjunctive));  // continues until isConjunctive or isDisjunctive is set
 
-                    int validN = 0;     // 1 = positive number - 0 = negative number or not a number
-                    // do while for choosing the number of results to return
-                    do {
-                        printUI("Type the number of results to retrieve (10 or 20)");
-                        try {
-                            numberOfResults = Integer.parseInt(sc.nextLine());    // take the int inserted by user
-                            validN = (numberOfResults > 0) ? 1 : 0;               // validity check of the int
-                        } catch (NumberFormatException nfe) {
-                            printError("Insert a valid positive number");
-                        }
-                    } while (validN == 0);  // continues until a valid number is entered
-
-                    startTime = System.currentTimeMillis();         // start time of execute query
-
-                    // do query and retry the results
-//                    rankedResults = QueryProcessor.queryManager(query,isConjunctive,isDisjunctive,numberOfResults);
-//                    printQueryResults(rankedResults);               // print the results of the query
-
-                    endTime = System.currentTimeMillis();           // end time of execute query
-
-                    // shows query execution time
-                    printTime("\nQuery executes in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
-                    continue;                       // go next while iteration
+                        closeChannels();
+                    }
 
                 default:
                     return;     // exit to switch, case not valid
@@ -172,7 +115,7 @@ public class Main {
      * @param option options passed by parameter
      * @return true if the user chooses yes (enter Y), false if the user chooses no (enter N)
      */
-    private static boolean getUserChoice(Scanner sc, String option) {
+    public static boolean getUserChoice(Scanner sc, String option) {
         while (true) {
             printUI("\nType Y or N for " + option + " options");   // print of the option
             String choice = sc.nextLine().toUpperCase();                    // take the user's choice
@@ -202,9 +145,9 @@ public class Main {
             printUI("No results found for this query.");
     }
 
-    private static void getNumberOfResults(String query, Scanner sc){
+    public static void getNumberOfResults(String query, Scanner sc){
         while(true) {
-            printUI("Insert number of results (10 or 20): \n");
+            printUI("Insert number of results (10 or 20):");
             int k = Integer.parseInt(sc.nextLine().trim());
             if(k == 10 || k == 20) {
                 while(true) {

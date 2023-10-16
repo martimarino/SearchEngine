@@ -96,7 +96,7 @@ public class Dictionary {
                     dictElem.setDocIdSize(buffer.getInt());
                 }
                 dictElem.setSkipOffset(buffer.getLong());
-                dictElem.setSkipOffset(buffer.getInt());
+                dictElem.setSkipArrLen(buffer.getInt());
                 dictElem.setIdf(buffer.getDouble());
                 termToTermStat.put(term, dictElem);   // add DictionaryElem into memory
             }

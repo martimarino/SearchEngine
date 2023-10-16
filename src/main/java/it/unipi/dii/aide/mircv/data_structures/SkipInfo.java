@@ -2,6 +2,8 @@ package it.unipi.dii.aide.mircv.data_structures;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
 import static it.unipi.dii.aide.mircv.utils.FileSystem.skip_channel;
@@ -59,28 +61,18 @@ public class SkipInfo {
 
     public void storeSkipInfoToDisk() throws IOException {
 
-        ByteBuffer skipPointsBuffer = ByteBuffer.allocate(SKIPPING_INFO_SIZE);
-        skip_channel.position(skip_channel.size());
+        MappedByteBuffer skipPointsBuffer = skip_channel.map(FileChannel.MapMode.READ_WRITE, skip_channel.size(), SKIPPING_INFO_SIZE);
 
         skipPointsBuffer.putLong(this.maxDocId);
         skipPointsBuffer.putLong(this.docIdOffset);
         skipPointsBuffer.putLong(this.freqOffset);
-
-        skipPointsBuffer = ByteBuffer.wrap(skipPointsBuffer.array());
-
-        while(skipPointsBuffer.hasRemaining())
-            skip_channel.write(skipPointsBuffer);
     }
 
+
     public void readSkipInfoFromDisk(long start) throws IOException {
-        ByteBuffer skipPointsBuffer = ByteBuffer.allocate(SKIPPING_INFO_SIZE);
 
-        skip_channel.position(start);
+        MappedByteBuffer skipPointsBuffer = skip_channel.map(FileChannel.MapMode.READ_ONLY, start, SKIPPING_INFO_SIZE);
 
-        while (skipPointsBuffer.hasRemaining())
-            skip_channel.read(skipPointsBuffer);
-
-        skipPointsBuffer.rewind();
         this.setMaxDocId(skipPointsBuffer.getLong());
         this.setDocIdOffset(skipPointsBuffer.getLong());
         this.setFreqOffset(skipPointsBuffer.getLong());

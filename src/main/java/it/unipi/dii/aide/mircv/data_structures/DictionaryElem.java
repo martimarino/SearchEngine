@@ -32,12 +32,13 @@ public class DictionaryElem {
     private int docIdSize;  // dimension in byte of compressed docid of the posting list
     private int termFreqSize; //dimension in byte of compressed termfreq of the posting list
 
+    private double idf;
+
     //skipping
     private long skipOffset;    // offset of the skip element
     private int skipArrLen;       // how many skip blocks
 
     //scoring
-    private double idf;
 //    private double maxTf;
 //    private double maxTFIDF;        // upper bound
 
@@ -67,8 +68,8 @@ public class DictionaryElem {
         this.cf = 0;
         this.docIdSize = 0;
         this.termFreqSize = 0;
-        this.skipOffset = 0;
-        this.skipArrLen = 0;
+        this.skipOffset = -1;
+        this.skipArrLen = -1;
         this.idf = 0;
 //        this.maxTf = 0;
 //        this.maxTFIDF = 0;
@@ -187,12 +188,12 @@ public class DictionaryElem {
 
             // write docno, docid and doclength into document file
             buffer.put(StandardCharsets.UTF_8.encode(charBuffer));      // write term
-            buffer.putInt(df);                            // write Df
-            buffer.putInt(cf);                            // write Cf
-            buffer.putLong(offsetTermFreq);               // write offset Tf
-            buffer.putLong(offsetDocId);                  // write offset DID
-            if(Flags.considerSkippingBytes()) {
-                if (Flags.isCompressionEnabled()) { // if in merge phase, need to store also the size of DocID and Term Frequency compressed values
+            buffer.putInt(df);                            // write df
+            buffer.putInt(cf);                            // write cf
+            buffer.putLong(offsetTermFreq);               // write offset tf
+            buffer.putLong(offsetDocId);                  // write offset docid
+            if(Flags.considerSkippingBytes()) {     // if in merge phase
+                if (Flags.isCompressionEnabled()) { // need to store also the size of DocID and Term Frequency compressed values
                     buffer.putInt(termFreqSize);
                     buffer.putInt(docIdSize);
                 }
@@ -204,24 +205,22 @@ public class DictionaryElem {
                     appendStringToFile(this.toString(), "merge_de.txt");
                 }
             }
-//            if(Flags.isScoringEnabled()) {
-//                buffer.putDouble(idf);
+            if(Flags.isScoringEnabled()) {
 //                buffer.putDouble(maxTf);
 //                buffer.putDouble(maxTFIDF);
-//            }
+            }
 
             if(debug && !Flags.considerSkippingBytes()) {
                 appendStringToFile(this.toString(), "spimi_de.txt");
             }
 
+            if(debug && term.equals("of"))
+                appendStringToFile("DE STORED -> " + this, "of_debug.txt");
+
             PARTIAL_DICTIONARY_OFFSET += getDictElemSize();       // update offset
 
             assert !term.isEmpty();
 
-            if (term.equals("of")) {
-                if (log)
-                    spimi_logger.logInfo(this.toString());
-            }
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -237,27 +236,30 @@ public class DictionaryElem {
     public void readDictionaryElemFromDisk(long start){
 
         try {
-            MappedByteBuffer buffer = partialDict_channel.map(FileChannel.MapMode.READ_ONLY, start,  getDictElemSize()); // get first term of the block
+            MappedByteBuffer buffer = partialDict_channel.map(FileChannel.MapMode.READ_ONLY, start, getDictElemSize()); // get first term of the block
             CharBuffer.allocate(TERM_DIM);              //allocate a charbuffer of the dimension reserved to docno
             CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
 
             if(!(charBuffer.toString().split("\0").length == 0))
                 term = charBuffer.toString().split("\0")[0];   // read term
 
-            buffer.position(TERM_DIM);                  // skip over term position
-            df = buffer.getInt();                  // read Df
-            cf = buffer.getInt();                  // read Cf
-            offsetTermFreq = buffer.getLong();     // read offset Tf
-            offsetDocId = buffer.getLong();        // read offset DID
+            buffer.position(TERM_DIM);             // skip over term position
+            df = buffer.getInt();                  // read df
+            cf = buffer.getInt();                  // read cf
+            offsetTermFreq = buffer.getLong();     // read offset tf
+            offsetDocId = buffer.getLong();        // read offset docid
             if(Flags.considerSkippingBytes()) {
                 skipOffset = buffer.getLong();
                 skipArrLen = buffer.getInt();
                 idf = buffer.getDouble();
             }
-            if(Flags.isScoringEnabled()) {
+            if (Flags.isScoringEnabled()) {
 //                maxTf = buffer.getDouble();
 //                maxTFIDF = buffer.getDouble();
             }
+
+            if(debug && term.equals("of"))
+                appendStringToFile("DE READ -> " + this, "of_debug.txt");
 
         } catch (IOException e) {
             e.printStackTrace();

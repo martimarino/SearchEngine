@@ -27,7 +27,7 @@ public final class PartialIndexBuilder {
 
     static ArrayList<Long> dictionaryBlockOffsets = new ArrayList<>();                         // Offsets of the dictionary blocks
 
-    static ArrayList<String> termList = new ArrayList<>();
+//    static ArrayList<String> termList = new ArrayList<>();
 
     /**
      * Implements the SPIMI algorithm for indexing large collections.
@@ -101,10 +101,11 @@ public final class PartialIndexBuilder {
 
                     N_POSTINGS++;
 
-                    if(!termList.contains(term))
-                        termList.add(term);
+//                    if(!termList.contains(term))
+//                        termList.add(term);
 
-                    appendStringToFile(term, "partialDict_" + dictionaryBlockOffsets.size() + ".txt");
+                    if(debug)
+                        appendStringToFile(term, "partialDict_" + dictionaryBlockOffsets.size() + ".txt");
                 }
                 docCounter++;       // update DocID counter
 
@@ -113,8 +114,6 @@ public final class PartialIndexBuilder {
 
                     storeIndexAndDictionaryIntoDisk();  //store index and dictionary to disk
                     storeDocumentTableIntoDisk(); // store document table one document at a time for each block
-
-//                    spimi_logger.logInfo("************************************");
 
                     freeMemory();
                     System.gc();
@@ -139,13 +138,12 @@ public final class PartialIndexBuilder {
 
             if(log) {
                 spimi_logger.logInfo("CollectionStats -> nDocs:" + CollectionStatistics.getNDocs() + ", totDocLen: " + CollectionStatistics.getTotDocLen());
-                spimi_logger.logInfo("**** Dictionary ****");
-                for(String s : termList)
-                    spimi_logger.logInfo(s);
-                spimi_logger.logInfo("dictionary size = " + termList.size());
+//                spimi_logger.logInfo("**** Dictionary ****");
+//                for(String s : termList)
+//                    spimi_logger.logInfo(s);
+//                spimi_logger.logInfo("dictionary size = " + termList.size());
             }
-            printDebug("termCounter = " + termList.size());
-            printDebug("dict size file = " + partialDict_channel.size());
+//            printDebug("termCounter = " + termList.size());
 
         } catch (IOException e) {
             e.printStackTrace();

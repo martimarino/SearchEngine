@@ -1,26 +1,37 @@
 package it.unipi.dii.aide.mircv;
 
 import it.unipi.dii.aide.mircv.data_structures.Flags;
+import it.unipi.dii.aide.mircv.data_structures.IndexMerger;
+import it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder;
+import it.unipi.dii.aide.mircv.utils.Constants;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Scanner;
+
+import static it.unipi.dii.aide.mircv.Main.getUserChoice;
 import static it.unipi.dii.aide.mircv.Query.queryStartControl;
+import static it.unipi.dii.aide.mircv.data_structures.Flags.*;
+import static it.unipi.dii.aide.mircv.data_structures.Flags.storeFlagsIntoDisk;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.closeChannels;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.file_cleaner;
 
 class QueryTest {
 
-    @BeforeAll
-    static void getFromFile(){
-        Flags.setConsiderSkippingBytes(true);
-        try {
-            queryStartControl();
+//    @BeforeAll
+//    static void getFromFile(){
+//        Flags.setConsiderSkippingBytes(true);
+//        try {
+//            queryStartControl();
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
 /*
     @Test
@@ -48,7 +59,7 @@ class QueryTest {
         int numberOfResults = 10;
         int avgTimePQ = 0;
         int avgTime = 0;
-        int avgTimeAle = 0;
+
         int nQuery = 0;
         String filename = "performanceOutputAll.txt";
         try (BufferedReader TSVReader = new BufferedReader(new FileReader("src/main/resources/msmarco-test2020-queries.tsv"))) {
@@ -67,12 +78,6 @@ class QueryTest {
                 String time = "query \"" + query + " \" time : " + (endTime - startTime) + "ms";
                 System.out.println(time);
                 avgTime += (endTime - startTime);
-                /*long startTimeAle = System.currentTimeMillis();
-                Query.queryManager(query, false, true, numberOfResults);
-                long endTimeAle = System.currentTimeMillis();
-                String timeAle = "query \"" + query + " \" time : " + (endTimeAle - startTimeAle) + "ms";
-                System.out.println(time);
-                avgTimeAle += (endTimeAle - startTimeAle);*/
                 nQuery++;
 
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
@@ -80,9 +85,7 @@ class QueryTest {
                     // Scrivi il testo con informazioni sulla formattazione nel file
                     writer.write(PQtime);
                     writer.newLine();
-                    writer.write(time);
-                    writer.newLine();
-                    writer.write("____________________________________________");
+                    writer.write("______________________________________________________________________\n");
                     writer.newLine();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -91,7 +94,7 @@ class QueryTest {
             if(nQuery > 0) {
                 String AvgPQ = "Average time PQ: " + (avgTimePQ / (nQuery)) + "ms";
                 String Avg = "Average time: " + (avgTime / (nQuery)) + "ms";
-                //String AleAvg =  "Average time Ale: " + (avgTimeAle / (nQuery)) + "ms";
+                printUI(AvgPQ);
 
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
 
@@ -102,20 +105,66 @@ class QueryTest {
                     writer.newLine();
                     writer.write(Avg);
                     writer.newLine();
-                    //writer.write(AleAvg);
-                    //writer.newLine();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 printTime(AvgPQ);
                 printTime(Avg);
-                //printTime(AleAvg);
             }
         } catch (Exception e) {
             System.out.println(e);
         }
 
-
     }
+
+//    @Test
+//    void testWithSkip() throws IOException {
+//
+//        COLLECTION_PATH = "src/main/resources/small_collection.tar.gz";
+//        MEMORY_THRESHOLD = 0.008;
+//        SKIP_POINTERS_THRESHOLD = 128;
+//
+//        setConsiderSkippingBytes(false);
+//
+//        testBuildIndex();
+//        name();
+//
+//    }
+
+//    @Test
+//    void testWithoutSkip() throws IOException {
+//
+//        COLLECTION_PATH = "src/main/resources/small_collection.tar.gz";
+//        MEMORY_THRESHOLD = 0.008;
+//        SKIP_POINTERS_THRESHOLD = Integer.MAX_VALUE;
+//
+//        setConsiderSkippingBytes(false);
+//
+//        testBuildIndex();
+//
+//        setConsiderSkippingBytes(true);
+//        name();
+//
+//    }
+
+
+    void testBuildIndex() throws IOException {
+        file_cleaner();                             // delete all created files
+
+        setSws(false);    // take user preferences on the removal of stopwords
+        setCompression(false);  // take user preferences on the compression
+        setScoring(false);          // take user preferences on the scoring
+
+        storeFlagsIntoDisk();      // store Flags
+
+        Flags.setConsiderSkippingBytes(false);
+
+        PartialIndexBuilder.SPIMIalgorithm();
+
+        IndexMerger.mergeBlocks();
+
+        closeChannels();
+    }
+
 
 }

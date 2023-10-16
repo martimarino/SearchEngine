@@ -25,7 +25,8 @@ public final class FileSystem {
      * function to delete all the file except "stopwords.txt", "collection.tsv", and "msmarco-test2020-queries.tsv"
      * that are in resources.
      */
-    public static void file_cleaner() {
+    public static void file_cleaner() throws IOException {
+
         try {
             // Clean or create the partial folder
             File partial_folder = new File(PARTIAL_FOLDER);
@@ -65,6 +66,27 @@ public final class FileSystem {
                 }
             }
 
+            // Clean or create the debug folder
+            if(debug) {
+                File debug_folder = new File(DEBUG_FOLDER);
+                if (debug_folder.exists() && debug_folder.isDirectory()) {
+                    File[] mergedFiles = debug_folder.listFiles();
+                    if (mergedFiles != null && mergedFiles.length > 0) {
+                        FileUtils.cleanDirectory(debug_folder);
+                        System.out.println("Debug folder cleaned.");
+                    } else {
+                        System.out.println("Debug folder is already empty.");
+                    }
+                } else {
+                    if (debug_folder.mkdirs()) {
+                        System.out.println("Debug folder created.");
+                    } else {
+                        System.out.println("Failed to create debug folder.");
+                        return;
+                    }
+                }
+            }
+
             // Delete FLAGS_FILE if it exists
             File flags = new File(FLAGS_FILE);
             if (flags.exists()) {
@@ -78,8 +100,6 @@ public final class FileSystem {
             e.printStackTrace();
         }
     }
-
-
 
     public static void delete_tempFiles() {
 
@@ -153,8 +173,7 @@ public final class FileSystem {
 //        }
 //    }
 
-
-    public static void saveStructureToFile(ArrayList<String> data, String fileName, boolean append) {
+    public static void saveStructureToFile (ArrayList<String> data, String fileName, boolean append) {
         try (FileWriter writer = new FileWriter(DEBUG_FOLDER + fileName, append)) {
             for (String line : data) {
                 writer.write(line);
@@ -172,6 +191,18 @@ public final class FileSystem {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void closeChannels() throws IOException {
+
+        FileChannel[] arr_channels = {dict_channel, docTable_channel, flags_channel, docId_channel, termFreq_channel,
+                partialDict_channel, partialDocId_channel, partialTermFreq_channel,
+                blocks_channel, skip_channel};
+
+        for(FileChannel fl : arr_channels)
+            if(fl != null && fl.isOpen())
+                fl.close();
+
     }
 
 }

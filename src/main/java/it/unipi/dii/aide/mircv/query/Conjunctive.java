@@ -1,6 +1,5 @@
 package it.unipi.dii.aide.mircv.query;
 
-import it.unipi.dii.aide.mircv.Query;
 import it.unipi.dii.aide.mircv.data_structures.*;
 import it.unipi.dii.aide.mircv.score.Score;
 
@@ -12,26 +11,27 @@ import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readC
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readPostingListFromDisk;
 import static it.unipi.dii.aide.mircv.utils.Constants.printError;
 import static it.unipi.dii.aide.mircv.utils.Constants.printUI;
+import static it.unipi.dii.aide.mircv.Query.*;
 
 public final class Conjunctive {
 
     static int currentDocId;
+    static ArrayList<PostingList> conjPostingLists;    // posting lists of query terms
+    static ArrayList<DictionaryElem> arr_de;       // array of DictElem of query terms
 
-    static PriorityQueue<ResultBlock> results;
-    static ArrayList<PostingList> conjPostingLists = new ArrayList<>();    // posting lists of query terms
-    static ArrayList<DictionaryElem> arr_de = new ArrayList<>();       // array of DictElem of query terms
 
     
     public static void executeConjunctive() throws IOException {
 
 
-        results = new PriorityQueue<>(Query.k, new CompareResInverse());
-        int i = 0;
+        conjPostingLists = new ArrayList<>();    // posting lists of query terms
+        arr_de = new ArrayList<>();       // array of DictElem of query terms
+        pq_res = new PriorityQueue<>(k, new CompareResInverse());
 
         // retrieve the (partial or complete) posting list of every query term
-        for (String t : Query.query_terms) {
+        for (String t : query_terms) {
 
-            DictionaryElem de = Query.dictionary.getTermStat(t);
+            DictionaryElem de = dictionary.getTermStat(t);
             if (de == null){
                printError("Term " + t + " not present in dictionary!");
                return;
@@ -55,7 +55,7 @@ public final class Conjunctive {
                 else
                     tempPL = new PostingList(readPostingListFromDisk(de.getOffsetDocId(),de.getOffsetTermFreq(),de.getDf()), null);
             }
-            i++;
+
             conjPostingLists.add(tempPL);
         }
 
@@ -87,10 +87,8 @@ public final class Conjunctive {
         });
 
 
-        DictionaryElem firstDE = arr_de.get(0); // ordinare de crescenti
-
         // scorro la lista più corta
-        while (conjPostingLists.get(0).postingIterator.hasNext()) {
+        while (conjPostingLists.get(0).currPosting != null) {
 
             Posting polled = conjPostingLists.get(0).currPosting;
             currentDocId = polled.getDocId();
@@ -103,14 +101,12 @@ public final class Conjunctive {
                 for(int j = 0; j < conjPostingLists.size(); j++)
                     score += Score.computeTFIDF(arr_de.get(j).getIdf(), conjPostingLists.get(j).currPosting);
 
-                System.out.println("Score: " + score);
-
-                if(results.isEmpty() || results.size() < Query.k)
-                    results.add(new ResultBlock(Query.documentTable.get(currentDocId).getDocno(), currentDocId, score));
-                else if (results.peek().getScore() < firstDE.getIdf()) {     // sostituisco elemento con peggior score con quello corrente
-                    if(results.size() == Query.k) {
-                        results.poll();
-                        results.add(new ResultBlock(Query.documentTable.get(currentDocId).getDocno(), currentDocId, score));
+                if(pq_res.isEmpty() || pq_res.size() < k)
+                    pq_res.add(new ResultBlock(documentTable.get(currentDocId).getDocno(), currentDocId, score));
+                else if (pq_res.peek().getScore() < score) {     // sostituisco elemento con peggior score con quello corrente
+                    if(pq_res.size() == k) {
+                        pq_res.poll();
+                        pq_res.add(new ResultBlock(documentTable.get(currentDocId).getDocno(), currentDocId, score));
                     }
                 }
 
@@ -119,16 +115,17 @@ public final class Conjunctive {
 
         }
 
-        printUI("\nResults:");
-        for (int j = 0; j < Query.k && !results.isEmpty(); j++) {
-            System.out.println(results.poll());
+        if(pq_res.isEmpty())
+            printUI("No results");
+        else {
+            printUI("\nResults:");
+            for (int j = 0; j < k; j++)
+                System.out.println(pq_res.poll());
         }
 
     }
 
     private static boolean checkSameDocid () {
-
-        System.out.println("Check for id: " + currentDocId);
 
         ArrayList<Boolean> check = new ArrayList<>();
 
@@ -136,21 +133,21 @@ public final class Conjunctive {
 
             PostingList pl = conjPostingLists.get(j);
 
-            if(pl.getCurrPosting().getDocId() == currentDocId)
+            if(pl.getCurrPosting().getDocId() == currentDocId)      // already right docid
                 check.add(true);
             else {
-                if (pl.sl != null)
-                    pl.nextGEQ(currentDocId, arr_de.get(j));
-                else
-                    while (pl.getCurrPosting().getDocId() < currentDocId)
-                        pl.next(arr_de.get(j));
-            }
+                if (pl.sl != null)      // skipping present
+                    pl.nextGEQ(currentDocId, arr_de.get(j));        // search for tight block
 
-//            if(pl.getCurrPosting() == null || !(pl.getCurrPosting().getDocId() == currentDocId))
-            if(pl.getCurrPosting() == null)
-                return false;
+                while (pl.getCurrPosting().getDocId() < currentDocId && pl.currPosting != null)
+                    pl.next(arr_de.get(j));
+
+                if(pl.getCurrPosting() == null)
+                    check.add(false);
+                else
+                    check.add(true);
+            }
         }
-        System.out.println((!check.contains(false) ? "check ok" : "check not ok"));
         return !check.contains(false);
     }
 

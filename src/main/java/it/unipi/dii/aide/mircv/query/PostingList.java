@@ -22,6 +22,7 @@ public class PostingList {
         this.postingIterator = list.iterator();
         this.sl = sl;
         this.currPosting = postingIterator.next();
+
     }
 
     public PostingList() {
@@ -47,24 +48,24 @@ public class PostingList {
         }
         // leggo il primo elemento del
 
-        if (!postingIterator.hasNext())
+        if (!postingIterator.hasNext()) {
+            currPosting = null;
             return false;
+        }
         currPosting = postingIterator.next();
         return true;
     }
 
     // advances the iterator forward to the next posting with a document identifier greater than or equal to
     // d ⇒ skipping
-    public boolean nextGEQ (int docId, DictionaryElem de) {
+    public boolean nextGEQ (int targetDocId, DictionaryElem de) {
 
         // if not in the right block
-        if(sl.getCurrSkipInfo().getMaxDocId() < docId) {
-            while (sl.getCurrSkipInfo().getMaxDocId() < docId)
-                if(!sl.next())
-                    currPosting = null;
-        }
-        if(currPosting == null)
-            return false;
+        while (sl.getCurrSkipInfo().getMaxDocId() < targetDocId) // search right block
+            if(!sl.next()) {
+                currPosting = null;
+                return false;
+            }
 
         list.clear();
         SkipInfo si = sl.getCurrSkipInfo();
