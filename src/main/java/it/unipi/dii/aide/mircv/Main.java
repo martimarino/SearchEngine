@@ -212,7 +212,7 @@ public class Main {
                     String queryType = sc.nextLine().toLowerCase();
                     if (queryType.equals("c") || queryType.equals("d")){
                         try {
-                            executeQueryPQ(query, k, queryType);
+                            executeQuery(query, k, queryType);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }

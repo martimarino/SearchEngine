@@ -3,6 +3,7 @@ package it.unipi.dii.aide.mircv.data_structures;
 import it.unipi.dii.aide.mircv.compression.Unary;
 import it.unipi.dii.aide.mircv.Query;
 import it.unipi.dii.aide.mircv.compression.VariableBytes;
+import it.unipi.dii.aide.mircv.score.Score;
 
 import java.io.*;
 import java.nio.CharBuffer;
@@ -138,11 +139,12 @@ public final class DataStructureHandler {
     }
 
     // store one posting list of a term into the disk
-    public static void storePostingListIntoDisk(ArrayList<Posting> pl) {
+    public static double storePostingListIntoDisk(ArrayList<Posting> pl, double idf) {
 
         //number of postings in the posting list
         int len = pl.size();
-
+        double score = 0;
+        double currentScore = 0;
         // Create buffers for docid and termfreq
         try {
             MappedByteBuffer bufferdocid = docId_channel.map(FileChannel.MapMode.READ_WRITE, docId_channel.size(), (long) len*Integer.BYTES); // from 0 to number of postings * int dimension
@@ -156,10 +158,20 @@ public final class DataStructureHandler {
                     appendStringToFile(String.valueOf(posting.getDocId()), "merge_docid.txt");
                     appendStringToFile(String.valueOf(posting.getTermFreq()), "merge_tf.txt");
                 }
+                if(Flags.isScoringEnabled())
+                    currentScore = Score.computeBM25(idf, posting);
+                else
+                    currentScore = Score.computeTFIDF(idf, posting);
+
+                if(currentScore > score)
+                    score = currentScore;
+
             }
+            return score;
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return 0;
     }
 
 
@@ -169,7 +181,7 @@ public final class DataStructureHandler {
     // -------- start: functions to read from disk --------
 
     // function to read all document table from disk and put it in memory (HashMap documentTable)
-    public static void readDocumentTableFromDisk(boolean indexBuilding) throws IOException {
+    public static void readDocumentTableFromDisk(int indexBuilding) throws IOException {
 
         System.out.println("Loading document table from disk...");
 
@@ -182,10 +194,12 @@ public final class DataStructureHandler {
             // for to read all DocumentElement stored into disk
             for (int i = 0; i < docTable_channel.size(); i += DOCELEM_SIZE) {
                 de.readDocumentElementFromDisk(i, docTable_channel); // get the ith DocElem
-                if (indexBuilding)
+                if (indexBuilding == 0)
                     PartialIndexBuilder.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
-                else
+                else if(indexBuilding == 1)
                     Query.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
+                else
+                    IndexMerger.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
             }
 
         }catch (IOException ioe) {
@@ -274,7 +288,9 @@ public final class DataStructureHandler {
 
         ArrayList<Integer> tf = new ArrayList<>();
         ArrayList<Integer> docid  = new ArrayList<>();
-        int[] length = new int[2];
+        double score = 0;
+        double currentScore = 0;
+        int[] length = new int[3];
         //number of postings in the posting list
         for(Posting ps : pl) {
             tf.add(ps.getTermFreq());

@@ -13,6 +13,7 @@ import java.util.*;
 
 import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.readCollectionStatsFromDisk;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readCompressedPostingListFromDisk;
+import static it.unipi.dii.aide.mircv.score.Score.computeTFIDF;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readPostingListFromDisk;
 import static it.unipi.dii.aide.mircv.data_structures.Flags.readFlagsFromDisk;
@@ -59,7 +60,7 @@ public final class Query {
         }
         if (documentTable.isEmpty()) {
             long startTime = System.currentTimeMillis();
-            DataStructureHandler.readDocumentTableFromDisk(false);
+            DataStructureHandler.readDocumentTableFromDisk(1);
             long endTime = System.currentTimeMillis();
             printTime("Document Table loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
         }
@@ -183,7 +184,7 @@ public final class Query {
                 inverseResultQueue.add(pq_res.poll());
             }
             while(!inverseResultQueue.isEmpty())
-                printUI(inverseResultQueue.poll().toString());
+                printUI(inverseResultQueue.poll().getDocNo());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -191,11 +192,6 @@ public final class Query {
     }
 
 
-    public static double computeTFIDF(Double idf, Posting p) {
-
-        double tf = 1 + Math.log10(p.getTermFreq());
-        return tf*idf;
-    }
 
     private static void DocumentAtATime(ArrayList<String> query, int k){
 
@@ -218,13 +214,13 @@ public final class Query {
                     continue;
                 }
                 idf.add(de.getIdf());
+                printDebug("MAXBM25: " + de.getMaxBM25() + " MAXTFIDF: " + de.getMaxTFIDF());
                 PostingList pl;
                 if(Flags.isCompressionEnabled())
                     pl = new PostingList(readCompressedPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getTermFreqSize(), de.getDocIdSize(), de.getDf()), null);
                 else
                     pl = new PostingList(readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf()), null);
                 postingLists.add(pl);
-                printDebug(pl.toString());
             }
 
             int current = minDocID(postingLists);

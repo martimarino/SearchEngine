@@ -98,9 +98,12 @@ public class Dictionary {
                 dictElem.setSkipOffset(buffer.getLong());
                 dictElem.setSkipOffset(buffer.getInt());
                 dictElem.assignIdf(buffer.getDouble());
+                if(Flags.isScoringEnabled())
+                    dictElem.setMaxBM25(buffer.getDouble());
+                else
+                    dictElem.setMaxTFIDF(buffer.getDouble());
                 termToTermStat.put(term, dictElem);   // add DictionaryElem into memory
             }
-
             System.out.println("vocabulary size: " + termToTermStat.size());
         } catch (IOException e) {
             e.printStackTrace();
