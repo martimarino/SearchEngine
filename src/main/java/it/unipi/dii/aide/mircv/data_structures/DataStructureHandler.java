@@ -134,6 +134,8 @@ public final class DataStructureHandler {
 
         //number of postings in the posting list
         int len = pl.size();
+        StringBuilder debug_pl = new StringBuilder();
+        StringBuilder debug_docid = new StringBuilder();
 
         // Create buffers for docid and termfreq
         try {
@@ -144,10 +146,13 @@ public final class DataStructureHandler {
                 bufferdocid.putInt(posting.getDocId());
                 buffertermfreq.putInt(posting.getTermFreq());
                 if(debug) {
-                    appendStringToFile(posting.toString(), "merge_pl.txt");
-                    appendStringToFile(String.valueOf(posting.getDocId()), "merge_docid.txt");
-                    appendStringToFile(String.valueOf(posting.getTermFreq()), "merge_tf.txt");
+                    debug_pl.append("{").append(posting.getDocId()).append(", ").append(posting.getTermFreq()).append("} ");
+                    debug_docid.append(posting.getDocId()).append( ", ");
                 }
+            }
+            if (debug) {
+                appendStringToFile(debug_pl.toString(), "merge_pl.txt");
+                appendStringToFile(debug_docid.toString(), "merge_docid.txt");
             }
         } catch (IOException e) {
             e.printStackTrace();

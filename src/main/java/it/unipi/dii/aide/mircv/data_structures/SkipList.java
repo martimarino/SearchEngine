@@ -87,4 +87,5 @@ public class SkipList {
     public void setMaxBM25(double maxBM25) {
         this.maxBM25 = maxBM25;
     }
+
 }

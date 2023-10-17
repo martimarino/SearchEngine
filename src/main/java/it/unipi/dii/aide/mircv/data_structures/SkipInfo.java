@@ -6,6 +6,7 @@ import java.nio.CharBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
+import static it.unipi.dii.aide.mircv.utils.Constants.printDebug;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.skip_channel;
 
 public class SkipInfo {
@@ -66,6 +67,7 @@ public class SkipInfo {
         skipPointsBuffer.putLong(this.maxDocId);
         skipPointsBuffer.putLong(this.docIdOffset);
         skipPointsBuffer.putLong(this.freqOffset);
+
     }
 
 
@@ -76,6 +78,7 @@ public class SkipInfo {
         this.setMaxDocId(skipPointsBuffer.getLong());
         this.setDocIdOffset(skipPointsBuffer.getLong());
         this.setFreqOffset(skipPointsBuffer.getLong());
+
     }
 
 }

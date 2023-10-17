@@ -41,7 +41,7 @@ public final class Constants {
     public static int N_POSTINGS = 0;                  // Number of partial postings to save in the file
 
 //    public static final int SKIP_POINTERS_THRESHOLD = 1024;
-    public static final int SKIP_POINTERS_THRESHOLD = 128;
+    public static int SKIP_POINTERS_THRESHOLD = 128;
 //public static int SKIP_POINTERS_THRESHOLD = Integer.MAX_VALUE;
 
     // -------------------------------------- Constants for file offsets ----------------------------------------------

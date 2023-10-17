@@ -21,6 +21,8 @@ import static it.unipi.dii.aide.mircv.utils.FileSystem.file_cleaner;
 
 class QueryTest {
 
+    String filename = "performanceOutputAll.txt";
+
 //    @BeforeAll
 //    static void getFromFile(){
 //        Flags.setConsiderSkippingBytes(true);
@@ -53,7 +55,7 @@ class QueryTest {
     }
 */
 
-    @Test
+//    @Test
     void name() {
         ArrayList<Integer> result = new ArrayList<>();
         int numberOfResults = 10;
@@ -61,13 +63,12 @@ class QueryTest {
         int avgTime = 0;
 
         int nQuery = 0;
-        String filename = "performanceOutputAll.txt";
         try (BufferedReader TSVReader = new BufferedReader(new FileReader("src/main/resources/msmarco-test2020-queries.tsv"))) {
             String line = null;
             while ((line = TSVReader.readLine()) != null) {
                 String query = line.split("\t")[1]; //splitting the line and adding its items in String[]
                 long startTimePQ = System.currentTimeMillis();
-                Query.executeQueryPQ(query, numberOfResults, "d");
+                Query.executeQueryPQ(query, numberOfResults, "c");
                 long endTimePQ = System.currentTimeMillis();
                 String PQtime = "query \"" + query + " \" time PQ : " + (endTimePQ - startTimePQ) + "ms";
                 System.out.println(PQtime);
@@ -94,7 +95,6 @@ class QueryTest {
             if(nQuery > 0) {
                 String AvgPQ = "Average time PQ: " + (avgTimePQ / (nQuery)) + "ms";
                 String Avg = "Average time: " + (avgTime / (nQuery)) + "ms";
-                printUI(AvgPQ);
 
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
 
@@ -118,31 +118,61 @@ class QueryTest {
     }
 
 //    @Test
-//    void testWithSkip() throws IOException {
+//    void testSmallWithSkip() throws IOException {
 //
 //        COLLECTION_PATH = "src/main/resources/small_collection.tar.gz";
 //        MEMORY_THRESHOLD = 0.008;
 //        SKIP_POINTERS_THRESHOLD = 128;
 //
 //        setConsiderSkippingBytes(false);
-//
 //        testBuildIndex();
+//
+//        setConsiderSkippingBytes(true);
+//        queryStartControl();
 //        name();
 //
 //    }
-
+//
 //    @Test
-//    void testWithoutSkip() throws IOException {
+//    void testSmallWithoutSkip() throws IOException {
 //
 //        COLLECTION_PATH = "src/main/resources/small_collection.tar.gz";
 //        MEMORY_THRESHOLD = 0.008;
 //        SKIP_POINTERS_THRESHOLD = Integer.MAX_VALUE;
 //
 //        setConsiderSkippingBytes(false);
-//
 //        testBuildIndex();
 //
 //        setConsiderSkippingBytes(true);
+//        queryStartControl();
+//        name();
+//
+//    }
+
+//    @Test
+//    void testFullWithSkip() {
+//
+//        COLLECTION_PATH = "src/main/resources/collection.tar.gz";
+//        MEMORY_THRESHOLD = 0.8;
+//        SKIP_POINTERS_THRESHOLD = 1024;
+//
+//        filename = "testFullWithSkip.txt";
+//        setConsiderSkippingBytes(true);
+//        queryStartControl();
+//        name();
+//
+//    }
+//
+//    @Test
+//    void testFullWithoutSkip() {
+//
+//        COLLECTION_PATH = "src/main/resources/collection.tar.gz";
+//        MEMORY_THRESHOLD = 0.8;
+//        SKIP_POINTERS_THRESHOLD = Integer.MAX_VALUE;
+//
+//        filename = "testFullWithoutSkip.txt";
+//        setConsiderSkippingBytes(true);
+//        queryStartControl();
 //        name();
 //
 //    }

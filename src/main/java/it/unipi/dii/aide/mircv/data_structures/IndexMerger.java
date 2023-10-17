@@ -70,8 +70,6 @@ public final class IndexMerger {
             ArrayList<Long> currentBlockOffset = new ArrayList<>(nrBlocks);
             currentBlockOffset.addAll(dictionaryBlockOffsets);
 
-            printDebug("dictionaryBlockOffsets = " + dictionaryBlockOffsets);
-
             // var which indicates the steps of 'i' progression print during merge
             System.out.println("Compression " + Flags.isCompressionEnabled());
 
@@ -147,12 +145,14 @@ public final class IndexMerger {
 
                         Flags.setConsiderSkippingBytes(true);
 
+                        if (debug) {
+                            appendStringToFile("TERM: '" + tempDE.getTerm() + "'", "merge_pl.txt");
+                            appendStringToFile("TERM: '" + tempDE.getTerm() + "'", "merge_docid.txt");
+                        }
+
                         //update DocID and Term Frequency offset ( equal to the end of the files)
                         tempDE.setOffsetTermFreq(termFreq_channel.size());
                         tempDE.setOffsetDocId(docId_channel.size());
-
-                        if(tempDE.getTerm().equals("home"))
-                            printDebug(tempPL.toString());
 
 //                        tempDE.computeMaxTFIDF();
 
@@ -165,6 +165,9 @@ public final class IndexMerger {
 
                         int lenPL = tempPL.size();
                         int[] tempCompressedLength = new int[2];
+                        if(term.equals("of"))
+                            System.out.println("of term");
+
                         if(lenPL >= SKIP_POINTERS_THRESHOLD) {
                             int skipInterval = (int) Math.ceil(Math.sqrt(lenPL));        // one skip every sqrt(docs)
                             int nSkip = 0;
@@ -184,6 +187,8 @@ public final class IndexMerger {
                                 } else {
                                     SkipInfo sp = new SkipInfo(subPL.get(subPL.size()-1).getDocId(), docId_channel.size(),  termFreq_channel.size());
                                     sp.storeSkipInfoToDisk();
+                                    if(term.equals("of"))
+                                        System.out.println("SKIP INFO STORED (term for): " + sp);
                                     storePostingListIntoDisk(tempSubPL);  // write InvertedIndexElem to disk
                                 }
                                 nSkip++;
@@ -196,20 +201,17 @@ public final class IndexMerger {
                             }
                         }
                         else {
-                            if (debug) {
-                                appendStringToFile(tempDE.getTerm(), "merge_pl.txt");
-                                appendStringToFile(tempDE.getTerm(), "merge_docid.txt");
-                                appendStringToFile(tempDE.getTerm(), "merge_tf.txt");
-                            }
-
                             if(Flags.isCompressionEnabled()){
                                 int[] compressedLength = DataStructureHandler.storeCompressedPostingIntoDisk(tempPL);//store index with compression - unary compression for termfreq
                                 assert compressedLength != null;
                                 tempDE.setTermFreqSize(compressedLength[0]);
                                 tempDE.setDocIdSize(compressedLength[1]);
                             }
-                            else
+                            else {
+                                if (term.equals("of"))
+                                    System.out.println(".............................");
                                 storePostingListIntoDisk(tempPL);  // write InvertedIndexElem to disk
+                            }
                         }
                         tempDE.setIdf(tempDE.computeIdf());
                         tempDE.storeDictionaryElemIntoDisk();
