@@ -260,10 +260,7 @@ public class DictionaryElem {
 
     }
 
-    public void setIdf() {
-        this.idf = Math.log10(CollectionStatistics.getNDocs() / (double)this.df);
-    }
-    public void assignIdf(double idf){
+    public void setIdf(double idf){
         this.idf = idf;
     }
     public double computeIdf() {return Math.log10(CollectionStatistics.getNDocs() / (double)this.df);

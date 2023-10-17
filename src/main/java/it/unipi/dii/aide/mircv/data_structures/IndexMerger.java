@@ -1,7 +1,5 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
-import it.unipi.dii.aide.mircv.utils.Logger;
-
 import java.io.*;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
