@@ -10,6 +10,7 @@ import it.unipi.dii.aide.mircv.utils.TextProcessor;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.readCollectionStatsFromDisk;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readCompressedPostingListFromDisk;
@@ -27,7 +28,7 @@ public final class Query {
     public static Dictionary dictionary = new Dictionary();
 
     public static int k;
-    public static ArrayList<String> query_terms;
+    public static List<String> query_terms;
 
     private static String queryType;
 
@@ -71,6 +72,7 @@ public final class Query {
         long startTime = System.currentTimeMillis();
         query = TextProcessor.preprocessText(q);
         Query.k = k;
+        query_terms = query.stream().distinct().collect(Collectors.toList());
         Query.queryType = q_type;
         DocumentAtATime(query, k);
         long endTime = System.currentTimeMillis();
@@ -80,14 +82,15 @@ public final class Query {
     public static void executeQueryPQ(String q, int k, String q_type) throws IOException {
 
         long startTime = System.currentTimeMillis();
-        query_terms = TextProcessor.preprocessText(q);
+        ArrayList<String> query = TextProcessor.preprocessText(q);
         Query.k = k;
         pq_res = new PriorityQueue<>(k, new CompareRes());
         Query.queryType = q_type;
+        query_terms = query.stream().distinct().collect(Collectors.toList());
+
         DAATalgorithm();
         long endTime = System.currentTimeMillis();
         printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
-
     }
 
     private static void DAATalgorithm() {
