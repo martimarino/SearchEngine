@@ -3,6 +3,7 @@ package it.unipi.dii.aide.mircv.data_structures;
 import it.unipi.dii.aide.mircv.compression.Unary;
 import it.unipi.dii.aide.mircv.Query;
 import it.unipi.dii.aide.mircv.compression.VariableBytes;
+import it.unipi.dii.aide.mircv.score.Score;
 
 import java.io.*;
 import java.nio.CharBuffer;
@@ -50,6 +51,7 @@ public final class DataStructureHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
 
     // function to store offset of the blocks into disk
@@ -130,10 +132,18 @@ public final class DataStructureHandler {
     }
 
     // store one posting list of a term into the disk
-    public static void storePostingListIntoDisk(ArrayList<Posting> pl) {
+    public static double[] storePostingListIntoDisk(ArrayList<Posting> pl, double idf) {
 
         //number of postings in the posting list
         int len = pl.size();
+        double scoreBM25 = 0;
+        double scoreTFIDF = 0;
+
+        double currentScoreBM25 = 0;
+        double currentScoreTFIDF = 0;
+
+        double[] score = new double[2];
+        
         StringBuilder debug_pl = new StringBuilder();
         StringBuilder debug_docid = new StringBuilder();
 
@@ -149,14 +159,29 @@ public final class DataStructureHandler {
                     debug_pl.append("{").append(posting.getDocId()).append(", ").append(posting.getTermFreq()).append("} ");
                     debug_docid.append(posting.getDocId()).append( ", ");
                 }
+
+                currentScoreBM25 = Score.computeBM25(idf, posting);
+                currentScoreTFIDF = Score.computeTFIDF(idf, posting);
+
+                if(currentScoreBM25 > scoreBM25)
+                    scoreBM25 = currentScoreBM25;
+
+                if(currentScoreTFIDF > scoreTFIDF)
+                    scoreTFIDF = currentScoreTFIDF;
             }
+
             if (debug) {
                 appendStringToFile(debug_pl.toString(), "merge_pl.txt");
                 appendStringToFile(debug_docid.toString(), "merge_docid.txt");
             }
+
+            score[0] = scoreBM25;
+            score[1] = scoreTFIDF;
+            return score;
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
 
@@ -166,7 +191,7 @@ public final class DataStructureHandler {
     // -------- start: functions to read from disk --------
 
     // function to read all document table from disk and put it in memory (HashMap documentTable)
-    public static void readDocumentTableFromDisk(boolean indexBuilding) {
+    public static void readDocumentTableFromDisk(int indexBuilding) throws IOException {
 
         System.out.println("Loading document table from disk...");
 
@@ -179,10 +204,10 @@ public final class DataStructureHandler {
             // for to read all DocumentElement stored into disk
             for (int i = 0; i < docTable_channel.size(); i += DOCELEM_SIZE) {
                 de.readDocumentElementFromDisk(i, docTable_channel); // get the ith DocElem
-                if (indexBuilding)
+                if (indexBuilding == 0)
                     PartialIndexBuilder.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
                 else
-                    Query.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
+                    IndexMerger.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
             }
 
         }catch (IOException ioe) {
@@ -271,7 +296,9 @@ public final class DataStructureHandler {
 
         ArrayList<Integer> tf = new ArrayList<>();
         ArrayList<Integer> docid  = new ArrayList<>();
-        int[] length = new int[2];
+        double score = 0;
+        double currentScore = 0;
+        int[] length = new int[3];
         //number of postings in the posting list
         for(Posting ps : pl) {
             tf.add(ps.getTermFreq());

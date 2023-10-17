@@ -19,7 +19,8 @@ public class DictionaryElem {
         // if compression case, need to store 2 more integers (dimension of compressed DocID and Term Frequency values)
         int DICT_ELEM_SIZE = TERM_DIM + 2*Integer.BYTES + 2*Long.BYTES;
         return DICT_ELEM_SIZE + ((Flags.considerSkippingBytes() && Flags.isCompressionEnabled()) ? 2*Integer.BYTES : 0)
-                              + ((Flags.considerSkippingBytes()) ? (2*Long.BYTES + Integer.BYTES) : 0);
+                              + ((Flags.considerSkippingBytes()) ? (2*Long.BYTES + Integer.BYTES) : 0)
+                                + ((Flags.considerSkippingBytes()) ? (2*Long.BYTES) : 0);
     }
 
     private String term;        //32 byte
@@ -39,8 +40,8 @@ public class DictionaryElem {
     private int skipArrLen;       // how many skip blocks
 
     //scoring
-//    private double maxTf;
-//    private double maxTFIDF;        // upper bound
+    private double maxTFIDF;
+    private double maxBM25;
 
 
     DictionaryElem() {
@@ -52,8 +53,8 @@ public class DictionaryElem {
         this.skipOffset = -1;
         this.skipArrLen = -1;
         this.idf = 0;
-//        this.maxTf = 0;
-//        this.maxTFIDF = 0;
+        this.maxTFIDF = 0;
+        this.maxBM25 = 0;
     }
 
 
@@ -71,8 +72,8 @@ public class DictionaryElem {
         this.skipOffset = -1;
         this.skipArrLen = -1;
         this.idf = 0;
-//        this.maxTf = 0;
-//        this.maxTFIDF = 0;
+        this.maxTFIDF = 0;
+        this.maxBM25 = 0;
     }
 
     // add the quantity passed as a parameter to the current Df
@@ -158,8 +159,8 @@ public class DictionaryElem {
                 ", offsetSkip=" + skipOffset +
                 ", skipArrLen=" + skipArrLen +
                 ", idf=" + idf +
-//                ", maxTf=" + maxTf +
-//                ", maxTFIDF=" + maxTFIDF +
+                ", maxBM25=" + maxBM25 +
+                ", maxTFIDF=" + maxTFIDF +
                 '}';
     }
 
@@ -200,14 +201,12 @@ public class DictionaryElem {
                 buffer.putLong(skipOffset);
                 buffer.putInt(skipArrLen);
                 buffer.putDouble(idf);
+                buffer.putDouble(maxBM25);
+                buffer.putDouble(maxTFIDF);
 
                 if(debug) {
                     appendStringToFile(this.toString(), "merge_de.txt");
                 }
-            }
-            if(Flags.isScoringEnabled()) {
-//                buffer.putDouble(maxTf);
-//                buffer.putDouble(maxTFIDF);
             }
 
             if(debug && !Flags.considerSkippingBytes()) {
@@ -253,10 +252,6 @@ public class DictionaryElem {
                 skipArrLen = buffer.getInt();
                 idf = buffer.getDouble();
             }
-            if (Flags.isScoringEnabled()) {
-//                maxTf = buffer.getDouble();
-//                maxTFIDF = buffer.getDouble();
-            }
 
             if(debug && term.equals("of"))
                 appendStringToFile("DE READ -> " + this, "of_debug.txt");
@@ -270,10 +265,23 @@ public class DictionaryElem {
     public void setIdf(double idf){
         this.idf = idf;
     }
-//
-//    public void computeMaxTFIDF() {
-//        this.maxTFIDF = (1 + Math.log10(this.maxTf)) * this.idf;
-//    }
     public double computeIdf() {return Math.log10(CollectionStatistics.getNDocs() / (double)this.df);
 }
+    public double getMaxTFIDF() {
+        return maxTFIDF;
+    }
+
+    public void setMaxTFIDF(double maxTFIDF) {
+        this.maxTFIDF = maxTFIDF;
+    }
+
+    public double getMaxBM25() {
+        return maxBM25;
+    }
+
+    public void setMaxBM25(double maxBM25) {
+        this.maxBM25 = maxBM25;
+    }
+
+    public void setIdf(double idf) {this.idf = idf;}
 }

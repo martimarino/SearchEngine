@@ -98,6 +98,9 @@ public class Dictionary {
                 dictElem.setSkipOffset(buffer.getLong());
                 dictElem.setSkipArrLen(buffer.getInt());
                 dictElem.setIdf(buffer.getDouble());
+                dictElem.setMaxBM25(buffer.getDouble());
+                dictElem.setMaxTFIDF(buffer.getDouble());
+                System.out.println("maxtfidf: " + dictElem.getMaxTFIDF());
                 termToTermStat.put(term, dictElem);   // add DictionaryElem into memory
             }
 

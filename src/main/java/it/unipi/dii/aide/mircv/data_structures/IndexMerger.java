@@ -6,10 +6,10 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readPostingListFromDisk;
-import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.storePostingListIntoDisk;
+import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.*;
 import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.getDictElemSize;
 import static it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder.dictionaryBlockOffsets;
+import static it.unipi.dii.aide.mircv.score.Score.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 import static it.unipi.dii.aide.mircv.utils.Logger.*;
@@ -22,6 +22,7 @@ public final class IndexMerger {
     // Priority queue which will contain the first term (in lexicographic order) of each block. Used for merge and to
     // take from all the blocks the terms in the right order.
     private static final PriorityQueue<TermBlock> pq = new PriorityQueue<>(dictionaryBlockOffsets.isEmpty() ? 1 : dictionaryBlockOffsets.size(), new CompareTerm());
+    public static HashMap<Integer, DocumentElement> documentTable = new HashMap<>();     // hash table DocID to related DocElement
 
     private IndexMerger() {
         throw new UnsupportedOperationException();
@@ -39,6 +40,7 @@ public final class IndexMerger {
                 RandomAccessFile partialDocidFile = new RandomAccessFile(PARTIAL_DOCID_FILE, "rw");
                 RandomAccessFile partialTermfreqFile = new RandomAccessFile(PARTIAL_TERMFREQ_FILE, "rw");
                 RandomAccessFile partialDictFile = new RandomAccessFile(PARTIAL_DICTIONARY_FILE, "rw");
+                RandomAccessFile documentTableFile = new RandomAccessFile(DOCTABLE_FILE, "rw");
 
                 RandomAccessFile blocksFile = new RandomAccessFile(BLOCKOFFSETS_FILE, "rw");
                 // open complete files to write the merged dictionary and merged index
@@ -52,6 +54,7 @@ public final class IndexMerger {
             partialDict_channel = partialDictFile.getChannel();
             partialDocId_channel = partialDocidFile.getChannel();
             partialTermFreq_channel = partialTermfreqFile.getChannel();
+            docTable_channel = documentTableFile.getChannel();
             blocks_channel = blocksFile.getChannel();
             // FileChannel in output (complete file)
             dict_channel = dictFile.getChannel();
@@ -69,6 +72,7 @@ public final class IndexMerger {
             // array containing the current read offset for each block
             ArrayList<Long> currentBlockOffset = new ArrayList<>(nrBlocks);
             currentBlockOffset.addAll(dictionaryBlockOffsets);
+            readDocumentTableFromDisk(2);
 
             // var which indicates the steps of 'i' progression print during merge
             System.out.println("Compression " + Flags.isCompressionEnabled());
@@ -144,6 +148,7 @@ public final class IndexMerger {
                     else{    // different term found, write to disk the complete data of the previous term
 
                         Flags.setConsiderSkippingBytes(true);
+                        tempDE.setIdf(tempDE.computeIdf());
 
                         if (debug) {
                             appendStringToFile("TERM: '" + tempDE.getTerm() + "'", "merge_pl.txt");
@@ -154,17 +159,16 @@ public final class IndexMerger {
                         tempDE.setOffsetTermFreq(termFreq_channel.size());
                         tempDE.setOffsetDocId(docId_channel.size());
 
-//                        tempDE.computeMaxTFIDF();
-
                         if(currentDE.getTerm().equals("of") && debug){
                             appendStringToFile("(merge) TEMP DE: " + tempDE, "of_debug.txt");
                             appendStringToFile("(merge) TEMP PL: " + tempPL, "of_debug.txt");
                         }
 
                         assert tempPL != null;
-
                         int lenPL = tempPL.size();
+
                         int[] tempCompressedLength = new int[2];
+
                         if(term.equals("of"))
                             System.out.println("of term");
 
@@ -180,6 +184,8 @@ public final class IndexMerger {
                                 if (Flags.isCompressionEnabled()) {
                                     SkipInfo sp = new SkipInfo(subPL.get(subPL.size()-1).getDocId(), docId_channel.size(), termFreq_channel.size());
                                     sp.storeSkipInfoToDisk();
+                                    tempDE.setMaxBM25(computeMaxBM25(tempSubPL, tempDE.getIdf()));
+                                    tempDE.setMaxTFIDF(computeMaxTFIDF(tempSubPL, tempDE.getIdf()));
                                     int[] compressedLength = DataStructureHandler.storeCompressedPostingIntoDisk(tempSubPL);//store index with compression - unary compression for termfreq
                                     assert compressedLength != null;
                                     tempCompressedLength[0] += compressedLength[0];
@@ -189,8 +195,9 @@ public final class IndexMerger {
                                     sp.storeSkipInfoToDisk();
                                     if(term.equals("of"))
                                         System.out.println("SKIP INFO STORED (term for): " + sp);
-                                    storePostingListIntoDisk(tempSubPL);  // write InvertedIndexElem to disk
-                                }
+                                    double[] score = storePostingListIntoDisk(tempSubPL, tempDE.getIdf());
+                                    tempDE.setMaxBM25(score[0]);
+                                    tempDE.setMaxTFIDF(score[1]);                                }
                                 nSkip++;
                             }
                             tempDE.setSkipArrLen(nSkip);
@@ -202,6 +209,8 @@ public final class IndexMerger {
                         }
                         else {
                             if(Flags.isCompressionEnabled()){
+                                tempDE.setMaxBM25(computeMaxBM25(tempPL, tempDE.getIdf()));
+                                tempDE.setMaxTFIDF(computeMaxTFIDF(tempPL, tempDE.getIdf()));
                                 int[] compressedLength = DataStructureHandler.storeCompressedPostingIntoDisk(tempPL);//store index with compression - unary compression for termfreq
                                 assert compressedLength != null;
                                 tempDE.setTermFreqSize(compressedLength[0]);
@@ -210,10 +219,12 @@ public final class IndexMerger {
                             else {
                                 if (term.equals("of"))
                                     System.out.println(".............................");
-                                storePostingListIntoDisk(tempPL);  // write InvertedIndexElem to disk
+
+                                double[] score = storePostingListIntoDisk(tempPL, tempDE.getIdf());
+                                tempDE.setMaxBM25(score[0]);
+                                tempDE.setMaxTFIDF(score[1]);
                             }
                         }
-                        tempDE.setIdf(tempDE.computeIdf());
                         tempDE.storeDictionaryElemIntoDisk();
                         termCounter++;
                         Flags.setConsiderSkippingBytes(false);
