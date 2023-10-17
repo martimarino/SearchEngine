@@ -168,6 +168,8 @@ public final class IndexMerger {
 
                         assert tempPL != null;
                         int lenPL = tempPL.size();
+                        if(tempDE.getTerm().equals("for"))
+                            printDebug("length of for" + lenPL);
                         int[] tempCompressedLength = new int[2];
                         if(lenPL >= SKIP_POINTERS_THRESHOLD) {
                             int skipInterval = (int) Math.ceil(Math.sqrt(lenPL));        // one skip every rad(docs)
@@ -225,8 +227,6 @@ public final class IndexMerger {
                                 tempDE.setMaxTFIDF(score[1]);
                                 }
                             }
-                        printDebug("MAXBM25: " + tempDE.getMaxBM25() + " MAXTFIDF: " + tempDE.getMaxTFIDF());
-
                         tempDE.storeDictionaryElemIntoDisk();
                         termCounter++;
                         Flags.setConsiderSkippingBytes(false);

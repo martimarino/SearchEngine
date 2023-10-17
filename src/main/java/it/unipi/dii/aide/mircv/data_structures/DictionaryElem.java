@@ -280,4 +280,6 @@ public class DictionaryElem {
     public void setMaxBM25(double maxBM25) {
         this.maxBM25 = maxBM25;
     }
+
+    public void assignIdf(double idf) {this.idf = idf;}
 }

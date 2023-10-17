@@ -51,7 +51,7 @@ public class Main {
 
                     setSws(getUserChoice(sc, "stopwords removal"));    // take user preferences on the removal of stopwords
                     setCompression(getUserChoice(sc, "compression"));  // take user preferences on the compression
-                    setScoring(getUserChoice(sc, "scoring"));          // take user preferences on the scoring
+                    //setScoring(getUserChoice(sc, "scoring"));          // take user preferences on the scoring
                     storeFlagsIntoDisk();      // store Flags
 
                     startTime = System.currentTimeMillis();         // start time to merge blocks from disk

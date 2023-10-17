@@ -15,7 +15,7 @@ public final class Flags {
 
     private static boolean sws_flag = false;            // true = stop words removal enabled, false = stop words removal disabled
     private static boolean compression_flag = false;    // true = compression enabled, false = compression disabled
-    private static boolean scoring_flag = false;        // true = scoring enable, false = scoring disable
+ /*   private static boolean scoring_flag = false;        // true = scoring enable, false = scoring disable*/
 
 //    private static boolean isSPIMI = false;
 //    private static boolean isMerge = false;
@@ -27,7 +27,7 @@ public final class Flags {
 
     public static boolean isCompressionEnabled() { return compression_flag; }
 
-    public static boolean isScoringEnabled() { return scoring_flag; }
+    //public static boolean isScoringEnabled() { return scoring_flag; }
 
     public static void setSws(boolean sws_flag) { Flags.sws_flag = sws_flag; }
 
@@ -35,10 +35,10 @@ public final class Flags {
         Flags.compression_flag = compression_flag;
     }
 
-    public static void setScoring(boolean scoring_flag) {
+    /*public static void setScoring(boolean scoring_flag) {
         Flags.scoring_flag = scoring_flag;
     }
-
+*/
     // function to store the user's choices for the flags
     public static void storeFlagsIntoDisk() {
         System.out.println("Storing flags into disk...");
@@ -48,11 +48,11 @@ public final class Flags {
         ) {
             flags_channel = raf.getChannel();
 
-            MappedByteBuffer buffer = flags_channel.map(FileChannel.MapMode.READ_WRITE, 0, (long) Integer.BYTES * 3); //offset_size (size of dictionary offset) * number of blocks
+            MappedByteBuffer buffer = flags_channel.map(FileChannel.MapMode.READ_WRITE, 0, (long) Integer.BYTES * 2); //offset_size (size of dictionary offset) * number of blocks
 
             buffer.putInt(isSwsEnabled() ? 1 : 0);             // write stop words removal user's choice
             buffer.putInt(isCompressionEnabled() ? 1 : 0);     // write compression user's choice
-            buffer.putInt(isScoringEnabled() ? 1 : 0);         // write scoring user's choice
+/*            buffer.putInt(isScoringEnabled() ? 1 : 0);         // write scoring user's choice*/
 
         } catch (IOException ioe) {
             ioe.printStackTrace();
@@ -67,7 +67,7 @@ public final class Flags {
         try(RandomAccessFile flags_raf = new RandomAccessFile(FLAGS_FILE, "rw")) {
             flags_channel = flags_raf.getChannel();
 
-            ByteBuffer flagsBuffer = ByteBuffer.allocate(12);
+            ByteBuffer flagsBuffer = ByteBuffer.allocate(2*Integer.BYTES);
             flags_channel.position(0);
 
             // Read flag values from file
@@ -78,12 +78,12 @@ public final class Flags {
             // Get flag values from buffer
             int isSwsEnabled = flagsBuffer.getInt();            // read stop words removal user's choice
             int isCompressionEnabled = flagsBuffer.getInt();    // read compression user's choice
-            int isScoringEnabled = flagsBuffer.getInt();        // scoring user's choice
+            //int isScoringEnabled = flagsBuffer.getInt();        // scoring user's choice
 
             // Set flag values with values read
             setSws(isSwsEnabled == 1);
             setCompression(isCompressionEnabled == 1);
-            setScoring(isScoringEnabled == 1);
+           /* setScoring(isScoringEnabled == 1);*/
 
         } catch (IOException ioe) {
             ioe.printStackTrace();

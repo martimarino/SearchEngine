@@ -26,14 +26,14 @@ public final class Query {
     private static ArrayList<String> query;
 
     public static HashMap<Integer, DocumentElement> documentTable = new HashMap<>();    // docID to DocElement
-    public static Dictionary dictionary = new Dictionary();
+    public static Dictionary dictionary = new Dictionary(); //dictionary read from disk
 
-    public static int k;
     static HashMap<Integer, Double> topKresults = new HashMap<>();
     public static ArrayList<String> query_terms;
+    public static int k; //number of result to return
 
-    private static String queryType;
-    private static boolean scoreType;
+    private static String queryType; // if conjunctive ("c") or disjunctive ("d") query
+    private static boolean scoreType; //type of score function ("t" = TFIDF or "b" = BM25)
 
     static PriorityQueue<DAATBlock> pq_DAAT;    // used during DAAT algorithm
     static PriorityQueue<ResultBlock> pq_res;   // contains results
@@ -80,16 +80,15 @@ public final class Query {
             DocumentAtATime(query);
             long endTime = System.currentTimeMillis();
             printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
-
-
     }
-    public static void executeQueryPQ(String q, int k, String q_type, boolean scoreType) throws IOException {
+    public static void executeQueryPQ(String q, int k, String q_type, boolean score) throws IOException {
 
         long startTime = System.currentTimeMillis();
         query_terms = TextProcessor.preprocessText(q);
         Query.k = k;
         pq_res = new PriorityQueue<>(k, new CompareRes());
         Query.queryType = q_type;
+        Query.scoreType = score;
         DAATalgorithm();
         long endTime = System.currentTimeMillis();
         printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
@@ -200,8 +199,6 @@ public final class Query {
         }
     }
 
-
-
     private static void DocumentAtATime(ArrayList<String> query){
 
         ArrayList<PostingList> postingLists = new ArrayList<>();
@@ -300,52 +297,4 @@ public final class Query {
         }
         return Collections.min(first_docids);
     }
-
-    private static class ResBlock{
-        private int docId;
-        private double score;
-
-        public ResBlock(int docId, double score) {
-            this.docId = docId;
-            this.score = score;
-        }
-
-        public int getDocId() {
-            return docId;
-        }
-
-        public void setDocId(int docId) {
-            this.docId = docId;
-        }
-
-        public double getScore() {
-            return score;
-        }
-
-        public void setScore(double score) {
-            this.score = score;
-        }
-
-        @Override
-        public String toString() {
-            return "ResBlock{" +
-                    "docId=" + docId +
-                    ", score=" + score +
-                    '}';
-        }
-    }
-
-    private static class CompareResInv implements Comparator<ResBlock> {
-        @Override
-        public int compare(ResBlock pb1, ResBlock pb2) {
-
-            int scoreCompare = Double.compare(pb2.getScore(), pb1.getScore());
-
-            if(scoreCompare == 0)
-                return Integer.compare(pb1.getDocId(), pb2.getDocId());
-
-            return scoreCompare;
-        }
-    }
-
 }
