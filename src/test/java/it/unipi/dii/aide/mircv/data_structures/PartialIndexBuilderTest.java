@@ -3,8 +3,6 @@ package it.unipi.dii.aide.mircv.data_structures;
 import it.unipi.dii.aide.mircv.utils.Constants;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class PartialIndexBuilderTest {
 
     @Test

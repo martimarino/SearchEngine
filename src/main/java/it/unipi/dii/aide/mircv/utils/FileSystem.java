@@ -2,7 +2,6 @@ package it.unipi.dii.aide.mircv.utils;
 
 import java.io.*;
 
-import it.unipi.dii.aide.mircv.data_structures.SkipInfo;
 import org.apache.commons.io.FileUtils;
 
 import java.nio.channels.FileChannel;
@@ -25,7 +24,7 @@ public final class FileSystem {
      * function to delete all the file except "stopwords.txt", "collection.tsv", and "msmarco-test2020-queries.tsv"
      * that are in resources.
      */
-    public static void file_cleaner() throws IOException {
+    public static void file_cleaner() {
 
         try {
             // Clean or create the partial folder
@@ -101,7 +100,9 @@ public final class FileSystem {
         }
     }
 
-    public static void delete_tempFiles() {
+    public static void delete_tempFiles() throws IOException {
+
+        closeChannels();
 
         File partial_directory = new File(PARTIAL_FOLDER);
         try {

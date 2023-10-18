@@ -1,9 +1,9 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
 import it.unipi.dii.aide.mircv.compression.Unary;
-import it.unipi.dii.aide.mircv.Query;
+import it.unipi.dii.aide.mircv.query.Query;
 import it.unipi.dii.aide.mircv.compression.VariableBytes;
-import it.unipi.dii.aide.mircv.score.Score;
+import it.unipi.dii.aide.mircv.query.Score;
 
 import java.io.*;
 import java.nio.CharBuffer;
@@ -191,7 +191,7 @@ public final class DataStructureHandler {
     // -------- start: functions to read from disk --------
 
     // function to read all document table from disk and put it in memory (HashMap documentTable)
-    public static void readDocumentTableFromDisk(int indexBuilding) throws IOException {
+    public static void readDocumentTableFromDisk(int indexBuilding) {
 
         System.out.println("Loading document table from disk...");
 
@@ -206,6 +206,8 @@ public final class DataStructureHandler {
                 de.readDocumentElementFromDisk(i, docTable_channel); // get the ith DocElem
                 if (indexBuilding == 0)
                     PartialIndexBuilder.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
+                else if(indexBuilding == 1)
+                    Query.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
                 else
                     IndexMerger.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
             }

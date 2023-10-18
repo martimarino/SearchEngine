@@ -1,14 +1,6 @@
 package it.unipi.dii.aide.mircv.compression;
 
-import it.unipi.dii.aide.mircv.data_structures.Posting;
-
-import java.io.IOException;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-
-import static it.unipi.dii.aide.mircv.utils.Constants.printDebug;
-import static it.unipi.dii.aide.mircv.utils.Constants.verbose;
 
 // compression of the field term frequency of the index using Unary
 public class Unary {
@@ -23,19 +15,17 @@ public class Unary {
 
         int numBits = 0;
 
-        for (int i = 0; i < termFreqToCompress.size(); i++)
-            numBits += termFreqToCompress.get(i);
+        for (Integer freqToCompress : termFreqToCompress) numBits += freqToCompress;
 
-        int numBytes = (int) Math.ceil((numBits / 8)) + (numBits%8 == 0? 0 : 1);
+        int numBytes = (int) Math.ceil(((double) numBits / 8)) + (numBits%8 == 0? 0 : 1);
         byte[] compressedResult = new byte[numBytes];
 
         int byteToWrite = 0;
         int bitToWrite = 7; //start from most significant bit
 
-        for (int i = 0; i < termFreqToCompress.size(); i++) {
-            int num = termFreqToCompress.get(i);
+        for (int num : termFreqToCompress) {
             //System.out.println("num: " + num);
-            for (int j = 0; j < num-1; j++) {
+            for (int j = 0; j < num - 1; j++) {
                 //set correspondent bit to 1 using OR bit a bit
                 compressedResult[byteToWrite] = (byte) (compressedResult[byteToWrite] | (1 << bitToWrite));
 
@@ -50,8 +40,7 @@ public class Unary {
             }
             bitToWrite--;
 
-            if(bitToWrite < 0)
-            {
+            if (bitToWrite < 0) {
                 byteToWrite++; // go to next byte
                 bitToWrite = 7;
             }
@@ -81,9 +70,7 @@ public class Unary {
         int nIntegers = 0;
         int currentByte = 0;
 
-        for (int i = 0; i < compressedArray.length; i++) {
-
-            byte currentByteValue = compressedArray[i];
+        for (byte currentByteValue : compressedArray) {
 
             while (currentBit >= 0) {
                 // Read current bit
@@ -99,7 +86,7 @@ public class Unary {
 
                     currentValue = 0; // Reset current value
                     nIntegers++;
-                    if(nIntegers == totNum) {
+                    if (nIntegers == totNum) {
                         return decompressedList;
                     }
                 }

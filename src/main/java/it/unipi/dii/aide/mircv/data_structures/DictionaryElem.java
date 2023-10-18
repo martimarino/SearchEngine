@@ -8,7 +8,6 @@ import java.nio.charset.StandardCharsets;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
-import static it.unipi.dii.aide.mircv.utils.Logger.spimi_logger;
 
 /**
  *  Stores unique terms and their statistics
@@ -230,7 +229,6 @@ public class DictionaryElem {
      * function to read one Dictionary Element from disk
      *
      * @param start     offset of the document reading from document file
-     * @return a DictionaryElem with the value read from disk
      */
     public void readDictionaryElemFromDisk(long start){
 
@@ -265,8 +263,7 @@ public class DictionaryElem {
     public void setIdf(double idf){
         this.idf = idf;
     }
-    public double computeIdf() {return Math.log10(CollectionStatistics.getNDocs() / (double)this.df);
-}
+    public double computeIdf() {return Math.log10(CollectionStatistics.getNDocs() / (double)this.df);}
     public double getMaxTFIDF() {
         return maxTFIDF;
     }
@@ -283,5 +280,4 @@ public class DictionaryElem {
         this.maxBM25 = maxBM25;
     }
 
-    public void setIdf(double idf) {this.idf = idf;}
 }

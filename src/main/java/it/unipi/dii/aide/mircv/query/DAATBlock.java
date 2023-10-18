@@ -1,7 +1,5 @@
 package it.unipi.dii.aide.mircv.query;
 
-import java.util.Comparator;
-
 /**
  * class to define DAATBlock. The priority queue contains instances of DAATBlock
  */

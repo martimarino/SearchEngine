@@ -6,8 +6,6 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 
-import static it.unipi.dii.aide.mircv.utils.Constants.*;
-
 public class DocumentElement {
 
     public static final int DOCNO_DIM = 10;                     // Length of docno (in bytes)
@@ -64,7 +62,6 @@ public class DocumentElement {
      *
      * @param start     offset of the document reading from document file
      * @param channel   indicate the file from which to read
-     * @return a DocumentElement with the value read from disk
      */
     public void readDocumentElementFromDisk(int start, FileChannel channel) throws IOException {
 

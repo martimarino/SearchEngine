@@ -3,18 +3,14 @@ package it.unipi.dii.aide.mircv;
 import it.unipi.dii.aide.mircv.data_structures.Flags;
 import it.unipi.dii.aide.mircv.data_structures.IndexMerger;
 import it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder;
-import it.unipi.dii.aide.mircv.utils.Constants;
-import org.junit.jupiter.api.BeforeAll;
+import it.unipi.dii.aide.mircv.query.Query;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Scanner;
 
-import static it.unipi.dii.aide.mircv.Main.getUserChoice;
-import static it.unipi.dii.aide.mircv.Query.queryStartControl;
+import static it.unipi.dii.aide.mircv.query.Query.queryStartControl;
 import static it.unipi.dii.aide.mircv.data_structures.Flags.*;
-import static it.unipi.dii.aide.mircv.data_structures.Flags.storeFlagsIntoDisk;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.closeChannels;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.file_cleaner;
@@ -55,7 +51,7 @@ class QueryTest {
     }
 */
 
-//    @Test
+    //    @Test
     void name() {
         ArrayList<Integer> result = new ArrayList<>();
         int numberOfResults = 10;
@@ -68,17 +64,17 @@ class QueryTest {
             while ((line = TSVReader.readLine()) != null) {
                 String query = line.split("\t")[1]; //splitting the line and adding its items in String[]
                 long startTimePQ = System.currentTimeMillis();
-                Query.executeQueryPQ(query, numberOfResults, "c");
+                Query.executeQueryPQ(query, numberOfResults, "c", false);
                 long endTimePQ = System.currentTimeMillis();
                 String PQtime = "query \"" + query + " \" time PQ : " + (endTimePQ - startTimePQ) + "ms";
                 System.out.println(PQtime);
-                avgTimePQ += (endTimePQ - startTimePQ);
-                long startTime = System.currentTimeMillis();
-                Query.executeQuery(query, numberOfResults, "d");
-                long endTime = System.currentTimeMillis();
-                String time = "query \"" + query + " \" time : " + (endTime - startTime) + "ms";
-                System.out.println(time);
-                avgTime += (endTime - startTime);
+                avgTimePQ += (int) (endTimePQ - startTimePQ);
+//                long startTime = System.currentTimeMillis();
+//                Query.executeQuery(query, numberOfResults, "d", false);
+//                long endTime = System.currentTimeMillis();
+//                String time = "query \"" + query + " \" time : " + (endTime - startTime) + "ms";
+//                System.out.println(time);
+//                avgTime += (endTime - startTime);
                 nQuery++;
 
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
@@ -94,7 +90,7 @@ class QueryTest {
             }
             if(nQuery > 0) {
                 String AvgPQ = "Average time PQ: " + (avgTimePQ / (nQuery)) + "ms";
-                String Avg = "Average time: " + (avgTime / (nQuery)) + "ms";
+//                String Avg = "Average time: " + (avgTime / (nQuery)) + "ms";
 
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
 
@@ -103,16 +99,16 @@ class QueryTest {
                     writer.newLine();
                     writer.write(AvgPQ);
                     writer.newLine();
-                    writer.write(Avg);
-                    writer.newLine();
+//                    writer.write(Avg);
+//                    writer.newLine();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 printTime(AvgPQ);
-                printTime(Avg);
+//                printTime(Avg);
             }
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
 
     }
@@ -132,7 +128,7 @@ class QueryTest {
 //        name();
 //
 //    }
-//
+
 //    @Test
 //    void testSmallWithoutSkip() throws IOException {
 //
@@ -149,41 +145,40 @@ class QueryTest {
 //
 //    }
 
-//    @Test
-//    void testFullWithSkip() {
-//
-//        COLLECTION_PATH = "src/main/resources/collection.tar.gz";
-//        MEMORY_THRESHOLD = 0.8;
-//        SKIP_POINTERS_THRESHOLD = 1024;
-//
-//        filename = "testFullWithSkip.txt";
-//        setConsiderSkippingBytes(true);
-//        queryStartControl();
-//        name();
-//
-//    }
-//
-//    @Test
-//    void testFullWithoutSkip() {
-//
-//        COLLECTION_PATH = "src/main/resources/collection.tar.gz";
-//        MEMORY_THRESHOLD = 0.8;
-//        SKIP_POINTERS_THRESHOLD = Integer.MAX_VALUE;
-//
-//        filename = "testFullWithoutSkip.txt";
-//        setConsiderSkippingBytes(true);
-//        queryStartControl();
-//        name();
-//
-//    }
+    @Test
+    void testFullWithSkip() throws IOException {
+
+        COLLECTION_PATH = "src/main/resources/collection.tar.gz";
+        MEMORY_THRESHOLD = 0.8;
+        SKIP_POINTERS_THRESHOLD = 1024;
+
+        filename = "testFullWithSkip.txt";
+        setConsiderSkippingBytes(true);
+        queryStartControl();
+        name();
+
+    }
+
+    @Test
+    void testFullWithoutSkip() throws IOException {
+
+        COLLECTION_PATH = "src/main/resources/collection.tar.gz";
+        MEMORY_THRESHOLD = 0.8;
+        SKIP_POINTERS_THRESHOLD = Integer.MAX_VALUE;
+
+        filename = "testFullWithoutSkip.txt";
+        setConsiderSkippingBytes(true);
+        queryStartControl();
+        name();
+
+    }
 
 
-    void testBuildIndex() throws IOException {
+    void testBuildIndex () throws IOException {
         file_cleaner();                             // delete all created files
 
         setSws(false);    // take user preferences on the removal of stopwords
         setCompression(false);  // take user preferences on the compression
-        setScoring(false);          // take user preferences on the scoring
 
         storeFlagsIntoDisk();      // store Flags
 

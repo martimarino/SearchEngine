@@ -1,11 +1,5 @@
-import it.unipi.dii.aide.mircv.data_structures.IndexMerger;
 import it.unipi.dii.aide.mircv.utils.Constants;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.junit.jupiter.api.Test;
-
-import java.io.*;
 
 public class PartialIndexBuilder {
     @Test

@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
-
 public class SkipList {
 
     private ArrayList<SkipInfo> arr_skipInfo;
@@ -23,7 +21,7 @@ public class SkipList {
 
         for(int i = 0; i < nSkipBlocks; i++) {
             SkipInfo skipInfo = new SkipInfo();
-            skipInfo.readSkipInfoFromDisk(offset);
+            skipInfo.readSkipInfoFromDisk(offset, i);
             arr_skipInfo.add(skipInfo);
         }
 

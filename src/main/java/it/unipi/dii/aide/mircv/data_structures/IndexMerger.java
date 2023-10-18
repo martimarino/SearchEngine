@@ -9,10 +9,9 @@ import java.util.*;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.*;
 import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.getDictElemSize;
 import static it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder.dictionaryBlockOffsets;
-import static it.unipi.dii.aide.mircv.score.Score.*;
+import static it.unipi.dii.aide.mircv.query.Score.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
-import static it.unipi.dii.aide.mircv.utils.Logger.*;
 import static java.lang.Math.min;
 
 /**
@@ -22,7 +21,7 @@ public final class IndexMerger {
     // Priority queue which will contain the first term (in lexicographic order) of each block. Used for merge and to
     // take from all the blocks the terms in the right order.
     private static final PriorityQueue<TermBlock> pq = new PriorityQueue<>(dictionaryBlockOffsets.isEmpty() ? 1 : dictionaryBlockOffsets.size(), new CompareTerm());
-    public static HashMap<Integer, DocumentElement> documentTable = new HashMap<>();     // hash table DocID to related DocElement
+    public static final HashMap<Integer, DocumentElement> documentTable = new HashMap<>();     // hash table DocID to related DocElement
 
     private IndexMerger() {
         throw new UnsupportedOperationException();
@@ -48,7 +47,7 @@ public final class IndexMerger {
                 RandomAccessFile termfreqFile = new RandomAccessFile(TERMFREQ_FILE, "rw");
                 RandomAccessFile dictFile = new RandomAccessFile(DICTIONARY_FILE, "rw");
                 // open skipping file
-                RandomAccessFile skipFile = new RandomAccessFile(SKIP_FILE, "rw");
+                RandomAccessFile skipFile = new RandomAccessFile(SKIP_FILE, "rw")
         ) {
             // FileChannel in input (partial file)
             partialDict_channel = partialDictFile.getChannel();
@@ -122,7 +121,7 @@ public final class IndexMerger {
                     appendStringToFile("(merge) CURRENT PL: " + currentPL, "of_debug.txt");
                 }
 
-                if (tempDE.getTerm().equals("")) {        // first iteration
+                if (tempDE.getTerm().isEmpty()) {        // first iteration
 
                     //set temp variables values with value of the element taken in the current iteration
                     tempDE = currentDE;
@@ -169,9 +168,6 @@ public final class IndexMerger {
 
                         int[] tempCompressedLength = new int[2];
 
-                        if(term.equals("of"))
-                            System.out.println("of term");
-
                         if(lenPL >= SKIP_POINTERS_THRESHOLD) {
                             int skipInterval = (int) Math.ceil(Math.sqrt(lenPL));        // one skip every sqrt(docs)
                             int nSkip = 0;
@@ -193,8 +189,8 @@ public final class IndexMerger {
                                 } else {
                                     SkipInfo sp = new SkipInfo(subPL.get(subPL.size()-1).getDocId(), docId_channel.size(),  termFreq_channel.size());
                                     sp.storeSkipInfoToDisk();
-                                    if(term.equals("of"))
-                                        System.out.println("SKIP INFO STORED (term for): " + sp);
+//                                    if(tempDE.getTerm().equals("of"))
+//                                        System.out.println("SKIP INFO STORED (term of): " + sp);
                                     double[] score = storePostingListIntoDisk(tempSubPL, tempDE.getIdf());
                                     tempDE.setMaxBM25(score[0]);
                                     tempDE.setMaxTFIDF(score[1]);                                }
@@ -217,9 +213,6 @@ public final class IndexMerger {
                                 tempDE.setDocIdSize(compressedLength[1]);
                             }
                             else {
-                                if (term.equals("of"))
-                                    System.out.println(".............................");
-
                                 double[] score = storePostingListIntoDisk(tempPL, tempDE.getIdf());
                                 tempDE.setMaxBM25(score[0]);
                                 tempDE.setMaxTFIDF(score[1]);
@@ -242,8 +235,6 @@ public final class IndexMerger {
             printDebug("Num terms: " + termCounter);
             printDebug("Merge ended, total number of iterations (i) is: " + termCounter);
 
-
-//            delete_tempFiles();                                                                       !!!!!!!!!!!!!!!!
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -253,8 +244,8 @@ public final class IndexMerger {
      * class to define TermBlock. The priority queue contains instances of TermBlock
      */
     private static class TermBlock {
-        String term;    // string of the term related to TermBlock
-        int block;      // reference to the id of the block in which are the data
+        final String term;    // string of the term related to TermBlock
+        final int block;      // reference to the id of the block in which are the data
 
         // constructor with parameters
         public TermBlock(String term, int block) {

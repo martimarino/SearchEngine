@@ -1,6 +1,5 @@
 package it.unipi.dii.aide.mircv.compression;
 
-import java.sql.Array;
 import java.util.ArrayList;
 
 public class VariableBytes {
@@ -20,16 +19,16 @@ public class VariableBytes {
         int currentIndex;
         int currentByte = 0;
 
-        for(int i = 0; i < nDocId; i++)
-            byteSize += ((32 - Integer.numberOfLeadingZeros(docidsToCompress.get(i))) + 6) / 7; //set byte size (removing leading zeros)
+        for (Integer compress : docidsToCompress)
+            byteSize += ((32 - Integer.numberOfLeadingZeros(compress)) + 6) / 7; //set byte size (removing leading zeros)
 
         byte[] docidCompressed = new byte[byteSize];
 
-        for(int i = 0; i < nDocId; i++) {
+        for (Integer toCompress : docidsToCompress) {
             currentIndex = 0;
             byteSize = 0;
 
-            int docidVal = docidsToCompress.get(i);
+            int docidVal = toCompress;
 
             byteSize = ((32 - Integer.numberOfLeadingZeros(docidVal) + 6) / 7); //size of current integer
 
@@ -39,7 +38,7 @@ public class VariableBytes {
                 byte b = (byte) ((docidVal >> (currentIndex * 7)) & 0x7F); // move to right and AND bit to bit with 0111111
 
                 if (currentIndex != byteSize - 1)
-                    b = (byte)(b | (1 << 7)); // Set to 1 the most meaningful bit, if not the last byte
+                    b = (byte) (b | (1 << 7)); // Set to 1 the most meaningful bit, if not the last byte
 
                 docidCompressed[currentByte++] = b;
                 currentIndex++;

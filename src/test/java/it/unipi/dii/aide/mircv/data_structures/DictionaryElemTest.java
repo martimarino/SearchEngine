@@ -7,7 +7,6 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.DICTIONARY_FILE;
-import static org.junit.jupiter.api.Assertions.*;
 
 class DictionaryElemTest {
 
@@ -19,10 +18,10 @@ class DictionaryElemTest {
             FileChannel outDictionaryChannel = dictFile.getChannel();
             DictionaryElem de = new DictionaryElem();
             de.readDictionaryElemFromDisk(0);
-            System.out.println("dictionary: " + de.toString());
+            System.out.println("dictionary: " + de);
             DictionaryElem de1 = new DictionaryElem();
             de1.readDictionaryElemFromDisk(56);
-            System.out.println("dictionary 1: " + de1.toString());
+            System.out.println("dictionary 1: " + de1);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

@@ -15,7 +15,7 @@ public class PostingList {
     public ArrayList<Posting> list;
     public Iterator<Posting> postingIterator;
     public Posting currPosting;
-    public SkipList sl;     // null if no skipping for that term
+    public final SkipList sl;     // null if no skipping for that term
 
     int docIdSize;
     int termFreqSize;
@@ -35,35 +35,36 @@ public class PostingList {
     }
 
     //moves sequentially the iterator to the next posting
-    public boolean next () {
-
-        // se ho finito il blocco carico il nuovo
-        if (sl != null && currPosting.getDocId() == sl.getCurrSkipInfo().getMaxDocId() && sl.getSkipInfoIterator().hasNext()) {
-
-            list.clear();
-            sl.next();
-
-            SkipInfo si = sl.getCurrSkipInfo();
-
-            if(Flags.isCompressionEnabled())
-                list = readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), termFreqSize, docIdSize, sl.getArr_skipInfo().size());
-            else
-                list = readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), sl.getArr_skipInfo().size());
-
-        }
-        // leggo il primo elemento del
-
+    public boolean next() {
         if (!postingIterator.hasNext()) {
-            currPosting = null;
-            return false;
+            if (sl != null && currPosting.getDocId() == sl.getCurrSkipInfo().getMaxDocId() && sl.getSkipInfoIterator().hasNext()) {
+                list.clear();
+                sl.next();
+                SkipInfo si = sl.getCurrSkipInfo();
+                if (Flags.isCompressionEnabled())
+                    list.addAll(readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), termFreqSize, docIdSize, sl.getArr_skipInfo().size()));
+                else
+                    list.addAll(readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), sl.getArr_skipInfo().size()));
+                postingIterator = list.iterator();
+            } else {
+                currPosting = null;
+                return false;
+            }
         }
+
         currPosting = postingIterator.next();
         return true;
     }
 
+
     // advances the iterator forward to the next posting with a document identifier greater than or equal to
     // d ⇒ skipping
     public boolean nextGEQ (int targetDocId) {
+
+        if (sl.getCurrSkipInfo() == null) {
+            currPosting = null;
+            return false;
+        }
 
         // if not in the right block
         while (sl.getCurrSkipInfo().getMaxDocId() < targetDocId) // search right block

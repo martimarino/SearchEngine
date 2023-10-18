@@ -4,15 +4,15 @@ import it.unipi.dii.aide.mircv.data_structures.DataStructureHandler;
 import it.unipi.dii.aide.mircv.data_structures.Flags;
 import it.unipi.dii.aide.mircv.data_structures.IndexMerger;
 import it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder;
+import it.unipi.dii.aide.mircv.query.Query;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.Scanner;
 
 import static it.unipi.dii.aide.mircv.data_structures.Flags.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
-import static it.unipi.dii.aide.mircv.Query.*;
+import static it.unipi.dii.aide.mircv.query.Query.*;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 
 public class Main {
@@ -26,13 +26,17 @@ public class Main {
         while (true) {
             // print of the user interface
             printUI(
-                    "\n********** SEARCH ENGINE **********" +
-                            "\n\tSelect an option:" +
-                            "\n\t  m -> try merge only" +
-                            "\n\t  i -> build the index" +
-                            "\n\t  q -> query mode" +
-                            "\n\t  x -> exit" +
-                            "\n***********************************\n");
+                    """
+
+                            ********** SEARCH ENGINE **********
+                            \tSelect an option:
+                            \t  m -> try merge only
+                            \t  i -> build the index
+                            \t  q -> query mode
+                            \t  x -> exit
+                            ***********************************
+                            """);
+
             String mode = sc.nextLine();        // take user's choice
 
             // switch to run user's choice
@@ -79,13 +83,14 @@ public class Main {
                     continue;                           // go next while iteration
 
                 case "d", "q":
+
                     while (true) {
                         Flags.setConsiderSkippingBytes(true);
 
                         if (!Query.queryStartControl())
                             continue;
 
-                        printUI("Insert query (or press x to exit):");
+                        printUI("\nInsert query (or press x to exit):");
                         String q = sc.nextLine();           // take user's query
 
                         if (q == null || q.isEmpty()) {
@@ -96,18 +101,19 @@ public class Main {
                         if (q.equals("x"))
                             return;
 
-                        printUI("Select scoring type (t for TFIDF, b for BM25): \n");
+                        printUI("Select scoring type (t for TFIDF, b for BM25):");
                         String scoringType = sc.nextLine().toLowerCase().trim();
-                        if(scoringType != "t" || scoringType != "b")
+                        if(!scoringType.equals("t") || !scoringType.equals("b"))
                             scoringType = "t";
                         // take user preferences on the scoring
                         getNumberOfResults(q, sc, scoringType);
 
                         closeChannels();
+                        delete_tempFiles();
                     }
 
                 default:
-                    return;     // exit to switch, case not valid
+                    break;
             }
         }
     }
@@ -121,7 +127,7 @@ public class Main {
      */
     public static boolean getUserChoice(Scanner sc, String option) {
         while (true) {
-            printUI("\nType Y or N for " + option + " options");   // print of the option
+            printUI("\nType Y or N for " + option + " option");   // print of the option
             String choice = sc.nextLine().toUpperCase();                    // take the user's choice
             // check the user's input
             if (choice.equals("Y")) {
@@ -139,7 +145,7 @@ public class Main {
      */
     public static void printQueryResults(ArrayList<Integer> rankedResults)
     {
-        if (rankedResults.size() != 0)      // there are results
+        if (!rankedResults.isEmpty())      // there are results
         {
             System.out.println(ANSI_CYAN + "Query results:" + ANSI_RESET);
             for (int i = 0; i < rankedResults.size(); i++)
@@ -159,7 +165,7 @@ public class Main {
                     String queryType = sc.nextLine().toLowerCase();
                     if (queryType.equals("c") || queryType.equals("d")){
                         try {
-                            executeQuery(query, k, queryType, score.equals("t")? false : true); //score true if BM25, false if TFIDF
+                            executeQueryPQ(query, k, queryType, score.equals("t")? false : true); //score true if BM25, false if TFIDF
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }

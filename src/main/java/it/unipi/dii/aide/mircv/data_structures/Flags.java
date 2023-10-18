@@ -1,7 +1,6 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -44,7 +43,7 @@ public final class Flags {
         System.out.println("Storing flags into disk...");
 
         try (
-                RandomAccessFile raf = new RandomAccessFile(FLAGS_FILE, "rw");
+                RandomAccessFile raf = new RandomAccessFile(FLAGS_FILE, "rw")
         ) {
             flags_channel = raf.getChannel();
 

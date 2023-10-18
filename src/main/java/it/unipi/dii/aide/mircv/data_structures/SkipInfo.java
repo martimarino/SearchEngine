@@ -1,12 +1,9 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
-import static it.unipi.dii.aide.mircv.utils.Constants.printDebug;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.skip_channel;
 
 public class SkipInfo {
@@ -71,9 +68,9 @@ public class SkipInfo {
     }
 
 
-    public void readSkipInfoFromDisk(long start) throws IOException {
+    public void readSkipInfoFromDisk(long start, int iter) throws IOException {
 
-        MappedByteBuffer skipPointsBuffer = skip_channel.map(FileChannel.MapMode.READ_ONLY, start, SKIPPING_INFO_SIZE);
+        MappedByteBuffer skipPointsBuffer = skip_channel.map(FileChannel.MapMode.READ_ONLY, start+ (long) iter *SKIPPING_INFO_SIZE, SKIPPING_INFO_SIZE);
 
         this.setMaxDocId(skipPointsBuffer.getLong());
         this.setDocIdOffset(skipPointsBuffer.getLong());

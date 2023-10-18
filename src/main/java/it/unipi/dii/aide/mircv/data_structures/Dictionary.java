@@ -56,7 +56,7 @@ public class Dictionary {
     // function that return if the dictionary in memory is set or not
     public boolean dictionaryIsSet()
     {
-        return termToTermStat.size() != 0;  // the hash map in dictionary is empty, the dictionary isn't set
+        return !termToTermStat.isEmpty();  // the hash map in dictionary is empty, the dictionary isn't set
     }
 
     // function to read whole Dictionary from disk
@@ -100,7 +100,7 @@ public class Dictionary {
                 dictElem.setIdf(buffer.getDouble());
                 dictElem.setMaxBM25(buffer.getDouble());
                 dictElem.setMaxTFIDF(buffer.getDouble());
-                System.out.println("maxtfidf: " + dictElem.getMaxTFIDF());
+//                System.out.println("maxtfidf: " + dictElem.getMaxTFIDF());
                 termToTermStat.put(term, dictElem);   // add DictionaryElem into memory
             }
 

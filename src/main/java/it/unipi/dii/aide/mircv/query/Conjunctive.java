@@ -1,7 +1,6 @@
 package it.unipi.dii.aide.mircv.query;
 
 import it.unipi.dii.aide.mircv.data_structures.*;
-import it.unipi.dii.aide.mircv.score.Score;
 
 import java.io.IOException;
 import java.util.*;
@@ -10,7 +9,7 @@ import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readC
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readPostingListFromDisk;
 import static it.unipi.dii.aide.mircv.utils.Constants.printDebug;
 import static it.unipi.dii.aide.mircv.utils.Constants.printError;
-import static it.unipi.dii.aide.mircv.Query.*;
+import static it.unipi.dii.aide.mircv.query.Query.*;
 
 public final class Conjunctive {
 
@@ -39,9 +38,6 @@ public final class Conjunctive {
 
             if (de.getSkipArrLen() > 0) {   // if there are skipping blocks read partial postings of the first block
                 SkipList skipList = new SkipList(de.getSkipOffset(), de.getSkipArrLen());
-                if(tempPL.term.equals("of"))
-                    for(SkipInfo si : skipList.getArr_skipInfo())
-                        System.out.println("SKIP INFO READ (term for): " + si);
                 SkipInfo skipInfo = skipList.getCurrSkipInfo();
 
                 if (Flags.isCompressionEnabled())
@@ -49,12 +45,17 @@ public final class Conjunctive {
                 else
                     tempPL = new PostingList(t, readPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), de.getSkipArrLen()), skipList, de.getTermFreqSize(), de.getDocIdSize());
 
+//                if(tempPL.term.equals("of"))
+//                    for(SkipInfo si : tempPL.sl.getArr_skipInfo())
+//                        System.out.println("SKIP INFO READ (term of): " + si);
+
             } else {    // read all postings
                 if (Flags.isCompressionEnabled())
                     tempPL = new PostingList(t, readCompressedPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getTermFreqSize(), de.getDocIdSize(), de.getDf()), null, de.getTermFreqSize(), de.getDocIdSize());
                 else
                     tempPL = new PostingList(t, readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf()), null, de.getTermFreqSize(), de.getDocIdSize());
             }
+
 
             conjPostingLists.add(tempPL);
         }
