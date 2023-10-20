@@ -153,12 +153,12 @@ public final class Query {
             inverse_pq_res.add(pq_res.poll());
         }
         printUI("\nResults:\n");
-        System.out.format("%15s%15s%15s\n", "DOCNO", "DOCID", "SCORE");
+        System.out.format("%15s%15s\n", "DOCID", "SCORE");
         System.out.format("%60s\n", "-".repeat(60));
 
         while (!inverse_pq_res.isEmpty()) {
             ResultBlock polled = inverse_pq_res.poll();
-            System.out.format("%15s%15s%15s\n", polled.getDocNo(), polled.getDocId(), String.format("%.3f", polled.getScore()));
+            System.out.format("%15s%15s\n", polled.getDocId(), String.format("%.3f", polled.getScore()));
         }
         System.out.format("%60s\n", "-".repeat(60));
 
@@ -188,10 +188,10 @@ public final class Query {
                     if (pq_res.size() == k) {
                         if (acc.getScore() > pq_res.peek().getScore()) {
                             pq_res.remove();
-                            pq_res.add(new ResultBlock(documentTable.get(acc.getDocId()).getDocno(), acc.getDocId(), acc.getScore()));
+                            pq_res.add(new ResultBlock(acc.getDocId(), acc.getScore()));
                         }
                     } else if (pq_res.size() < k)
-                        pq_res.add(new ResultBlock(documentTable.get(acc.getDocId()).getDocno(), acc.getDocId(), acc.getScore()));
+                        pq_res.add(new ResultBlock(acc.getDocId(), acc.getScore()));
                     acc = new DAATBlock(pb.getTerm(), pb.getDocId(), pb.getScore());
                 }
             }
@@ -251,11 +251,11 @@ public final class Query {
                     }
                 }
                 if(resultQueue.size() < k)
-                    resultQueue.add(new ResultBlock("", current, score));
+                    resultQueue.add(new ResultBlock(current, score));
                 else if(resultQueue.size() == k && resultQueue.peek().getScore() < score)
                 {
                     resultQueue.poll();
-                    resultQueue.add(new ResultBlock("", current, score));
+                    resultQueue.add(new ResultBlock(current, score));
                 }
                 current = next;
                 if(!notNext.contains(false))
@@ -264,7 +264,7 @@ public final class Query {
 
             while(!resultQueue.isEmpty()) {
                 ResultBlock r = resultQueue.poll();
-                resultQueueInverse.add(new ResultBlock("", r.getDocId(),r.getScore()));
+                resultQueueInverse.add(new ResultBlock(r.getDocId(),r.getScore()));
             }
 
             while(!resultQueueInverse.isEmpty()) {

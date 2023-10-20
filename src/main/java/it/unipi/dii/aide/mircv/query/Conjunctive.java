@@ -29,6 +29,7 @@ public final class Conjunctive {
                 return;
 
             currentDocId = polled.getDocId();
+
             if(currentDocId == 13858)
                 System.out.println(13858);
 
@@ -41,10 +42,10 @@ public final class Conjunctive {
                     score += Score.computeTFIDF(dictionary.getTermStat(orderedConjPostingList.term).getIdf(), orderedConjPostingList.getCurrPosting());
 
                 if (pq_res.size() < k) {
-                    pq_res.add(new ResultBlock(documentTable.get(currentDocId).getDocno(), currentDocId, score));
+                    pq_res.add(new ResultBlock(currentDocId, score));
                 } else if (pq_res.peek().getScore() < score) {     // sostituisco elemento con peggior score con quello corrente
                     pq_res.remove();
-                    pq_res.add(new ResultBlock(documentTable.get(currentDocId).getDocno(), currentDocId, score));
+                    pq_res.add(new ResultBlock(currentDocId, score));
                 }
             }
             orderedConjPostingLists.get(0).next(true);
