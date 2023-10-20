@@ -1,0 +1,228 @@
+query "who is aziz hashim " time PQ : 513ms
+______________________________________________________________________
+
+query "who is rep scalise? " time PQ : 682ms
+______________________________________________________________________
+
+query "who killed nicholas ii of russia " time PQ : 853ms
+______________________________________________________________________
+
+query "who owns barnhart crane " time PQ : 105ms
+______________________________________________________________________
+
+query "who said no one can make you feel inferior " time PQ : 1111ms
+______________________________________________________________________
+
+query "who sings monk theme song " time PQ : 244ms
+______________________________________________________________________
+
+query "who was the highest career passer  rating in the nfl " time PQ : 2731ms
+______________________________________________________________________
+
+query "why do hunters pattern their shotguns? " time PQ : 215ms
+______________________________________________________________________
+
+query "why do some places on my scalp feel sore " time PQ : 643ms
+______________________________________________________________________
+
+query "why is pete rose banned from hall of fame " time PQ : 2969ms
+______________________________________________________________________
+
+query "who is thomas m cooley " time PQ : 794ms
+______________________________________________________________________
+
+query "definition of endorsing " time PQ : 2179ms
+______________________________________________________________________
+
+query "which hormone increases calcium levels in the blood? " time PQ : 3131ms
+______________________________________________________________________
+
+query "define: geon " time PQ : 16ms
+______________________________________________________________________
+
+query "where can the amazon rainforest is located " time PQ : 3204ms
+______________________________________________________________________
+
+query "when are the four forces that act on an airplane in equilibrium? " time PQ : 11860ms
+______________________________________________________________________
+
+query "define pareto chart in statistics " time PQ : 300ms
+______________________________________________________________________
+
+query "what year were the timberwolves founded " time PQ : 2985ms
+______________________________________________________________________
+
+query "what year did knee deep come out funkadelic " time PQ : 497ms
+______________________________________________________________________
+
+query "define define gallows " time PQ : 13ms
+______________________________________________________________________
+
+query "what tissue composes the hypodermis " time PQ : 6566ms
+______________________________________________________________________
+
+query "what time zone is st paul minnesota in " time PQ : 4683ms
+______________________________________________________________________
+
+query "what the best way to get clothes white " time PQ : 14124ms
+______________________________________________________________________
+
+query "who is aziz hashim " time PQ : 1025ms
+______________________________________________________________________
+
+query "who is rep scalise? " time PQ : 1193ms
+______________________________________________________________________
+
+query "who killed nicholas ii of russia " time PQ : 1423ms
+______________________________________________________________________
+
+query "who owns barnhart crane " time PQ : 199ms
+______________________________________________________________________
+
+query "who said no one can make you feel inferior " time PQ : 2277ms
+______________________________________________________________________
+
+query "who sings monk theme song " time PQ : 496ms
+______________________________________________________________________
+
+query "who was the highest career passer  rating in the nfl " time PQ : 3755ms
+______________________________________________________________________
+
+query "why do hunters pattern their shotguns? " time PQ : 2127ms
+______________________________________________________________________
+
+query "why do some places on my scalp feel sore " time PQ : 696ms
+______________________________________________________________________
+
+query "why is pete rose banned from hall of fame " time PQ : 1824ms
+______________________________________________________________________
+
+query "who is thomas m cooley " time PQ : 2293ms
+______________________________________________________________________
+
+query "definition of endorsing " time PQ : 866ms
+______________________________________________________________________
+
+query "which hormone increases calcium levels in the blood? " time PQ : 4107ms
+______________________________________________________________________
+
+query "define: geon " time PQ : 17ms
+______________________________________________________________________
+
+query "where can the amazon rainforest is located " time PQ : 3434ms
+______________________________________________________________________
+
+query "who is aziz hashim " time PQ : 502ms
+______________________________________________________________________
+
+query "who is rep scalise? " time PQ : 544ms
+______________________________________________________________________
+
+query "who killed nicholas ii of russia " time PQ : 1145ms
+______________________________________________________________________
+
+query "who owns barnhart crane " time PQ : 143ms
+______________________________________________________________________
+
+query "who said no one can make you feel inferior " time PQ : 1642ms
+______________________________________________________________________
+
+query "who sings monk theme song " time PQ : 266ms
+______________________________________________________________________
+
+query "who was the highest career passer  rating in the nfl " time PQ : 3168ms
+______________________________________________________________________
+
+query "why do hunters pattern their shotguns? " time PQ : 1896ms
+______________________________________________________________________
+
+query "why do some places on my scalp feel sore " time PQ : 632ms
+______________________________________________________________________
+
+query "why is pete rose banned from hall of fame " time PQ : 1447ms
+______________________________________________________________________
+
+query "who is thomas m cooley " time PQ : 2018ms
+______________________________________________________________________
+
+query "definition of endorsing " time PQ : 664ms
+______________________________________________________________________
+
+query "which hormone increases calcium levels in the blood? " time PQ : 3278ms
+______________________________________________________________________
+
+query "define: geon " time PQ : 20ms
+______________________________________________________________________
+
+query "where can the amazon rainforest is located " time PQ : 2756ms
+______________________________________________________________________
+
+query "who is aziz hashim " time PQ : 1476ms
+______________________________________________________________________
+
+query "who is rep scalise? " time PQ : 1338ms
+______________________________________________________________________
+
+query "who killed nicholas ii of russia " time PQ : 1463ms
+______________________________________________________________________
+
+query "who owns barnhart crane " time PQ : 1189ms
+______________________________________________________________________
+
+query "who said no one can make you feel inferior " time PQ : 1694ms
+______________________________________________________________________
+
+query "who sings monk theme song " time PQ : 1236ms
+______________________________________________________________________
+
+query "who was the highest career passer  rating in the nfl " time PQ : 2155ms
+______________________________________________________________________
+
+query "why do hunters pattern their shotguns? " time PQ : 1437ms
+______________________________________________________________________
+
+query "why do some places on my scalp feel sore " time PQ : 1534ms
+______________________________________________________________________
+
+query "why is pete rose banned from hall of fame " time PQ : 2544ms
+______________________________________________________________________
+
+query "who is thomas m cooley " time PQ : 1960ms
+______________________________________________________________________
+
+query "definition of endorsing " time PQ : 1976ms
+______________________________________________________________________
+
+query "which hormone increases calcium levels in the blood? " time PQ : 3001ms
+______________________________________________________________________
+
+query "define: geon " time PQ : 1322ms
+______________________________________________________________________
+
+query "where can the amazon rainforest is located " time PQ : 2861ms
+______________________________________________________________________
+
+query "when are the four forces that act on an airplane in equilibrium? " time PQ : 14787ms
+______________________________________________________________________
+
+query "define pareto chart in statistics " time PQ : 2174ms
+______________________________________________________________________
+
+query "what year were the timberwolves founded " time PQ : 6763ms
+______________________________________________________________________
+
+query "what year did knee deep come out funkadelic " time PQ : 1846ms
+______________________________________________________________________
+
+query "define define gallows " time PQ : 1532ms
+______________________________________________________________________
+
+query "what tissue composes the hypodermis " time PQ : 2355ms
+______________________________________________________________________
+
+query "what time zone is st paul minnesota in " time PQ : 4374ms
+______________________________________________________________________
+
+query "what the best way to get clothes white " time PQ : 8474ms
+______________________________________________________________________
+

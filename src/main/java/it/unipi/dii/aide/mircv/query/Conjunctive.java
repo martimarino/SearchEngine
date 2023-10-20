@@ -7,16 +7,17 @@ import java.util.*;
 
 import static it.unipi.dii.aide.mircv.query.Query.*;
 
-public final class Conjunctive {
+public class Conjunctive {
 
+    static ArrayList<PostingList> orderedConjPostingLists;
     static int currentDocId;
-    static ArrayList<PostingList> orderedConjPostingLists;    // posting lists of query terms
-
 
     public static void executeConjunctive() {
 
         // create array of posting lists ordered increasing df
         orderedConjPostingLists = new ArrayList<>();
+
+        index_len = (HashMap<Integer, Integer>) sortByValue(index_len);
 
         for (Map.Entry<Integer, Integer> entry : index_len.entrySet())
             orderedConjPostingLists.add(postingLists.get(entry.getKey()));
@@ -51,6 +52,9 @@ public final class Conjunctive {
             orderedConjPostingLists.get(0).next(true);
 
         } while (orderedConjPostingLists.get(0).getCurrPosting() != null);
+
+        orderedConjPostingLists.clear();
+
     }
 
 

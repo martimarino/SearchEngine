@@ -23,20 +23,20 @@ public final class Query {
     public static final HashMap<Integer, DocumentElement> documentTable = new HashMap<>();
     public static final Dictionary dictionary = new Dictionary();
 
-    public static List<String> query_terms;
+
     public static int k; //number of result to return
     private static String queryType; // if conjunctive ("c") or disjunctive ("d") query
     private static boolean scoreType; //type of score function ("t" = TFIDF or "b" = BM25)
 
     static PriorityQueue<DAATBlock> pq_DAAT;    // used during DAAT algorithm
-    static PriorityQueue<ResultBlock> pq_res;   // contains results (increasing)
+    public static PriorityQueue<ResultBlock> pq_res;   // contains results (increasing)
     public static PriorityQueue<ResultBlock> inverse_pq_res;  // contains results (decreasing)
 
-    public static ArrayList<PostingList> postingLists;
+    public static ArrayList<PostingList> postingLists = new ArrayList<>();
     static HashMap<String, PostingList> term_pl = new HashMap<>();
 
-    static HashMap<Integer, Double> index_score;
-    static HashMap<Integer, Integer> index_len;
+    static HashMap<Integer, Double> index_score = new HashMap<>();
+    static HashMap<Integer, Integer> index_len = new HashMap<>();
 
     public Query()  { throw new UnsupportedOperationException(); }
 
@@ -70,7 +70,7 @@ public final class Query {
         return true;
     }
 
-    public static void executeQuery(String q, int k, String q_type, boolean score) throws IOException {
+    public void executeQuery(String q, int k, String q_type, boolean score) throws IOException {
 
             long startTime = System.currentTimeMillis();
         ArrayList<String> query = TextProcessor.preprocessText(q);
@@ -89,15 +89,11 @@ public final class Query {
         Query.k = k;
         queryType = q_type;
         Query.scoreType = scoreType;
-        query_terms = query.stream().distinct().collect(Collectors.toList());
+        List<String> query_terms = query.stream().distinct().collect(Collectors.toList());
 
         pq_DAAT = new PriorityQueue<>(query_terms.size(), new CompareScore());
-
         pq_res = new PriorityQueue<>(k, new CompareRes());
         inverse_pq_res = new PriorityQueue<>(k, new CompareResInverse());
-        index_len = new HashMap<>();
-        index_score = new HashMap<>();
-
 
         try(
                 RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
@@ -107,8 +103,6 @@ public final class Query {
             docId_channel = docid_raf.getChannel();
             termFreq_channel = tf_raf.getChannel();
             skip_channel = skip_raf.getChannel();
-
-            postingLists = new ArrayList<>();
 
             int index = 0;
 
@@ -165,6 +159,14 @@ public final class Query {
         long endTime = System.currentTimeMillis();
         printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
 
+
+        postingLists.clear();
+        pq_DAAT.clear();
+        pq_res.clear();
+        inverse_pq_res.clear();
+        index_len.clear();
+        index_score.clear();
+
     }
 
     private static void DAATalgorithm() {
@@ -205,9 +207,8 @@ public final class Query {
         }
     }
 
-    private static void DocumentAtATime(){
+    private void DocumentAtATime(){
 
-        ArrayList<PostingList> postingLists = new ArrayList<>();
         PriorityQueue<ResultBlock> resultQueueInverse = new PriorityQueue<>(k,new CompareResInverse());
         PriorityQueue<ResultBlock> resultQueue = new PriorityQueue<>(k,new CompareRes());
         ArrayList<Double> idf = new ArrayList<>();
@@ -276,7 +277,7 @@ public final class Query {
         }
     }
 
-    private static int minDocID(ArrayList<PostingList> pl) {
+    private int minDocID(ArrayList<PostingList> pl) {
         ArrayList<Integer> first_docids = new ArrayList<>();
 
         for(PostingList p : pl){

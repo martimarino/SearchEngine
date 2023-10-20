@@ -109,7 +109,6 @@ public class Main {
                         getNumberOfResults(q, sc, scoringType);
 
                         closeChannels();
-                        delete_tempFiles();
                     }
 
                 default:
@@ -155,7 +154,7 @@ public class Main {
             printUI("No results found for this query.");
     }
 
-    private static void getNumberOfResults(String query, Scanner sc, String score){
+    static void getNumberOfResults(String query, Scanner sc, String score){
         while(true) {
             printUI("Insert number of results (10 or 20):");
             int k = Integer.parseInt(sc.nextLine().trim());
