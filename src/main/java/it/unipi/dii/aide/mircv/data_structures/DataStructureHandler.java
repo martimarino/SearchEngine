@@ -22,8 +22,6 @@ import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
  */
 public final class DataStructureHandler {
 
-    // -------- start: functions to store into disk --------
-
     // function to store the whole document table into disk
     static void storeDocumentTableIntoDisk() {
 
@@ -56,6 +54,7 @@ public final class DataStructureHandler {
 
     // function to store offset of the blocks into disk
     static void storeBlockOffsetsIntoDisk() {
+
         System.out.println("\nStoring block offsets into disk...");
 
         try {
@@ -185,11 +184,6 @@ public final class DataStructureHandler {
     }
 
 
-    // -------- end: functions to store into disk --------
-
-
-    // -------- start: functions to read from disk --------
-
     // function to read all document table from disk and put it in memory (HashMap documentTable)
     public static void readDocumentTableFromDisk(boolean indexBuilding) {
 
@@ -260,7 +254,7 @@ public final class DataStructureHandler {
         MappedByteBuffer docidBuffer;
         MappedByteBuffer termfreqBuffer;
 
-        try{
+        try {
 
             if(Flags.considerSkippingBytes()){
                 docidBuffer = docId_channel.map(FileChannel.MapMode.READ_ONLY, offsetDocId, (long) posting_size * Integer.BYTES);
@@ -282,8 +276,6 @@ public final class DataStructureHandler {
         }
         return null;
     }
-
-    // -------- end: functions to read from disk --------
 
     /**
      * function to store posting list after compression into disk

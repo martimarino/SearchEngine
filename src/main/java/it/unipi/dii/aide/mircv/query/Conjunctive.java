@@ -5,75 +5,32 @@ import it.unipi.dii.aide.mircv.data_structures.*;
 import java.io.IOException;
 import java.util.*;
 
-import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readCompressedPostingListFromDisk;
-import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readPostingListFromDisk;
-import static it.unipi.dii.aide.mircv.utils.Constants.printDebug;
-import static it.unipi.dii.aide.mircv.utils.Constants.printError;
 import static it.unipi.dii.aide.mircv.query.Query.*;
 
 public final class Conjunctive {
 
     static int currentDocId;
-    static ArrayList<PostingList> conjPostingLists;    // posting lists of query terms
     static ArrayList<PostingList> orderedConjPostingLists;    // posting lists of query terms
-    static HashMap<Integer, Integer> index_len;
-
-    
-    public static void executeConjunctive() throws IOException {
-
-        conjPostingLists = new ArrayList<>();    // posting lists of query terms
-        index_len = new HashMap<>();
-
-        // retrieve the (partial or complete) posting list of every query term
-        for (String t : query_terms) {
-
-            DictionaryElem de = dictionary.getTermStat(t);
-            if (de == null) {
-                printError("Term " + t + " not present in dictionary!");
-                return;
-            }
-
-            index_len.put(query_terms.indexOf(t), de.getDf());
-            PostingList tempPL = null;
-
-            if (de.getSkipArrLen() > 0) {   // if there are skipping blocks read partial postings of the first block
-                SkipList skipList = new SkipList(de.getSkipOffset(), de.getSkipArrLen());
-                SkipInfo skipInfo = skipList.getCurrSkipInfo();
-
-                if (Flags.isCompressionEnabled())
-                    tempPL = new PostingList(t, readCompressedPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), de.getTermFreqSize(), de.getDocIdSize(), de.getSkipArrLen()), skipList, de.getTermFreqSize(), de.getDocIdSize());
-                else
-                    tempPL = new PostingList(t, readPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), de.getSkipArrLen()), skipList, de.getTermFreqSize(), de.getDocIdSize());
-
-//                if(tempPL.term.equals("of"))
-//                    for(SkipInfo si : tempPL.sl.getArr_skipInfo())
-//                        System.out.println("SKIP INFO READ (term of): " + si);
-
-            } else {    // read all postings
-                if (Flags.isCompressionEnabled())
-                    tempPL = new PostingList(t, readCompressedPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getTermFreqSize(), de.getDocIdSize(), de.getDf()), null, de.getTermFreqSize(), de.getDocIdSize());
-                else
-                    tempPL = new PostingList(t, readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf()), null, de.getTermFreqSize(), de.getDocIdSize());
-            }
 
 
-            conjPostingLists.add(tempPL);
-        }
+    public static void executeConjunctive() {
 
-        // order posting lists indices by increasing order
-        index_len = (HashMap<Integer, Integer>) sortByValue(index_len);
-
+        // create array of posting lists ordered increasing df
         orderedConjPostingLists = new ArrayList<>();
 
         for (Map.Entry<Integer, Integer> entry : index_len.entrySet())
-            orderedConjPostingLists.add(conjPostingLists.get(entry.getKey()));
+            orderedConjPostingLists.add(postingLists.get(entry.getKey()));
 
+        do {
+            // poll from the shortest posting list
+            Posting polled = orderedConjPostingLists.get(0).getCurrPosting();
 
-        // scorro la lista più corta
-        while (orderedConjPostingLists.get(0).currPosting != null) {
+            if (polled == null)
+                return;
 
-            Posting polled = orderedConjPostingLists.get(0).currPosting;
             currentDocId = polled.getDocId();
+            if(currentDocId == 13858)
+                System.out.println(13858);
 
             // if the min docid is present for all terms
             if (checkSameDocid()) {
@@ -81,20 +38,18 @@ public final class Conjunctive {
                 double score = 0;
 
                 for (PostingList orderedConjPostingList : orderedConjPostingLists)
-                    score += Score.computeTFIDF(dictionary.getTermStat(orderedConjPostingList.term).getIdf(), orderedConjPostingList.currPosting);
+                    score += Score.computeTFIDF(dictionary.getTermStat(orderedConjPostingList.term).getIdf(), orderedConjPostingList.getCurrPosting());
 
-                if (inverseResultQueue.isEmpty() || inverseResultQueue.size() < k)
-                    inverseResultQueue.add(new ResultBlock(documentTable.get(currentDocId).getDocno(), currentDocId, score));
-                else if (inverseResultQueue.peek().getScore() < score) {     // sostituisco elemento con peggior score con quello corrente
-                    if (inverseResultQueue.size() == k) {
-                        printDebug(String.valueOf(new ResultBlock(documentTable.get(currentDocId).getDocno(), currentDocId, score)));
-                        inverseResultQueue.poll();
-                        inverseResultQueue.add(new ResultBlock(documentTable.get(currentDocId).getDocno(), currentDocId, score));
-                    }
+                if (pq_res.size() < k) {
+                    pq_res.add(new ResultBlock(documentTable.get(currentDocId).getDocno(), currentDocId, score));
+                } else if (pq_res.peek().getScore() < score) {     // sostituisco elemento con peggior score con quello corrente
+                    pq_res.remove();
+                    pq_res.add(new ResultBlock(documentTable.get(currentDocId).getDocno(), currentDocId, score));
                 }
             }
-            orderedConjPostingLists.get(0).next();
-        }
+            orderedConjPostingLists.get(0).next(true);
+
+        } while (orderedConjPostingLists.get(0).getCurrPosting() != null);
     }
 
 
@@ -102,16 +57,16 @@ public final class Conjunctive {
 
         for (PostingList pl : orderedConjPostingLists) {
 
-            if (pl.currPosting != null && currentDocId == pl.getCurrPosting().getDocId()) {
+            while ((pl.getCurrPosting() != null) && (pl.getCurrPosting().getDocId() < currentDocId))
+                pl.next(false);
+
+            if (pl.getCurrPosting() != null && currentDocId == pl.getCurrPosting().getDocId())
                 continue;
-            }     // already right docid
-            if (pl.sl != null)      // skipping present
-                pl.nextGEQ(currentDocId);        // search for tight block
 
-            while (pl.getCurrPosting() != null && pl.getCurrPosting().getDocId() < currentDocId)
-                pl.next();
+            if (pl.getCurrPosting() == null && pl.getSl() != null)
+                pl.nextGEQ(currentDocId);        // search for right block
 
-            if (pl.getCurrPosting() == null || pl.getCurrPosting().getDocId() != currentDocId)
+            if (pl.getCurrPosting() == null)
                 return false;
         }
         return true;
