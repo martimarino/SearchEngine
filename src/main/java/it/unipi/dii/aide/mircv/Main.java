@@ -165,7 +165,8 @@ public class Main {
                     String queryType = sc.nextLine().toLowerCase();
                     if (queryType.equals("c") || queryType.equals("d")){
                         try {
-                            executeQueryPQ(query, k, queryType, score.equals("t")? false : true); //score true if BM25, false if TFIDF
+                            //executeQueryPQ(query, k, queryType, score.equals("t")? false : true); //score true if BM25, false if TFIDF
+                            executeQuery(query, k, queryType, score.equals("t")? false : true);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }

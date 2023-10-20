@@ -10,6 +10,6 @@ class PartialIndexBuilderTest {
         Constants.MEMORY_THRESHOLD = 0.008;
         Constants.COLLECTION_PATH = "src/test/resources/small_collection.tar.gz";
         PartialIndexBuilder.SPIMIalgorithm();
-
+        IndexMerger.mergeBlocks();
     }
 }
