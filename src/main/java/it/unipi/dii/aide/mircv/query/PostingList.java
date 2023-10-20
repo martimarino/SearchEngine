@@ -92,13 +92,17 @@ public class PostingList {
     public void nextGEQ(int targetDocId) {
 
         assert sl != null;
-        if (sl.getCurrSkipInfo() == null)
+        if (sl.getCurrSkipInfo() == null) {
             currPosting = null;
+            return;
+        }
 
         // if not in the right block
         while (sl.getCurrSkipInfo().getMaxDocId() < targetDocId) { // search right block
-            if (!sl.next())
+            if (!sl.next()) {
                 currPosting = null;
+                return;
+            }
         }
 
         list.clear();
