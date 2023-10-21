@@ -63,7 +63,7 @@ public class TestConjunctive {
                 Query.executeQueryPQ(query, 10, "c", false);
                 long endTime = System.currentTimeMillis();
                 String time = "query = \"" + query + " \"";
-//                System.out.println(time);
+                System.out.println(time);
                 avgTime += (int) (endTime - startTime);
                 timeQueries.add(avgTime);
                 nQuery++;

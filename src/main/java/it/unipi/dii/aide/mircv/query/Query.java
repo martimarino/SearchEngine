@@ -106,6 +106,9 @@ public final class Query {
 
             int index = 0;
 
+            if(q.equals("what the best way to get clothes white"))
+                System.out.println();
+
             // retrieve the posting list of every query term
             for (String t : query_terms) {
 
@@ -138,8 +141,8 @@ public final class Query {
         }
 
 
-        if (pq_res == null) {
-            System.out.println("No results found");
+        if (pq_res.isEmpty()) {
+            System.out.println("\n*** No results found ***\n");
             return;
         }
 
@@ -159,13 +162,13 @@ public final class Query {
         long endTime = System.currentTimeMillis();
         printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
 
-
         postingLists.clear();
         pq_DAAT.clear();
         pq_res.clear();
         inverse_pq_res.clear();
         index_len.clear();
         index_score.clear();
+        term_pl.clear();
 
     }
 

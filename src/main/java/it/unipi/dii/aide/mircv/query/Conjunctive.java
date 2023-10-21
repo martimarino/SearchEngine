@@ -22,6 +22,8 @@ public class Conjunctive {
         for (Map.Entry<Integer, Integer> entry : index_len.entrySet())
             orderedConjPostingLists.add(postingLists.get(entry.getKey()));
 
+        postingLists.clear();
+
         do {
             // poll from the shortest posting list
             Posting polled = orderedConjPostingLists.get(0).getCurrPosting();
@@ -71,7 +73,7 @@ public class Conjunctive {
             if (pl.getCurrPosting() == null && pl.getSl() != null)
                 pl.nextGEQ(currentDocId);        // search for right block
 
-            if (pl.getCurrPosting() == null)
+            if (pl.getCurrPosting() == null || (pl.getCurrPosting() != null && currentDocId != pl.getCurrPosting().getDocId()))
                 return false;
         }
         return true;
