@@ -27,6 +27,11 @@ public class PostingList {
         this.term = term;
         this.sl = null;
     }
+    public PostingList(String term, ArrayList<Posting> p) {
+        this.term = term;
+        this.sl = null;
+        this.list = p;
+    }
 
     public void load() throws IOException {
 
@@ -120,7 +125,6 @@ public class PostingList {
         if(currPosting != null)
             while(postingIterator.hasNext() && (currPosting.getDocId() < targetDocId))
                 next(false);
-
     }
 
 

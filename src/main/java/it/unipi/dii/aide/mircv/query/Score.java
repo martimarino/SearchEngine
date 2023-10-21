@@ -6,6 +6,8 @@ import it.unipi.dii.aide.mircv.data_structures.Posting;
 
 import java.util.ArrayList;
 
+import static it.unipi.dii.aide.mircv.utils.Constants.printDebug;
+
 public final class Score {
 
     private Score() {
@@ -41,14 +43,18 @@ public final class Score {
     public static double computeMaxTFIDF(ArrayList<Posting> postings, double idf){
 
         double score = 0;
-        double maxScore = 0;
+        double maxTF = 0;
+
         for(Posting p : postings)
         {
-            score = computeTFIDF(idf, p);
-            if(score > maxScore)
-                maxScore = score;
+            if(p.getTermFreq() > maxTF)
+            {
+                maxTF = p.getTermFreq();
+                score = computeTFIDF(idf, p);
+                printDebug(score + " " + maxTF + " " + idf);
+            }
         }
-        return maxScore;
+        return score;
 
     }
 }

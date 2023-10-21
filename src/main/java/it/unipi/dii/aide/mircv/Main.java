@@ -101,13 +101,14 @@ public class Main {
                         if (q.equals("x"))
                             return;
 
-                        printUI("Select scoring type (t for TFIDF, b for BM25):");
-                        String scoringType = sc.nextLine().toLowerCase().trim();
-                        if(!scoringType.equals("t") || !scoringType.equals("b"))
-                            scoringType = "t";
-                        // take user preferences on the scoring
-                        getNumberOfResults(q, sc, scoringType);
-
+                        printUI("Select Conjunctive or Disjunctive ( 1 for Conjunctive, 2 for Disjunctive)");
+                        boolean type = getUserInput(sc);
+                        printUI("Select scoring type (1 for BM25, 2 for TFIDF):");
+                        boolean score = getUserInput(sc);
+                        printUI("Select algorithm type (1 for DAAT,2 for Max Score) :");
+                        boolean algorithm = getUserInput(sc);
+                        int nResults = getNumberOfResults(sc);
+                        Query.executeQuery(q, nResults, type, score, algorithm);
                         closeChannels();
                         delete_tempFiles();
                     }
@@ -155,27 +156,26 @@ public class Main {
             printUI("No results found for this query.");
     }
 
-    private static void getNumberOfResults(String query, Scanner sc, String score){
+    private static int getNumberOfResults(Scanner sc){
         while(true) {
             printUI("Insert number of results (10 or 20):");
             int k = Integer.parseInt(sc.nextLine().trim());
             if(k == 10 || k == 20) {
-                while(true) {
-                    printUI("Choice conjunctive or disjunctive (press C or D)");
-                    String queryType = sc.nextLine().toLowerCase();
-                    if (queryType.equals("c") || queryType.equals("d")){
-                        try {
-                            //executeQueryPQ(query, k, queryType, score.equals("t")? false : true); //score true if BM25, false if TFIDF
-                            executeQuery(query, k, queryType, score.equals("t")? false : true);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                        return;
-                    }
-                }
+                    return k;
             }
-
         }
     }
 
+
+
+
+    private static boolean getUserInput(Scanner sc){
+        while(true){
+            String scoringType = sc.nextLine().toLowerCase().trim();
+            if(scoringType.equals("1"))
+                return true;
+            if(scoringType.equals("2"))
+                return false;
+        }
+    }
 }

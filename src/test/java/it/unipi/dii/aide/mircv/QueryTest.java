@@ -15,6 +15,7 @@ import static it.unipi.dii.aide.mircv.query.Query.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.closeChannels;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.file_cleaner;
+import static org.junit.Assert.assertTrue;
 
 class QueryTest {
 
@@ -23,12 +24,8 @@ class QueryTest {
     @BeforeAll
     static void getFromFile(){
         Flags.setConsiderSkippingBytes(true);
-        try {
-            queryStartControl();
+        queryStartControl();
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
 
@@ -63,13 +60,13 @@ class QueryTest {
             while ((line = TSVReader.readLine()) != null) {
                 String query = line.split("\t")[1]; //splitting the line and adding its items in String[]
                 long startTimePQ = System.currentTimeMillis();
-                Query.executeQueryPQ(query, numberOfResults, "d", false);
+                Query.executeQueryPQ(query, numberOfResults, false, false);
                 long endTimePQ = System.currentTimeMillis();
                 String PQtime = "query \"" + query + " \" time PQ : " + (endTimePQ - startTimePQ) + "ms";
                 System.out.println(PQtime);
                 avgTimePQ += (int) (endTimePQ - startTimePQ);
                 long startTime = System.currentTimeMillis();
-                Query.executeQuery(query, numberOfResults, "d", false);
+                Query.executeQuery(query, numberOfResults, false, false, true);
                 long endTime = System.currentTimeMillis();
                 String time = "query \"" + query + " \" time : " + (endTime - startTime) + "ms";
                 System.out.println(time);
@@ -92,6 +89,8 @@ class QueryTest {
             if(nQuery > 0) {
                 String AvgPQ = "Average time PQ: " + (avgTimePQ / (nQuery)) + "ms";
                 String Avg = "Average time: " + (avgTime / (nQuery)) + "ms";
+                assertTrue((avgTimePQ / (nQuery)) < 1000);
+                assertTrue( (avgTime / (nQuery))  < 1000);
 
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
 
@@ -127,7 +126,7 @@ class QueryTest {
             while ((line = TSVReader.readLine()) != null) {
                 String query = line.split("\t")[1]; //splitting the line and adding its items in String[]
                 long startTime = System.currentTimeMillis();
-                Query.executeQuery(query, numberOfResults, "d", false);
+                Query.executeQuery(query, numberOfResults, false, false, true);
                 long endTime = System.currentTimeMillis();
                 String time = "query \"" + query + " \" time : " + (endTime - startTime) + "ms";
                 System.out.println(time);

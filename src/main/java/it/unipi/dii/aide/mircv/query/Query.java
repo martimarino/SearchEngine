@@ -13,6 +13,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.readCollectionStatsFromDisk;
+import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readCompressedPostingListFromDisk;
+import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readPostingListFromDisk;
+import static it.unipi.dii.aide.mircv.query.Conjunctive.executeConjunctive;
 import static it.unipi.dii.aide.mircv.query.Score.computeBM25;
 import static it.unipi.dii.aide.mircv.query.Score.computeTFIDF;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
@@ -26,8 +29,9 @@ public final class Query {
 
     public static List<String> query_terms;
     public static int k; //number of result to return
-    private static String queryType; // if conjunctive ("c") or disjunctive ("d") query
-    public static boolean scoreType; //type of score function ("t" = TFIDF or "b" = BM25)
+    private static boolean queryType; // if conjunctive true, disjunctive false
+    public static boolean scoreType; //type of score function (true = TFIDF or false = BM25)
+    public static boolean algorithmType; //true = DAAT, false = MaxScore
 
     static PriorityQueue<DAATBlock> pq_DAAT;    // used during DAAT algorithm
     static PriorityQueue<ResultBlock> pq_res;   // contains results (increasing)
@@ -71,7 +75,7 @@ public final class Query {
         return true;
     }
 
-    public static void executeQuery(String q, int k, String q_type, boolean score) throws IOException {
+    public static void executeQuery(String q, int k, boolean q_type, boolean score, boolean algorithm) throws IOException {
 
             long startTime = System.currentTimeMillis();
             ArrayList<String> query = TextProcessor.preprocessText(q);
@@ -79,14 +83,17 @@ public final class Query {
             Query.k = k;
             Query.queryType = q_type;
             Query.scoreType = score;
-            //DocumentAtATime(text);
-            //prepareStructures(text);
-            MaxScore.computeMaxScore(text, k);
+            Query.algorithmType = algorithm;
+        //prepareStructures(text);
+            if(algorithmType)
+                DocumentAtATime(text);
+            else
+                MaxScore.computeMaxScore(text);
             long endTime = System.currentTimeMillis();
             printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
     }
 
-    public static void executeQueryPQ(String q, int k, String q_type, boolean scoreType) throws IOException {
+    public static void executeQueryPQ(String q, int k, boolean q_type, boolean scoreType) throws IOException {
 
         long startTime = System.currentTimeMillis();
         ArrayList<String> query = TextProcessor.preprocessText(q);
@@ -102,46 +109,6 @@ public final class Query {
         index_len = new HashMap<>();
         index_score = new HashMap<>();
 
-    public static void prepareStructures(List<String> query) {
-
-        ArrayList<PostingList> postingLists = new ArrayList<>();
-        ArrayList<Double> idf = new ArrayList<>();
-
-        try (
-                RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
-                RandomAccessFile tf_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
-                RandomAccessFile skip_raf = new RandomAccessFile(SKIP_FILE, "rw")
-        ) {
-            docId_channel = docid_raf.getChannel();
-            termFreq_channel = tf_raf.getChannel();
-            skip_channel = skip_raf.getChannel();
-
-            for (String t : query) {
-                DictionaryElem de = dictionary.getTermStat(t);
-                if (de == null) {
-                    continue;
-                }
-                idf.add(de.getIdf());
-                PostingList pl;
-                if (Flags.isCompressionEnabled())
-                    pl = new PostingList(t, readCompressedPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getTermFreqSize(), de.getDocIdSize(), de.getDf()), null, de.getTermFreqSize(), de.getDocIdSize());
-                else
-                    pl = new PostingList(t, readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf()), null, de.getTermFreqSize(), de.getDocIdSize());
-                postingLists.add(pl);
-            }
-
-            //DocumentAtATime(postingLists, idf);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-        private static void DAATalgorithm() {
-
-        HashMap<String, PostingList> postingLists = new HashMap<>();
-        inverseResultQueue = new PriorityQueue<>(k, new CompareResInverse());
 
         try(
                 RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
@@ -176,7 +143,7 @@ public final class Query {
                 index++;
             }
 
-            if(queryType.equals("c"))
+            if(queryType)
                 Conjunctive.executeConjunctive();
             else {
                 // scelta tra daat e maxscore
@@ -193,7 +160,7 @@ public final class Query {
             return;
         }
 
-       while (!pq_res.isEmpty()) {
+        while (!pq_res.isEmpty()) {
             inverse_pq_res.add(pq_res.poll());
         }
         printUI("\nResults:\n");
@@ -210,6 +177,40 @@ public final class Query {
         printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
 
     }
+
+    public static void prepareStructures(List<String> query) {
+
+        ArrayList<PostingList> postingLists = new ArrayList<>();
+        ArrayList<Double> idf = new ArrayList<>();
+
+        try (
+                RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
+                RandomAccessFile tf_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
+                RandomAccessFile skip_raf = new RandomAccessFile(SKIP_FILE, "rw")
+        ) {
+            docId_channel = docid_raf.getChannel();
+            termFreq_channel = tf_raf.getChannel();
+            skip_channel = skip_raf.getChannel();
+
+            for (String t : query) {
+                DictionaryElem de = dictionary.getTermStat(t);
+                if (de == null) {
+                    continue;
+                }
+                idf.add(de.getIdf());
+                PostingList pl = new PostingList(t);
+                pl.load();
+                postingLists.add(pl);
+            }
+
+            //DocumentAtATime(postingLists, idf);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     private static void DAATalgorithm() {
 
@@ -248,25 +249,7 @@ public final class Query {
             }
         }
     }
-
-        // print results for disjunctive or conjunctive
-        if(inverseResultQueue.isEmpty())
-            printUI("No results");
-        else {
-            printUI("\nResults:\n");
-            System.out.println("DOCNO  DOCID    SCORE");
-            while (!inverseResultQueue.isEmpty()) {
-                System.out.println(inverseResultQueue.peek().getDocNo() + inverseResultQueue.peek().getDocId() + String.format("%.3f", inverseResultQueue.peek().getScore()));
-                inverseResultQueue.poll();
-            }
-        }
-
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-}
-
-    private static void DocumentAtATime(ArrayList<String> query){
+    private static void DocumentAtATime(List<String> query){
 
         ArrayList<PostingList> postingLists = new ArrayList<>();
         PriorityQueue<ResultBlock> resultQueueInverse = new PriorityQueue<>(k, new CompareResInverse());
@@ -288,11 +271,8 @@ public final class Query {
                     continue;
                 }
                 idf.add(de.getIdf());
-                PostingList pl;
-                if (Flags.isCompressionEnabled())
-                    pl = new PostingList(t, readCompressedPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getTermFreqSize(), de.getDocIdSize(), de.getDf()), null, de.getTermFreqSize(), de.getDocIdSize());
-                else
-                    pl = new PostingList(t, readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf()), null, de.getTermFreqSize(), de.getDocIdSize());
+                PostingList pl = new PostingList(t);
+                pl.load();
                 postingLists.add(pl);
             }
 
@@ -316,8 +296,8 @@ public final class Query {
                             score = score + computeBM25(idf.get(i), postingLists.get(i).getCurrPosting());
                         else
                             score = score + computeTFIDF(idf.get(i), postingLists.get(i).getCurrPosting());
-                        if (postingLists.get(i).postingIterator.hasNext())
-                            postingLists.get(i).setCurrPosting(postingLists.get(i).postingIterator.next());
+                        if (postingLists.get(i).getPostingIterator().hasNext())
+                            postingLists.get(i).setCurrPosting(postingLists.get(i).getPostingIterator().next());
                         else
                             notNext.set(i, true);
 
