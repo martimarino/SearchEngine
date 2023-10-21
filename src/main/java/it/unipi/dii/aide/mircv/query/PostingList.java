@@ -85,6 +85,7 @@ public class PostingList {
                 else
                     list.addAll(readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), sl.getArr_skipInfo().size()));
                 postingIterator = list.iterator();
+                currPosting = postingIterator.next();
             } else {
                 currPosting = null;
             }

@@ -27,21 +27,21 @@ public final class Query {
     public static final HashMap<Integer, DocumentElement> documentTable = new HashMap<>();
     public static final Dictionary dictionary = new Dictionary();
 
-    public static List<String> query_terms;
+
     public static int k; //number of result to return
     private static boolean queryType; // if conjunctive true, disjunctive false
     public static boolean scoreType; //type of score function (true = TFIDF or false = BM25)
     public static boolean algorithmType; //true = DAAT, false = MaxScore
 
     static PriorityQueue<DAATBlock> pq_DAAT;    // used during DAAT algorithm
-    static PriorityQueue<ResultBlock> pq_res;   // contains results (increasing)
+    public static PriorityQueue<ResultBlock> pq_res;   // contains results (increasing)
     public static PriorityQueue<ResultBlock> inverse_pq_res;  // contains results (decreasing)
 
-    public static ArrayList<PostingList> postingLists;
+    public static ArrayList<PostingList> postingLists = new ArrayList<>();
     static HashMap<String, PostingList> term_pl = new HashMap<>();
 
-    static HashMap<Integer, Double> index_score;
-    static HashMap<Integer, Integer> index_len;
+    static HashMap<Integer, Double> index_score = new HashMap<>();
+    static HashMap<Integer, Integer> index_len = new HashMap<>();
 
     public Query()  { throw new UnsupportedOperationException(); }
 
@@ -100,28 +100,25 @@ public final class Query {
         Query.k = k;
         queryType = q_type;
         Query.scoreType = scoreType;
-        query_terms = query.stream().distinct().collect(Collectors.toList());
+        List<String> query_terms = query.stream().distinct().collect(Collectors.toList());
 
         pq_DAAT = new PriorityQueue<>(query_terms.size(), new CompareScore());
-
         pq_res = new PriorityQueue<>(k, new CompareRes());
         inverse_pq_res = new PriorityQueue<>(k, new CompareResInverse());
-        index_len = new HashMap<>();
-        index_score = new HashMap<>();
 
-
-        try(
+        try (
                 RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
                 RandomAccessFile tf_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
                 RandomAccessFile skip_raf = new RandomAccessFile(SKIP_FILE, "rw")
-        ){
+        ) {
             docId_channel = docid_raf.getChannel();
             termFreq_channel = tf_raf.getChannel();
             skip_channel = skip_raf.getChannel();
 
-            postingLists = new ArrayList<>();
-
             int index = 0;
+
+            if (q.equals("who sings monk theme song "))
+                System.out.println();
 
             // retrieve the posting list of every query term
             for (String t : query_terms) {
@@ -132,7 +129,7 @@ public final class Query {
                 postingLists.add(pl);
                 term_pl.put(t, pl);
 
-                if(pl.getLen() == 0 || pl.getList() == null)
+                if (pl.getLen() == 0 || pl.getList() == null)
                     continue;
 
 //                index_score.put(index, pl.getScore());
@@ -143,20 +140,18 @@ public final class Query {
                 index++;
             }
 
-            if(queryType)
+            if (queryType)
                 Conjunctive.executeConjunctive();
             else {
                 // scelta tra daat e maxscore
                 DAATalgorithm();
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-
-        if (pq_res == null) {
-            System.out.println("No results found");
+        if (pq_res.isEmpty()) {
+            System.out.println("\n*** No results found ***\n");
             return;
         }
 
@@ -164,17 +159,25 @@ public final class Query {
             inverse_pq_res.add(pq_res.poll());
         }
         printUI("\nResults:\n");
-        System.out.format("%15s%15s%15s\n", "DOCNO", "DOCID", "SCORE");
-        System.out.format("%60s\n", "-".repeat(60));
+        System.out.format("%15s%15s\n", "DOCID", "SCORE");
+        System.out.format("%60s\n", "-".repeat(45));
 
         while (!inverse_pq_res.isEmpty()) {
             ResultBlock polled = inverse_pq_res.poll();
-            System.out.format("%15s%15s%15s\n", polled.getDocNo(), polled.getDocId(), String.format("%.3f", polled.getScore()));
+            System.out.format("%15s%15s\n", polled.getDocId(), String.format("%.3f", polled.getScore()));
         }
-        System.out.format("%60s\n", "-".repeat(60));
+        System.out.format("%60s\n", "-".repeat(45));
 
         long endTime = System.currentTimeMillis();
         printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+
+        postingLists.clear();
+        pq_DAAT.clear();
+        pq_res.clear();
+        inverse_pq_res.clear();
+        index_len.clear();
+        index_score.clear();
+        term_pl.clear();
 
     }
 
@@ -230,13 +233,14 @@ public final class Query {
                 if (pb.getDocId() == acc.getDocId()) {
                     acc.setScore(acc.getScore() + pb.getScore());
                 } else {
+//                    System.out.println(new ResultBlock(acc.getDocId(), acc.getScore()));
                     if (pq_res.size() == k) {
                         if (acc.getScore() > pq_res.peek().getScore()) {
                             pq_res.remove();
-                            pq_res.add(new ResultBlock(documentTable.get(acc.getDocId()).getDocno(), acc.getDocId(), acc.getScore()));
+                            pq_res.add(new ResultBlock(acc.getDocId(), acc.getScore()));
                         }
                     } else if (pq_res.size() < k)
-                        pq_res.add(new ResultBlock(documentTable.get(acc.getDocId()).getDocno(), acc.getDocId(), acc.getScore()));
+                        pq_res.add(new ResultBlock(acc.getDocId(), acc.getScore()));
                     acc = new DAATBlock(pb.getTerm(), pb.getDocId(), pb.getScore());
                 }
             }
@@ -260,7 +264,7 @@ public final class Query {
                 RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
                 RandomAccessFile tf_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
                 RandomAccessFile skip_raf = new RandomAccessFile(SKIP_FILE, "rw")
-        ) {
+        ){
             docId_channel = docid_raf.getChannel();
             termFreq_channel = tf_raf.getChannel();
             skip_channel = skip_raf.getChannel();

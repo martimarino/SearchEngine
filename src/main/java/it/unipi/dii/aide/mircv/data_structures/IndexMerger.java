@@ -287,18 +287,3 @@ public final class IndexMerger {
         }
     }
 }
-
-/*
- * NOTE
- * 1) While explanation:
- *    As long as the priority queue is not empty, extract the first term (in lexicographic order) and merge it.
- *    After each extraction, the new first term of the block (from which it was previously taken) is taken and
- *    put in the priority queue.
- * 2) If condition explanation:
- *    If there are other elements to be processed in the block identified by block_id (block containing the
- *    term taken from the queue in the current iteration) take the next term and add it to the priority queue.
- *    If condition divided whether the block considered is the last one or not
- *    last block -> check if reading one more element is less than file size
- *    not the last block -> check if reading one more element of that block is less than next block start
- *    if condition is satisfied -> read new element
- */

@@ -110,7 +110,6 @@ public class Main {
                         int nResults = getNumberOfResults(sc);
                         Query.executeQuery(q, nResults, type, score, algorithm);
                         closeChannels();
-                        delete_tempFiles();
                     }
 
                 default:
@@ -165,9 +164,6 @@ public class Main {
             }
         }
     }
-
-
-
 
     private static boolean getUserInput(Scanner sc){
         while(true){

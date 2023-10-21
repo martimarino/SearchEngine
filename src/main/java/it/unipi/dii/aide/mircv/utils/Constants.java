@@ -42,7 +42,7 @@ public final class Constants {
 
     public static int SKIP_POINTERS_THRESHOLD = 1024;
 //    public static int SKIP_POINTERS_THRESHOLD = 128;
-//public static int SKIP_POINTERS_THRESHOLD = Integer.MAX_VALUE;
+//    public static int SKIP_POINTERS_THRESHOLD = Integer.MAX_VALUE;
 
     // -------------------------------------- Constants for file offsets ----------------------------------------------
 
@@ -57,7 +57,7 @@ public final class Constants {
     // variable that stipulates the behaviour for control printouts. If false there will be no printouts, if true there will be all printouts.
     public static final boolean verbose = true;
     public static final boolean log = false;
-    public static final boolean debug = false;
+    public static final boolean debug = true;
 
 
     public static String formatTime(long start, long end) {
