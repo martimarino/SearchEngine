@@ -295,28 +295,29 @@ public final class Query {
 
                 for (int i = 0; i < postingLists.size(); i++) {
 
-                    if ((postingLists.get(i).getCurrPosting().getDocId() == current) && (!notNext.get(i))) {
+                    if ((!notNext.get(i)) && (postingLists.get(i).getCurrPosting().getDocId() == current)) {
                         if (scoreType)
                             score = score + computeBM25(idf.get(i), postingLists.get(i).getCurrPosting());
                         else
                             score = score + computeTFIDF(idf.get(i), postingLists.get(i).getCurrPosting());
-                        if (postingLists.get(i).getPostingIterator().hasNext())
-                            postingLists.get(i).setCurrPosting(postingLists.get(i).getPostingIterator().next());
-                        else
-                            notNext.set(i, true);
 
+                            postingLists.get(i).next(false);
+                        //postingLists.get(i).setCurrPosting(postingLists.get(i).getPostingIterator().next());
+                        if(postingLists.get(i).getCurrPosting() == null) {
+                            notNext.set(i, true);
+                            continue;
+                        }
                     }
-                    if (postingLists.get(i).getCurrPosting().getDocId() < next && (!notNext.get(i))){
+                    if ((!notNext.get(i)) && postingLists.get(i).getCurrPosting().getDocId() < next){
                         next = postingLists.get(i).getCurrPosting().getDocId();
                     }
-
                 }
 
                 if (resultQueue.size() < k)
-                    resultQueue.add(new ResultBlock("", current, score));
+                    resultQueue.add(new ResultBlock(current, score));
                 else if (resultQueue.size() == k && resultQueue.peek().getScore() < score) {
                     resultQueue.poll();
-                    resultQueue.add(new ResultBlock("", current, score));
+                    resultQueue.add(new ResultBlock(current, score));
                 }
                 current = next;
 

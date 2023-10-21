@@ -179,4 +179,10 @@ public class PostingList {
         return len;
     }
 
+    @Override
+    public String toString() {
+        return "PostingList{" +
+                "list=" + list +
+                '}';
+    }
 }
