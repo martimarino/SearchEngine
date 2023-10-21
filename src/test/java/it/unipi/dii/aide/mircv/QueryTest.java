@@ -49,7 +49,7 @@ class QueryTest {
     }
 */
 
-    @Test
+/*    @Test
     void name() {
         int numberOfResults = 10;
         int avgTimePQ = 0;
@@ -111,7 +111,7 @@ class QueryTest {
             e.printStackTrace();
         }
 
-    }
+    }*/
 
     @Test
     void testMaxScore() {

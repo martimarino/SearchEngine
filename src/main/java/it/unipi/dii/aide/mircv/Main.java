@@ -101,12 +101,12 @@ public class Main {
                         if (q.equals("x"))
                             return;
 
-                        printUI("Select Conjunctive or Disjunctive ( 1 for Conjunctive, 2 for Disjunctive)");
-                        boolean type = getUserInput(sc);
-                        printUI("Select scoring type (1 for BM25, 2 for TFIDF):");
-                        boolean score = getUserInput(sc);
-                        printUI("Select algorithm type (1 for DAAT,2 for Max Score) :");
-                        boolean algorithm = getUserInput(sc);
+                        String message = "Select Conjunctive or Disjunctive ( 1 for Conjunctive, 2 for Disjunctive)";
+                        boolean type = getUserInput(sc, message);
+                        message = "Select scoring type (1 for BM25, 2 for TFIDF):";
+                        boolean score = getUserInput(sc, message);
+                        message = "Select algorithm type (1 for DAAT,2 for Max Score) :";
+                        boolean algorithm = getUserInput(sc, message);
                         int nResults = getNumberOfResults(sc);
                         Query.executeQuery(q, nResults, type, score, algorithm);
                         closeChannels();
@@ -165,8 +165,9 @@ public class Main {
         }
     }
 
-    private static boolean getUserInput(Scanner sc){
+    private static boolean getUserInput(Scanner sc, String message){
         while(true){
+            printUI(message);
             String scoringType = sc.nextLine().toLowerCase().trim();
             if(scoringType.equals("1"))
                 return true;
