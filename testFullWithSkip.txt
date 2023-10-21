@@ -1,602 +1,602 @@
-query "who is aziz hashim " time PQ : 124ms
+query "who is aziz hashim " time PQ : 92ms
 ______________________________________________________________________
 
-query "who is rep scalise? " time PQ : 75ms
+query "who is rep scalise? " time PQ : 62ms
 ______________________________________________________________________
 
-query "who killed nicholas ii of russia " time PQ : 647ms
+query "who killed nicholas ii of russia " time PQ : 79ms
 ______________________________________________________________________
 
 query "who owns barnhart crane " time PQ : 15ms
 ______________________________________________________________________
 
-query "who said no one can make you feel inferior " time PQ : 649ms
+query "who said no one can make you feel inferior " time PQ : 142ms
 ______________________________________________________________________
 
-query "who sings monk theme song " time PQ : 75ms
+query "who sings monk theme song " time PQ : 36ms
 ______________________________________________________________________
 
-query "who was the highest career passer  rating in the nfl " time PQ : 368ms
+query "who was the highest career passer  rating in the nfl " time PQ : 142ms
 ______________________________________________________________________
 
-query "why do hunters pattern their shotguns? " time PQ : 103ms
+query "why do hunters pattern their shotguns? " time PQ : 63ms
 ______________________________________________________________________
 
-query "why do some places on my scalp feel sore " time PQ : 562ms
+query "why do some places on my scalp feel sore " time PQ : 95ms
 ______________________________________________________________________
 
-query "why is pete rose banned from hall of fame " time PQ : 745ms
+query "why is pete rose banned from hall of fame " time PQ : 165ms
 ______________________________________________________________________
 
-query "who is thomas m cooley " time PQ : 95ms
+query "who is thomas m cooley " time PQ : 71ms
 ______________________________________________________________________
 
-query "definition of endorsing " time PQ : 78ms
+query "definition of endorsing " time PQ : 130ms
 ______________________________________________________________________
 
-query "which hormone increases calcium levels in the blood? " time PQ : 1420ms
+query "which hormone increases calcium levels in the blood? " time PQ : 184ms
 ______________________________________________________________________
 
-query "define: geon " time PQ : 8ms
+query "define: geon " time PQ : 16ms
 ______________________________________________________________________
 
-query "where can the amazon rainforest is located " time PQ : 447ms
+query "where can the amazon rainforest is located " time PQ : 157ms
 ______________________________________________________________________
 
-query "when are the four forces that act on an airplane in equilibrium? " time PQ : 1278ms
+query "when are the four forces that act on an airplane in equilibrium? " time PQ : 252ms
 ______________________________________________________________________
 
-query "define pareto chart in statistics " time PQ : 39ms
+query "define pareto chart in statistics " time PQ : 47ms
 ______________________________________________________________________
 
-query "what year were the timberwolves founded " time PQ : 127ms
+query "what year were the timberwolves founded " time PQ : 79ms
 ______________________________________________________________________
 
-query "what year did knee deep come out funkadelic " time PQ : 69ms
+query "what year did knee deep come out funkadelic " time PQ : 63ms
 ______________________________________________________________________
 
-query "define define gallows " time PQ : 9ms
+query "define define gallows " time PQ : 0ms
 ______________________________________________________________________
 
-query "what tissue composes the hypodermis " time PQ : 94ms
+query "what tissue composes the hypodermis " time PQ : 79ms
 ______________________________________________________________________
 
-query "what time zone is st paul minnesota in " time PQ : 583ms
+query "what time zone is st paul minnesota in " time PQ : 159ms
 ______________________________________________________________________
 
-query "what the best way to get clothes white " time PQ : 982ms
+query "what the best way to get clothes white " time PQ : 188ms
 ______________________________________________________________________
 
-query "what temperature and humidity to dry sausage " time PQ : 746ms
+query "what temperature and humidity to dry sausage " time PQ : 115ms
 ______________________________________________________________________
 
-query "what mental illnesses " time PQ : 65ms
+query "what mental illnesses " time PQ : 81ms
 ______________________________________________________________________
 
-query "what medium do radio waves travel through " time PQ : 198ms
+query "what medium do radio waves travel through " time PQ : 77ms
 ______________________________________________________________________
 
-query "what language is craith filmed in? " time PQ : 74ms
+query "what language is craith filmed in? " time PQ : 125ms
 ______________________________________________________________________
 
-query "what is the un fao " time PQ : 89ms
+query "what is the un fao " time PQ : 110ms
 ______________________________________________________________________
 
-query "what is the distance between flat rock michigan and detroit michigan " time PQ : 961ms
+query "what is the distance between flat rock michigan and detroit michigan " time PQ : 213ms
 ______________________________________________________________________
 
-query "what is shakespeare's theatre called " time PQ : 498ms
+query "what is shakespeare's theatre called " time PQ : 127ms
 ______________________________________________________________________
 
-query "what is reba mcentire's net worth " time PQ : 67ms
+query "what is reba mcentire's net worth " time PQ : 94ms
 ______________________________________________________________________
 
-query "what is it called when your blood becomes too thin " time PQ : 722ms
+query "what is it called when your blood becomes too thin " time PQ : 189ms
 ______________________________________________________________________
 
-query "what is in the meat group " time PQ : 745ms
+query "what is in the meat group " time PQ : 318ms
 ______________________________________________________________________
 
-query "conformative definition " time PQ : 5ms
+query "conformative definition " time PQ : 13ms
 ______________________________________________________________________
 
-query "what is chaff and flare " time PQ : 65ms
+query "what is chaff and flare " time PQ : 110ms
 ______________________________________________________________________
 
-query "what is a nonconformity? earth science " time PQ : 103ms
+query "what is a nonconformity? earth science " time PQ : 157ms
 ______________________________________________________________________
 
-query "what does unauthorized act in writing mean " time PQ : 299ms
+query "what does unauthorized act in writing mean " time PQ : 100ms
 ______________________________________________________________________
 
-query "what does the word pottery mean " time PQ : 175ms
+query "what does the word pottery mean " time PQ : 94ms
 ______________________________________________________________________
 
-query "what does provisions mean? " time PQ : 82ms
+query "what does provisions mean? " time PQ : 63ms
 ______________________________________________________________________
 
-query "what does plank owner mean " time PQ : 133ms
+query "what does plank owner mean " time PQ : 47ms
 ______________________________________________________________________
 
-query "what does distraint mean? " time PQ : 20ms
+query "what does distraint mean? " time PQ : 32ms
 ______________________________________________________________________
 
-query "what does a psychological screening consist of for egg donors " time PQ : 934ms
+query "what does a psychological screening consist of for egg donors " time PQ : 170ms
 ______________________________________________________________________
 
-query "caries detection system " time PQ : 35ms
+query "caries detection system " time PQ : 25ms
 ______________________________________________________________________
 
-query "what can you do about discrimination in the workplace in oklahoma city " time PQ : 728ms
+query "what can you do about discrimination in the workplace in oklahoma city " time PQ : 198ms
 ______________________________________________________________________
 
-query "what are the major political parties in great britain? select all that apply. " time PQ : 958ms
+query "what are the major political parties in great britain? select all that apply. " time PQ : 236ms
 ______________________________________________________________________
 
-query "what are symptoms of kid " time PQ : 418ms
+query "what are symptoms of kid " time PQ : 146ms
 ______________________________________________________________________
 
-query "what amino produces carnitine " time PQ : 39ms
+query "what amino produces carnitine " time PQ : 16ms
 ______________________________________________________________________
 
-query "what adobe do you need to create external links in a pdf document " time PQ : 836ms
+query "what adobe do you need to create external links in a pdf document " time PQ : 220ms
 ______________________________________________________________________
 
-query "walmart phone number linton in " time PQ : 64ms
+query "walmart phone number linton in " time PQ : 69ms
 ______________________________________________________________________
 
-query "briefly describe how the lungs function " time PQ : 362ms
+query "briefly describe how the lungs function " time PQ : 78ms
 ______________________________________________________________________
 
-query "routing number for savings bank of maine " time PQ : 462ms
+query "routing number for savings bank of maine " time PQ : 113ms
 ______________________________________________________________________
 
-query "reigning, definition " time PQ : 12ms
+query "reigning, definition " time PQ : 29ms
 ______________________________________________________________________
 
-query "outmaneuver definition " time PQ : 6ms
+query "outmaneuver definition " time PQ : 16ms
 ______________________________________________________________________
 
-query "number of employees for disa global solutions " time PQ : 103ms
+query "number of employees for disa global solutions " time PQ : 110ms
 ______________________________________________________________________
 
-query "ms symptoms ms " time PQ : 35ms
+query "ms symptoms ms " time PQ : 47ms
 ______________________________________________________________________
 
-query "monk meaning " time PQ : 32ms
+query "monk meaning " time PQ : 16ms
 ______________________________________________________________________
 
-query "meaning of shebang " time PQ : 37ms
+query "meaning of shebang " time PQ : 61ms
 ______________________________________________________________________
 
-query "is the medicine toradol a narcotic " time PQ : 99ms
+query "is the medicine toradol a narcotic " time PQ : 137ms
 ______________________________________________________________________
 
-query "in healthcare what does iihi stand for " time PQ : 51ms
+query "in healthcare what does iihi stand for " time PQ : 110ms
 ______________________________________________________________________
 
-query "how much do a passport " time PQ : 392ms
+query "how much do a passport " time PQ : 126ms
 ______________________________________________________________________
 
-query "how much cornstarch is needed to thicken " time PQ : 315ms
+query "how much cornstarch is needed to thicken " time PQ : 134ms
 ______________________________________________________________________
 
-query "how many years you have to go through and school is to become a anesthesiologist " time PQ : 698ms
+query "how many years you have to go through and school is to become a anesthesiologist " time PQ : 315ms
 ______________________________________________________________________
 
-query "how many sons robert kraft has " time PQ : 143ms
+query "how many sons robert kraft has " time PQ : 62ms
 ______________________________________________________________________
 
-query "how many bricks per wall " time PQ : 177ms
+query "how many bricks per wall " time PQ : 63ms
 ______________________________________________________________________
 
-query "how long to cook potato wedges in the oven from frozen " time PQ : 452ms
+query "how long to cook potato wedges in the oven from frozen " time PQ : 205ms
 ______________________________________________________________________
 
-query "average annual income data analyst " time PQ : 104ms
+query "average annual income data analyst " time PQ : 63ms
 ______________________________________________________________________
 
-query "how long do you stay contagious with the flu " time PQ : 732ms
+query "how long do you stay contagious with the flu " time PQ : 172ms
 ______________________________________________________________________
 
-query "how long do i cook artichokes for " time PQ : 174ms
+query "how long do i cook artichokes for " time PQ : 95ms
 ______________________________________________________________________
 
-query "how long do hormonal headaches last " time PQ : 138ms
+query "how long do hormonal headaches last " time PQ : 54ms
 ______________________________________________________________________
 
-query "how does vitamin c helps " time PQ : 111ms
+query "how does vitamin c helps " time PQ : 128ms
 ______________________________________________________________________
 
-query "how does granulation tissue start " time PQ : 47ms
+query "how does granulation tissue start " time PQ : 46ms
 ______________________________________________________________________
 
-query "hotshot members " time PQ : 10ms
+query "hotshot members " time PQ : 16ms
 ______________________________________________________________________
 
-query "holidays definition " time PQ : 18ms
+query "holidays definition " time PQ : 31ms
 ______________________________________________________________________
 
-query "head basketball coach at texas a&m. " time PQ : 545ms
+query "head basketball coach at texas a&m. " time PQ : 126ms
 ______________________________________________________________________
 
-query "geneva il median sales price " time PQ : 61ms
+query "geneva il median sales price " time PQ : 15ms
 ______________________________________________________________________
 
-query "flyover definition " time PQ : 7ms
+query "flyover definition " time PQ : 16ms
 ______________________________________________________________________
 
-query "first eagle credit union routing number " time PQ : 146ms
+query "first eagle credit union routing number " time PQ : 47ms
 ______________________________________________________________________
 
-query "antibiotics for what kind of infection " time PQ : 520ms
+query "antibiotics for what kind of infection " time PQ : 142ms
 ______________________________________________________________________
 
-query "embedded payments definition " time PQ : 33ms
+query "embedded payments definition " time PQ : 35ms
 ______________________________________________________________________
 
-query "dx code for thoracic outlet syndrome " time PQ : 81ms
+query "dx code for thoracic outlet syndrome " time PQ : 59ms
 ______________________________________________________________________
 
-query "does low vitamin cause tingling " time PQ : 98ms
+query "does low vitamin cause tingling " time PQ : 63ms
 ______________________________________________________________________
 
-query "difference between a hotel and motel " time PQ : 324ms
+query "difference between a hotel and motel " time PQ : 134ms
 ______________________________________________________________________
 
-query "difference between a company's strategy and business model is " time PQ : 874ms
+query "difference between a company's strategy and business model is " time PQ : 229ms
 ______________________________________________________________________
 
-query "why does lacquered brass tarnish " time PQ : 14ms
+query "why does lacquered brass tarnish " time PQ : 15ms
 ______________________________________________________________________
 
-query "why did the ancient egyptians call their land kemet, or black land? " time PQ : 141ms
+query "why did the ancient egyptians call their land kemet, or black land? " time PQ : 142ms
 ______________________________________________________________________
 
-query "define bmt medical " time PQ : 26ms
+query "define bmt medical " time PQ : 16ms
 ______________________________________________________________________
 
-query "define curvilinear " time PQ : 5ms
+query "define curvilinear " time PQ : 0ms
 ______________________________________________________________________
 
-query "define etruscans " time PQ : 7ms
+query "define etruscans " time PQ : 16ms
 ______________________________________________________________________
 
-query "define premature babies " time PQ : 20ms
+query "define premature babies " time PQ : 15ms
 ______________________________________________________________________
 
-query "definition of laudable " time PQ : 39ms
+query "definition of laudable " time PQ : 47ms
 ______________________________________________________________________
 
-query "describe how muscles and bones work together to produce movement " time PQ : 706ms
+query "describe how muscles and bones work together to produce movement " time PQ : 79ms
 ______________________________________________________________________
 
-query "did prohibition increased crime " time PQ : 41ms
+query "did prohibition increased crime " time PQ : 16ms
 ______________________________________________________________________
 
-query "do google docs auto save " time PQ : 55ms
+query "do google docs auto save " time PQ : 27ms
 ______________________________________________________________________
 
-query "does ethambutol treat bone infection " time PQ : 26ms
+query "does ethambutol treat bone infection " time PQ : 5ms
 ______________________________________________________________________
 
-query "does mississippi have an income tax " time PQ : 244ms
+query "does mississippi have an income tax " time PQ : 52ms
 ______________________________________________________________________
 
-query "dog day afternoon meaning " time PQ : 89ms
+query "dog day afternoon meaning " time PQ : 31ms
 ______________________________________________________________________
 
-query "driving distance  geneva ny to syracuse " time PQ : 192ms
+query "driving distance  geneva ny to syracuse " time PQ : 16ms
 ______________________________________________________________________
 
-query "eating foods that are considered warm " time PQ : 336ms
+query "eating foods that are considered warm " time PQ : 63ms
 ______________________________________________________________________
 
-query "estar meaning " time PQ : 8ms
+query "estar meaning " time PQ : 15ms
 ______________________________________________________________________
 
-query "group edit policy " time PQ : 40ms
+query "group edit policy " time PQ : 18ms
 ______________________________________________________________________
 
-query "hotels in st. louis area " time PQ : 276ms
+query "hotels in st. louis area " time PQ : 45ms
 ______________________________________________________________________
 
-query "how does the body oxidize alcohol so it can be eliminated " time PQ : 450ms
+query "how does the body oxidize alcohol so it can be eliminated " time PQ : 95ms
 ______________________________________________________________________
 
-query "are naturalization records public information " time PQ : 123ms
+query "are naturalization records public information " time PQ : 32ms
 ______________________________________________________________________
 
-query "how long are we contagious after we catch a cold.? " time PQ : 539ms
+query "how long are we contagious after we catch a cold.? " time PQ : 79ms
 ______________________________________________________________________
 
-query "how long do financial institutions keep records after closing " time PQ : 178ms
+query "how long do financial institutions keep records after closing " time PQ : 31ms
 ______________________________________________________________________
 
-query "how long do ticks survive without host " time PQ : 137ms
+query "how long do ticks survive without host " time PQ : 48ms
 ______________________________________________________________________
 
-query "how long does it take for discover to raise limit " time PQ : 711ms
+query "how long does it take for discover to raise limit " time PQ : 71ms
 ______________________________________________________________________
 
-query "how long does it take to get feeling back after surgery? " time PQ : 586ms
+query "how long does it take to get feeling back after surgery? " time PQ : 109ms
 ______________________________________________________________________
 
-query "how long does it take to get refund from petsmart " time PQ : 160ms
+query "how long does it take to get refund from petsmart " time PQ : 62ms
 ______________________________________________________________________
 
-query "how long does it take to remove wisdom tooth " time PQ : 446ms
+query "how long does it take to remove wisdom tooth " time PQ : 79ms
 ______________________________________________________________________
 
-query "army dating websites " time PQ : 49ms
+query "army dating websites " time PQ : 16ms
 ______________________________________________________________________
 
-query "how long will methadone stay in your system " time PQ : 266ms
+query "how long will methadone stay in your system " time PQ : 63ms
 ______________________________________________________________________
 
-query "how much caffeine in twinings green tea " time PQ : 60ms
+query "how much caffeine in twinings green tea " time PQ : 31ms
 ______________________________________________________________________
 
-query "how much does talent directors get paid a year " time PQ : 430ms
+query "how much does talent directors get paid a year " time PQ : 63ms
 ______________________________________________________________________
 
-query "how much money do motivational speakers make " time PQ : 136ms
+query "how much money do motivational speakers make " time PQ : 21ms
 ______________________________________________________________________
 
-query "how much weight on usps letter " time PQ : 177ms
+query "how much weight on usps letter " time PQ : 57ms
 ______________________________________________________________________
 
-query "how much would it cost to install my own wind turbine " time PQ : 410ms
+query "how much would it cost to install my own wind turbine " time PQ : 68ms
 ______________________________________________________________________
 
-query "how often to button quail lay eggs " time PQ : 131ms
+query "how often to button quail lay eggs " time PQ : 32ms
 ______________________________________________________________________
 
-query "how old is vanessa redgrave " time PQ : 54ms
+query "how old is vanessa redgrave " time PQ : 16ms
 ______________________________________________________________________
 
-query "how do they do open heart surgery " time PQ : 299ms
+query "how do they do open heart surgery " time PQ : 68ms
 ______________________________________________________________________
 
-query "how to get a free xbox one card " time PQ : 518ms
+query "how to get a free xbox one card " time PQ : 78ms
 ______________________________________________________________________
 
-query "how to uninstall xbox from windows 10 " time PQ : 323ms
+query "how to uninstall xbox from windows 10 " time PQ : 48ms
 ______________________________________________________________________
 
-query "ia suffix meaning " time PQ : 21ms
+query "ia suffix meaning " time PQ : 0ms
 ______________________________________________________________________
 
-query "is caffeine an narcotic " time PQ : 152ms
+query "is caffeine an narcotic " time PQ : 47ms
 ______________________________________________________________________
 
-query "average salary for dental hygienist in nebraska " time PQ : 184ms
+query "average salary for dental hygienist in nebraska " time PQ : 32ms
 ______________________________________________________________________
 
-query "is the a splitboard in skis " time PQ : 86ms
+query "is the a splitboard in skis " time PQ : 85ms
 ______________________________________________________________________
 
-query "is the duodenum a muscle " time PQ : 457ms
+query "is the duodenum a muscle " time PQ : 101ms
 ______________________________________________________________________
 
-query "average salary in canada 1985 " time PQ : 242ms
+query "average salary in canada 1985 " time PQ : 40ms
 ______________________________________________________________________
 
-query "landfill hours " time PQ : 41ms
+query "landfill hours " time PQ : 16ms
 ______________________________________________________________________
 
-query "largest known insects " time PQ : 74ms
+query "largest known insects " time PQ : 15ms
 ______________________________________________________________________
 
-query "magnesium definition chemistry " time PQ : 40ms
+query "magnesium definition chemistry " time PQ : 32ms
 ______________________________________________________________________
 
-query "meaning of tattoos around eyes " time PQ : 170ms
+query "meaning of tattoos around eyes " time PQ : 31ms
 ______________________________________________________________________
 
-query "metabolic disease signs and symptoms " time PQ : 341ms
+query "metabolic disease signs and symptoms " time PQ : 47ms
 ______________________________________________________________________
 
-query "neptune's distance from earth " time PQ : 134ms
+query "neptune's distance from earth " time PQ : 63ms
 ______________________________________________________________________
 
-query "oracle bind variable example " time PQ : 47ms
+query "oracle bind variable example " time PQ : 0ms
 ______________________________________________________________________
 
-query "average wedding dress alteration cost " time PQ : 62ms
+query "average wedding dress alteration cost " time PQ : 16ms
 ______________________________________________________________________
 
-query "projective definition " time PQ : 8ms
+query "projective definition " time PQ : 15ms
 ______________________________________________________________________
 
-query "barclays fca number " time PQ : 17ms
+query "barclays fca number " time PQ : 0ms
 ______________________________________________________________________
 
-query "benefit policy in layoff " time PQ : 56ms
+query "benefit policy in layoff " time PQ : 32ms
 ______________________________________________________________________
 
-query "the after hours clinic " time PQ : 377ms
+query "the after hours clinic " time PQ : 212ms
 ______________________________________________________________________
 
-query "the symptoms of shingles " time PQ : 362ms
+query "the symptoms of shingles " time PQ : 220ms
 ______________________________________________________________________
 
-query "biggest loser challenge " time PQ : 20ms
+query "biggest loser challenge " time PQ : 16ms
 ______________________________________________________________________
 
-query "village of burnham " time PQ : 38ms
+query "village of burnham " time PQ : 63ms
 ______________________________________________________________________
 
-query "vitamin e anti scar " time PQ : 49ms
+query "vitamin e anti scar " time PQ : 36ms
 ______________________________________________________________________
 
-query "weather in antigua november " time PQ : 54ms
+query "weather in antigua november " time PQ : 63ms
 ______________________________________________________________________
 
-query "weather in novi sad " time PQ : 36ms
+query "weather in novi sad " time PQ : 47ms
 ______________________________________________________________________
 
-query "what are best foods to lower cholesterol " time PQ : 476ms
+query "what are best foods to lower cholesterol " time PQ : 173ms
 ______________________________________________________________________
 
-query "what carvedilol used for " time PQ : 74ms
+query "what carvedilol used for " time PQ : 63ms
 ______________________________________________________________________
 
-query "what causes bruises to appear " time PQ : 161ms
+query "what causes bruises to appear " time PQ : 89ms
 ______________________________________________________________________
 
-query "what causes muscles to tear " time PQ : 302ms
+query "what causes muscles to tear " time PQ : 115ms
 ______________________________________________________________________
 
-query "what county is dexter michigan in " time PQ : 193ms
+query "what county is dexter michigan in " time PQ : 126ms
 ______________________________________________________________________
 
-query "what county is new york new york in? " time PQ : 556ms
+query "what county is new york new york in? " time PQ : 267ms
 ______________________________________________________________________
 
-query "what county is rio hondo tx " time PQ : 45ms
+query "what county is rio hondo tx " time PQ : 74ms
 ______________________________________________________________________
 
-query "what does it mean if your tsh is low " time PQ : 438ms
+query "what does it mean if your tsh is low " time PQ : 183ms
 ______________________________________________________________________
 
-query "can ativan cause coughing " time PQ : 36ms
+query "can ativan cause coughing " time PQ : 27ms
 ______________________________________________________________________
 
-query "what does the weird e mean in math " time PQ : 488ms
+query "what does the weird e mean in math " time PQ : 157ms
 ______________________________________________________________________
 
-query "what does zetia treat " time PQ : 18ms
+query "what does zetia treat " time PQ : 33ms
 ______________________________________________________________________
 
-query "what drives poaching " time PQ : 23ms
+query "what drives poaching " time PQ : 15ms
 ______________________________________________________________________
 
-query "what food can i take on a plane " time PQ : 572ms
+query "what food can i take on a plane " time PQ : 186ms
 ______________________________________________________________________
 
-query "can fever cause miscarriage early pregnancy " time PQ : 148ms
+query "can fever cause miscarriage early pregnancy " time PQ : 57ms
 ______________________________________________________________________
 
-query "what is a alm " time PQ : 81ms
+query "what is a alm " time PQ : 126ms
 ______________________________________________________________________
 
-query "what is a statutory deed " time PQ : 376ms
+query "what is a statutory deed " time PQ : 117ms
 ______________________________________________________________________
 
-query "what is a torn disc " time PQ : 381ms
+query "what is a torn disc " time PQ : 127ms
 ______________________________________________________________________
 
-query "what is aids and hiv " time PQ : 409ms
+query "what is aids and hiv " time PQ : 189ms
 ______________________________________________________________________
 
-query "what is an mbot " time PQ : 42ms
+query "what is an mbot " time PQ : 78ms
 ______________________________________________________________________
 
-query "what is chronometer who invented it " time PQ : 59ms
+query "what is chronometer who invented it " time PQ : 79ms
 ______________________________________________________________________
 
-query "what is cow chip t " time PQ : 329ms
+query "what is cow chip t " time PQ : 48ms
 ______________________________________________________________________
 
-query "what is crimp oil " time PQ : 70ms
+query "what is crimp oil " time PQ : 31ms
 ______________________________________________________________________
 
-query "can uti cause stroke " time PQ : 71ms
+query "can uti cause stroke " time PQ : 16ms
 ______________________________________________________________________
 
-query "what is mamey " time PQ : 28ms
+query "what is mamey " time PQ : 33ms
 ______________________________________________________________________
 
-query "what is onboarding for credit unions " time PQ : 80ms
+query "what is onboarding for credit unions " time PQ : 45ms
 ______________________________________________________________________
 
-query "what is rsrq " time PQ : 31ms
+query "what is rsrq " time PQ : 32ms
 ______________________________________________________________________
 
-query "what is scientific definition of cytoplasm " time PQ : 456ms
+query "what is scientific definition of cytoplasm " time PQ : 64ms
 ______________________________________________________________________
 
-query "what is sculpture shape space " time PQ : 188ms
+query "what is sculpture shape space " time PQ : 31ms
 ______________________________________________________________________
 
-query "what is supplemental security income used for " time PQ : 408ms
+query "what is supplemental security income used for " time PQ : 94ms
 ______________________________________________________________________
 
-query "what is the actor color? " time PQ : 564ms
+query "what is the actor color? " time PQ : 63ms
 ______________________________________________________________________
 
-query "what is the best music maker " time PQ : 468ms
+query "what is the best music maker " time PQ : 63ms
 ______________________________________________________________________
 
-query "what is the botanical name for mango " time PQ : 364ms
+query "what is the botanical name for mango " time PQ : 78ms
 ______________________________________________________________________
 
-query "what is the data rate of sdtv " time PQ : 105ms
+query "what is the data rate of sdtv " time PQ : 79ms
 ______________________________________________________________________
 
-query "what is the electric field at " time PQ : 623ms
+query "what is the electric field at " time PQ : 94ms
 ______________________________________________________________________
 
-query "what is the symptoms of croup " time PQ : 146ms
+query "what is the symptoms of croup " time PQ : 79ms
 ______________________________________________________________________
 
-query "causes for shortness of breath through exertion " time PQ : 257ms
+query "causes for shortness of breath through exertion " time PQ : 62ms
 ______________________________________________________________________
 
-query "what is the temperature in venice fl " time PQ : 416ms
+query "what is the temperature in venice fl " time PQ : 79ms
 ______________________________________________________________________
 
-query "causes of gas in large intestine " time PQ : 506ms
+query "causes of gas in large intestine " time PQ : 63ms
 ______________________________________________________________________
 
-query "what metal are hip replacements made of " time PQ : 286ms
+query "what metal are hip replacements made of " time PQ : 63ms
 ______________________________________________________________________
 
-query "what other brain proteins can cause dementia " time PQ : 222ms
+query "what other brain proteins can cause dementia " time PQ : 38ms
 ______________________________________________________________________
 
-query "causes of stroke? " time PQ : 317ms
+query "causes of stroke? " time PQ : 205ms
 ______________________________________________________________________
 
-query "what type of conflict does della face in o, henry the gift of the magi " time PQ : 239ms
+query "what type of conflict does della face in o, henry the gift of the magi " time PQ : 190ms
 ______________________________________________________________________
 
-query "what type of tissue are bronchioles " time PQ : 192ms
+query "what type of tissue are bronchioles " time PQ : 118ms
 ______________________________________________________________________
 
-query "chicken as food wikipedia " time PQ : 261ms
+query "chicken as food wikipedia " time PQ : 65ms
 ______________________________________________________________________
 
-query "what was darwin's greatest contribution to evolutionary theory? " time PQ : 319ms
+query "what was darwin's greatest contribution to evolutionary theory? " time PQ : 108ms
 ______________________________________________________________________
 
-query "when did family feud come out? " time PQ : 104ms
+query "when did family feud come out? " time PQ : 47ms
 ______________________________________________________________________
 
-query "when did rock n roll begin? " time PQ : 95ms
+query "when did rock n roll begin? " time PQ : 64ms
 ______________________________________________________________________
 
-query "when does ace hardware open? " time PQ : 139ms
+query "when does ace hardware open? " time PQ : 50ms
 ______________________________________________________________________
 
-query "where is berlin center " time PQ : 178ms
+query "where is berlin center " time PQ : 74ms
 ______________________________________________________________________
 
-query "where is kampuchea " time PQ : 34ms
+query "where is kampuchea " time PQ : 60ms
 ______________________________________________________________________
 
-query "convert sq meter to sq inch " time PQ : 289ms
+query "convert sq meter to sq inch " time PQ : 79ms
 ______________________________________________________________________
 
-query "where is the show shameless filmed " time PQ : 131ms
+query "where is the show shameless filmed " time PQ : 126ms
 ______________________________________________________________________
 
-query "where is velbert " time PQ : 37ms
+query "where is velbert " time PQ : 47ms
 ______________________________________________________________________
 
-query "definition of attempted arson " time PQ : 67ms
+query "definition of attempted arson " time PQ : 64ms
 ______________________________________________________________________
 
 *********************** Avg times ************************
-Average time PQ: 247ms
+Average time PQ: 81ms

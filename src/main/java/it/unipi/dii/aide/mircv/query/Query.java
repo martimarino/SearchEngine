@@ -106,7 +106,7 @@ public final class Query {
 
             int index = 0;
 
-            if(q.equals("what the best way to get clothes white"))
+            if(q.equals("who sings monk theme song "))
                 System.out.println();
 
             // retrieve the posting list of every query term
@@ -128,36 +128,33 @@ public final class Query {
 
                 index++;
             }
-
             if(queryType.equals("c"))
                 Conjunctive.executeConjunctive();
             else {
                 // scelta tra daat e maxscore
                 DAATalgorithm();
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
 
         if (pq_res.isEmpty()) {
             System.out.println("\n*** No results found ***\n");
             return;
         }
 
-       while (!pq_res.isEmpty()) {
+        while (!pq_res.isEmpty()) {
             inverse_pq_res.add(pq_res.poll());
         }
         printUI("\nResults:\n");
         System.out.format("%15s%15s\n", "DOCID", "SCORE");
-        System.out.format("%60s\n", "-".repeat(60));
+        System.out.format("%60s\n", "-".repeat(45));
 
         while (!inverse_pq_res.isEmpty()) {
             ResultBlock polled = inverse_pq_res.poll();
             System.out.format("%15s%15s\n", polled.getDocId(), String.format("%.3f", polled.getScore()));
         }
-        System.out.format("%60s\n", "-".repeat(60));
+        System.out.format("%60s\n", "-".repeat(45));
 
         long endTime = System.currentTimeMillis();
         printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
@@ -190,7 +187,7 @@ public final class Query {
                 if (pb.getDocId() == acc.getDocId()) {
                     acc.setScore(acc.getScore() + pb.getScore());
                 } else {
-                    System.out.println(new ResultBlock(acc.getDocId(), acc.getScore()));
+//                    System.out.println(new ResultBlock(acc.getDocId(), acc.getScore()));
                     if (pq_res.size() == k) {
                         if (acc.getScore() > pq_res.peek().getScore()) {
                             pq_res.remove();

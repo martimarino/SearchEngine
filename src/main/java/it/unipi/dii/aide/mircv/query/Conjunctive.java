@@ -26,6 +26,7 @@ public class Conjunctive {
         shortest = orderedConjPostingLists.remove(0);
 
         postingLists.clear();
+        index_len.clear();
 
         do {
             // poll from the shortest posting list
@@ -66,7 +67,7 @@ public class Conjunctive {
 
         for (PostingList pl : orderedConjPostingLists) {
 
-            if((pl.getSl() != null) && (currentDocId > pl.getSl().getCurrSkipInfo().getMaxDocId()))
+            if((pl.getSl() != null) && (pl.getSl().getCurrSkipInfo() != null) && (currentDocId > pl.getSl().getCurrSkipInfo().getMaxDocId()))
                 pl.nextGEQ(currentDocId);
             else
                 while ((pl.getCurrPosting() != null) && (pl.getCurrPosting().getDocId() < currentDocId))
