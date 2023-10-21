@@ -4,31 +4,29 @@ import it.unipi.dii.aide.mircv.data_structures.Flags;
 import it.unipi.dii.aide.mircv.data_structures.IndexMerger;
 import it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder;
 import it.unipi.dii.aide.mircv.query.Query;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
 import java.util.ArrayList;
 
-import static it.unipi.dii.aide.mircv.query.Query.queryStartControl;
 import static it.unipi.dii.aide.mircv.data_structures.Flags.*;
+import static it.unipi.dii.aide.mircv.query.Query.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.closeChannels;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.file_cleaner;
+import static org.junit.Assert.assertTrue;
 
 class QueryTest {
 
     String filename = "performanceOutputAll.txt";
 
-//    @BeforeAll
-//    static void getFromFile(){
-//        Flags.setConsiderSkippingBytes(true);
-//        try {
-//            queryStartControl();
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
+    @BeforeAll
+    static void getFromFile(){
+        Flags.setConsiderSkippingBytes(true);
+        queryStartControl();
+
+    }
 
 
 /*
@@ -51,36 +49,36 @@ class QueryTest {
     }
 */
 
-    //    @Test
+/*    @Test
     void name() {
-        ArrayList<Integer> result = new ArrayList<>();
         int numberOfResults = 10;
         int avgTimePQ = 0;
         int avgTime = 0;
-
         int nQuery = 0;
         try (BufferedReader TSVReader = new BufferedReader(new FileReader("src/main/resources/msmarco-test2020-queries.tsv"))) {
             String line = null;
             while ((line = TSVReader.readLine()) != null) {
                 String query = line.split("\t")[1]; //splitting the line and adding its items in String[]
                 long startTimePQ = System.currentTimeMillis();
-                Query.executeQueryPQ(query, numberOfResults, "c", false);
+                Query.executeQueryPQ(query, numberOfResults, false, false);
                 long endTimePQ = System.currentTimeMillis();
                 String PQtime = "query \"" + query + " \" time PQ : " + (endTimePQ - startTimePQ) + "ms";
                 System.out.println(PQtime);
                 avgTimePQ += (int) (endTimePQ - startTimePQ);
-//                long startTime = System.currentTimeMillis();
-//                Query.executeQuery(query, numberOfResults, "d", false);
-//                long endTime = System.currentTimeMillis();
-//                String time = "query \"" + query + " \" time : " + (endTime - startTime) + "ms";
-//                System.out.println(time);
-//                avgTime += (endTime - startTime);
+                long startTime = System.currentTimeMillis();
+                Query.executeQuery(query, numberOfResults, false, false, true);
+                long endTime = System.currentTimeMillis();
+                String time = "query \"" + query + " \" time : " + (endTime - startTime) + "ms";
+                System.out.println(time);
+                avgTime += (endTime - startTime);
                 nQuery++;
 
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
 
                     // Scrivi il testo con informazioni sulla formattazione nel file
                     writer.write(PQtime);
+                    writer.newLine();
+                    writer.write(time);
                     writer.newLine();
                     writer.write("______________________________________________________________________\n");
                     writer.newLine();
@@ -90,7 +88,9 @@ class QueryTest {
             }
             if(nQuery > 0) {
                 String AvgPQ = "Average time PQ: " + (avgTimePQ / (nQuery)) + "ms";
-//                String Avg = "Average time: " + (avgTime / (nQuery)) + "ms";
+                String Avg = "Average time: " + (avgTime / (nQuery)) + "ms";
+                assertTrue((avgTimePQ / (nQuery)) < 1000);
+                assertTrue( (avgTime / (nQuery))  < 1000);
 
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
 
@@ -99,17 +99,71 @@ class QueryTest {
                     writer.newLine();
                     writer.write(AvgPQ);
                     writer.newLine();
-//                    writer.write(Avg);
-//                    writer.newLine();
+                    writer.write(Avg);
+                    writer.newLine();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 printTime(AvgPQ);
-//                printTime(Avg);
+                printTime(Avg);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+    }*/
+
+    @Test
+    void testMaxScore() {
+
+        int numberOfResults = 10;
+        int avgTimePQ = 0;
+        int avgTime = 0;
+        String filename = "outputMaxScore.txt";
+        int nQuery = 0;
+        try (BufferedReader TSVReader = new BufferedReader(new FileReader("src/main/resources/msmarco-test2020-queries.tsv"))) {
+            String line = null;
+            while ((line = TSVReader.readLine()) != null) {
+                String query = line.split("\t")[1]; //splitting the line and adding its items in String[]
+                long startTime = System.currentTimeMillis();
+                Query.executeQuery(query, numberOfResults, false, false, true);
+                long endTime = System.currentTimeMillis();
+                String time = "query \"" + query + " \" time : " + (endTime - startTime) + "ms";
+                System.out.println(time);
+                avgTime += (endTime - startTime);
+                nQuery++;
+
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
+
+                    // Scrivi il testo con informazioni sulla formattazione nel file
+                    writer.write(time);
+                    writer.newLine();
+                    writer.write("______________________________________________________________________\n");
+                    writer.newLine();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if(nQuery > 0) {
+                String Avg = "Average time: " + (avgTime / (nQuery)) + "ms";
+
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
+
+                    // Scrivi il testo con informazioni sulla formattazione nel file
+                    writer.write("*********************** Avg times ************************");
+                    writer.newLine();
+                    writer.write(Avg);
+                    writer.newLine();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                printTime(Avg);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
 
     }
 
@@ -145,7 +199,7 @@ class QueryTest {
 //
 //    }
 
-    @Test
+/*    @Test
     void testFullWithSkip() throws IOException {
 
         COLLECTION_PATH = "src/main/resources/collection.tar.gz";
@@ -190,6 +244,21 @@ class QueryTest {
 
         closeChannels();
     }
+
+
+    @Test
+    void testResults() {
+
+        try {
+            String query = "home site";
+            getFromFile();
+            executeQuery(query, 10, "d", false);
+            executeQueryPQ(query, 10, "d", false);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }*/
 
 
 }

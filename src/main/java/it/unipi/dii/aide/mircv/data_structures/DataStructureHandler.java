@@ -185,7 +185,7 @@ public final class DataStructureHandler {
 
 
     // function to read all document table from disk and put it in memory (HashMap documentTable)
-    public static void readDocumentTableFromDisk(int indexBuilding) {
+    public static void readDocumentTableFromDisk(boolean indexBuilding) {
 
         System.out.println("Loading document table from disk...");
 
@@ -198,12 +198,10 @@ public final class DataStructureHandler {
             // for to read all DocumentElement stored into disk
             for (int i = 0; i < docTable_channel.size(); i += DOCELEM_SIZE) {
                 de.readDocumentElementFromDisk(i, docTable_channel); // get the ith DocElem
-                if (indexBuilding == 0)
-                    PartialIndexBuilder.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
-                else if(indexBuilding == 1)
-                    Query.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
+                if(indexBuilding == true)
+                    Query.documentTable.put(de.getDocid(), de);
                 else
-                    IndexMerger.documentTable.put(de.getDocid(), new DocumentElement(de.getDocno(), de.getDocid(), de.getDoclength()));
+                    IndexMerger.documentTable.put(de.getDocid(), de);
             }
 
         }catch (IOException ioe) {

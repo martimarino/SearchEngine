@@ -78,7 +78,7 @@ public final class IndexMerger {
             // array containing the current read offset for each block
             ArrayList<Long> currentBlockOffset = new ArrayList<>(nrBlocks);
             currentBlockOffset.addAll(dictionaryBlockOffsets);
-            readDocumentTableFromDisk(2);
+            readDocumentTableFromDisk(false);
 
             // var which indicates the steps of 'i' progression print during merge
             System.out.println("Compression " + Flags.isCompressionEnabled());
