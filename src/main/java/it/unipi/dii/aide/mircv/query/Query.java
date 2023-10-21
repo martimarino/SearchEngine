@@ -43,6 +43,11 @@ public final class Query {
     static HashMap<Integer, Double> index_score = new HashMap<>();
     static HashMap<Integer, Integer> index_len = new HashMap<>();
 
+    //------------------ //
+    public static ArrayList<Double> idf = new ArrayList<>();
+    public static PriorityQueue<ResultBlock> resultQueueInverse;
+    public static PriorityQueue<ResultBlock> resultQueue;
+
     public Query()  { throw new UnsupportedOperationException(); }
 
     public static boolean queryStartControl() {
@@ -184,7 +189,6 @@ public final class Query {
     public static void prepareStructures(List<String> query) {
 
         ArrayList<PostingList> postingLists = new ArrayList<>();
-        ArrayList<Double> idf = new ArrayList<>();
 
         try (
                 RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
@@ -263,11 +267,10 @@ public final class Query {
     }
     private static void DocumentAtATime(List<String> query){
 
-        ArrayList<PostingList> postingLists = new ArrayList<>();
-        PriorityQueue<ResultBlock> resultQueueInverse = new PriorityQueue<>(k, new CompareResInverse());
-        PriorityQueue<ResultBlock> resultQueue = new PriorityQueue<>(k, new CompareRes());
-        ArrayList<Double> idf = new ArrayList<>();
-
+        postingLists = new ArrayList<>();
+        resultQueueInverse = new PriorityQueue<>(k, new CompareResInverse());
+        resultQueue = new PriorityQueue<>(k, new CompareRes());
+        idf = new ArrayList<>();
         try (
                 RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
                 RandomAccessFile tf_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
@@ -304,10 +307,8 @@ public final class Query {
                 for (int i = 0; i < postingLists.size(); i++) {
 
                     if ((!notNext.get(i)) && (postingLists.get(i).getCurrPosting().getDocId() == current)) {
-                        if (scoreType)
-                            score = score + computeBM25(idf.get(i), postingLists.get(i).getCurrPosting());
-                        else
-                            score = score + computeTFIDF(idf.get(i), postingLists.get(i).getCurrPosting());
+
+                        score = score + computeScore(scoreType, i);
 
                         postingLists.get(i).next();
 
@@ -327,26 +328,29 @@ public final class Query {
                     resultQueue.poll();
                     resultQueue.add(new ResultBlock(current, score));
                 }
-                current = next;
+
 
                 if (!notNext.contains(false))
                     current = -1;
+                else
+                    current = next;
             }
-
 
             while (!resultQueue.isEmpty()) {
                 ResultBlock r = resultQueue.poll();
                 resultQueueInverse.add(r);
             }
-
+/*
             printUI("Results: \n");
 
             if (resultQueueInverse.isEmpty())
                 printUI("No result");
 
+            printUI("Document \t Score");
             while (!resultQueueInverse.isEmpty()) {
-                printUI(resultQueueInverse.peek().getDocId() + " " + String.format("%.3f",resultQueueInverse.poll().getScore()));
-            }
+                printUI(resultQueueInverse.peek().getDocId() + "\t \t" + String.format("%.3f",resultQueueInverse.poll().getScore()));
+            }*/
+            printResults();
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -367,5 +371,27 @@ public final class Query {
             return -1;
         }
         return Collections.min(first_docids);
+    }
+
+    private static double computeScore(boolean scoreType, int i){
+        double score = 0;
+        if (scoreType)
+            score = score + computeBM25(idf.get(i), postingLists.get(i).getCurrPosting());
+        else
+            score = score + computeTFIDF(idf.get(i), postingLists.get(i).getCurrPosting());
+
+        return score;
+    }
+
+    private static void printResults(){
+        printUI("Results: \n");
+
+        if (resultQueueInverse.isEmpty())
+            printUI("No result");
+
+        printUI("Document \t Score");
+        while (!resultQueueInverse.isEmpty()) {
+            printUI(resultQueueInverse.peek().getDocId() + "\t \t" + String.format("%.3f",resultQueueInverse.poll().getScore()));
+        }
     }
 }

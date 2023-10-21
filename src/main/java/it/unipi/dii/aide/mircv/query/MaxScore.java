@@ -19,10 +19,9 @@ public class MaxScore {
     private static ArrayList<Double> ub; //contains all the max scores (upper bound) of each query term
     private static ArrayList<PostingList> p; // ordered posting lists for increasing score
     private static ArrayList<Double> orderedIdf; //idf ordered for increasing score
-    private static HashMap<Integer, Double> orderedScores; // association of index for increasing score
-    private static PriorityQueue<ScoreElem> orderByScore;
+    private static PriorityQueue<ScoreElem> orderByScore; //index, score pair ordered in increasing order
 
-    public static double computeMaxScore(List<String> query) {
+    public static void computeMaxScore(List<String> query) {
 
         int k = Query.k;
         idf = new ArrayList<>();
@@ -108,7 +107,7 @@ public class MaxScore {
                         else
                             score = score + Score.computeTFIDF(orderedIdf.get(i), p.get(i).getCurrPosting());
 
-                        p.get(i).next(false);
+                        p.get(i).next();
 
                         if( p.get(i).getCurrPosting() == null) {
                             notNext.set(i, true);
@@ -159,21 +158,43 @@ public class MaxScore {
                     current = -1;
             }
 
+           /* printUI("Results: ");
+
+            if(resultQueue.isEmpty()){
+                printUI("No result");
+                return;
+            }*/
+
             while(!resultQueue.isEmpty()) {
                 ResultBlock r = resultQueue.poll();
                 resultQueueInverse.add(r);
             }
 
+            printResults();
+           /* printUI("Document \t Score");
             while(!resultQueueInverse.isEmpty()) {
-                printUI(resultQueueInverse.peek().getDocId() + " " + resultQueueInverse.poll().getScore());
-            }
+                printUI(resultQueueInverse.peek().getDocId() + " " + String.format("%.3f",resultQueueInverse.poll().getScore()));
+            }*/
 
     } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
-    return 0; }
 
+    }
 
+    private static void printResults(){
+        printUI("Results: \n");
+
+        if (resultQueueInverse.isEmpty())
+            printUI("No result");
+
+        printUI("Document \t Score");
+        while (!resultQueueInverse.isEmpty()) {
+            printUI(resultQueueInverse.peek().getDocId() + "\t \t" + String.format("%.3f",resultQueueInverse.poll().getScore()));
+        }
+    }
 }
+
+

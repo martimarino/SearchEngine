@@ -145,7 +145,8 @@ public class PostingList {
 
         if(currPosting != null)
             while(postingIterator.hasNext() && (currPosting.getDocId() < targetDocId))
-                next(false);
+                next();
+                //next(false);
     }
 
 
