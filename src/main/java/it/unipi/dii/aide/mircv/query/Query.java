@@ -160,13 +160,13 @@ public final class Query {
         }
         printUI("\nResults:\n");
         System.out.format("%15s%15s\n", "DOCID", "SCORE");
-        System.out.format("%60s\n", "-".repeat(45));
+        System.out.format("%45s\n", "-".repeat(45));
 
         while (!inverse_pq_res.isEmpty()) {
             ResultBlock polled = inverse_pq_res.poll();
             System.out.format("%15s%15s\n", polled.getDocId(), String.format("%.3f", polled.getScore()));
         }
-        System.out.format("%60s\n", "-".repeat(45));
+        System.out.format("%45s\n", "-".repeat(45));
 
         long endTime = System.currentTimeMillis();
         printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
@@ -217,7 +217,6 @@ public final class Query {
 
     private static void DAATalgorithm() {
 
-
         DAATBlock acc = null;
         boolean firstIter = true;
 
@@ -233,7 +232,7 @@ public final class Query {
                 if (pb.getDocId() == acc.getDocId()) {
                     acc.setScore(acc.getScore() + pb.getScore());
                 } else {
-//                    System.out.println(new ResultBlock(acc.getDocId(), acc.getScore()));
+                    System.out.println(new ResultBlock(acc.getDocId(), acc.getScore()));
                     if (pq_res.size() == k) {
                         if (acc.getScore() > pq_res.peek().getScore()) {
                             pq_res.remove();
@@ -252,6 +251,15 @@ public final class Query {
                 Query.pq_DAAT.add(new DAATBlock(pb.getTerm(), currentPosting.getDocId(), computeTFIDF(dictionary.getTermToTermStat().get(pb.getTerm()).getIdf(), currentPosting)));
             }
         }
+
+        System.out.println(new ResultBlock(acc.getDocId(), acc.getScore()));
+        if (pq_res.size() == k) {
+            if (acc.getScore() > pq_res.peek().getScore()) {
+                pq_res.remove();
+                pq_res.add(new ResultBlock(acc.getDocId(), acc.getScore()));
+            }
+        } else if (pq_res.size() < k)
+            pq_res.add(new ResultBlock(acc.getDocId(), acc.getScore()));
     }
     private static void DocumentAtATime(List<String> query){
 

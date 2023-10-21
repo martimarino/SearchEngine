@@ -62,7 +62,6 @@ public class Conjunctive {
 
     }
 
-
     private static boolean checkSameDocid () {
 
         for (PostingList pl : orderedConjPostingLists) {
