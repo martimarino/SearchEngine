@@ -301,8 +301,8 @@ public final class Query {
                         else
                             score = score + computeTFIDF(idf.get(i), postingLists.get(i).getCurrPosting());
 
-                            postingLists.get(i).next(false);
-                        //postingLists.get(i).setCurrPosting(postingLists.get(i).getPostingIterator().next());
+                        postingLists.get(i).next();
+
                         if(postingLists.get(i).getCurrPosting() == null) {
                             notNext.set(i, true);
                             continue;
