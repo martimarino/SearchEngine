@@ -16,33 +16,34 @@ public class Conjunctive {
 
         // create array of posting lists ordered increasing df
         orderedConjPostingLists = new ArrayList<>();
+        PostingList shortest;
 
         index_len = (HashMap<Integer, Integer>) sortByValue(index_len);
 
         for (Map.Entry<Integer, Integer> entry : index_len.entrySet())
             orderedConjPostingLists.add(postingLists.get(entry.getKey()));
 
+        shortest = orderedConjPostingLists.remove(0);
+
         postingLists.clear();
 
         do {
             // poll from the shortest posting list
-            Posting polled = orderedConjPostingLists.get(0).getCurrPosting();
+            Posting polled = shortest.getCurrPosting();
 
             if (polled == null)
                 return;
 
             currentDocId = polled.getDocId();
 
-            if(currentDocId == 13858)
-                System.out.println(13858);
-
             // if the min docid is present for all terms
             if (checkSameDocid()) {
 
-                double score = 0;
+                double score = Score.computeTFIDF(dictionary.getTermStat(shortest.getTerm()).getIdf(), shortest.getCurrPosting());
 
                 for (PostingList orderedConjPostingList : orderedConjPostingLists)
                     score += Score.computeTFIDF(dictionary.getTermStat(orderedConjPostingList.term).getIdf(), orderedConjPostingList.getCurrPosting());
+
 
                 if (pq_res.size() < k) {
                     pq_res.add(new ResultBlock(currentDocId, score));
@@ -50,10 +51,11 @@ public class Conjunctive {
                     pq_res.remove();
                     pq_res.add(new ResultBlock(currentDocId, score));
                 }
+                System.out.println(new ResultBlock(currentDocId, score));
             }
-            orderedConjPostingLists.get(0).next(true);
+            shortest.next(true);
 
-        } while (orderedConjPostingLists.get(0).getCurrPosting() != null);
+        } while (shortest.getCurrPosting() != null);
 
         orderedConjPostingLists.clear();
 
@@ -64,14 +66,11 @@ public class Conjunctive {
 
         for (PostingList pl : orderedConjPostingLists) {
 
-            while ((pl.getCurrPosting() != null) && (pl.getCurrPosting().getDocId() < currentDocId))
-                pl.next(false);
-
-            if (pl.getCurrPosting() != null && currentDocId == pl.getCurrPosting().getDocId())
-                continue;
-
-            if (pl.getCurrPosting() == null && pl.getSl() != null)
-                pl.nextGEQ(currentDocId);        // search for right block
+            if((pl.getSl() != null) && (currentDocId > pl.getSl().getCurrSkipInfo().getMaxDocId()))
+                pl.nextGEQ(currentDocId);
+            else
+                while ((pl.getCurrPosting() != null) && (pl.getCurrPosting().getDocId() < currentDocId))
+                    pl.next(false);
 
             if (pl.getCurrPosting() == null || (pl.getCurrPosting() != null && currentDocId != pl.getCurrPosting().getDocId()))
                 return false;

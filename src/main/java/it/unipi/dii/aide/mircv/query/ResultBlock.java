@@ -26,13 +26,13 @@ public class ResultBlock {
         this.score = score;
     }
 
+
     @Override
     public String toString() {
         return "ResultBlock{" +
-                ", docId=" + docId +
+                "docId=" + docId +
                 ", score=" + score +
                 '}';
     }
-
 }
 

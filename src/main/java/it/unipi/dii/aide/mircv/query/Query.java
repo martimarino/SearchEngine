@@ -190,6 +190,7 @@ public final class Query {
                 if (pb.getDocId() == acc.getDocId()) {
                     acc.setScore(acc.getScore() + pb.getScore());
                 } else {
+                    System.out.println(new ResultBlock(acc.getDocId(), acc.getScore()));
                     if (pq_res.size() == k) {
                         if (acc.getScore() > pq_res.peek().getScore()) {
                             pq_res.remove();
