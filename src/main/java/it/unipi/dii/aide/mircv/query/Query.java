@@ -46,8 +46,8 @@ public final class Query {
     static HashMap<Integer, Integer> index_len = new HashMap<>();
 
     //------------------ //
-    public static PriorityQueue<ResultBlock> resultQueueInverse;
-    public static ArrayList<Double> idf = new ArrayList<>();
+    public static PriorityQueue<ResultBlock> resultQueueInverse; // contains the final results, in decreasing order of score
+    public static ArrayList<Double> idf = new ArrayList<>(); // contains the idf of each query term
 
 
     public Query()  { throw new UnsupportedOperationException(); }
@@ -92,10 +92,6 @@ public final class Query {
             Query.scoreType = score;
             Query.algorithmType = algorithm;
             prepareStructures(query_terms);
-/*            if(algorithmType)
-                DocumentAtATime(postingLists, idf);
-            else
-                MaxScore.computeMaxScore(text);*/
 
             long endTime = System.currentTimeMillis();
             printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
@@ -191,7 +187,10 @@ public final class Query {
 
     public static void prepareStructures(List<String> query) {
 
-        ArrayList<PostingList> postingLists = new ArrayList<>();
+        postingLists = new ArrayList<>();
+        idf = new ArrayList<>();
+        PriorityQueue<ScoreElem> orderByScore = new PriorityQueue<>(query.size(), new CompareScoreElem());
+        int index = 0;
 
         try (
                 RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
@@ -201,9 +200,6 @@ public final class Query {
             docId_channel = docid_raf.getChannel();
             termFreq_channel = tf_raf.getChannel();
             skip_channel = skip_raf.getChannel();
-
-            int index = 0;
-            PriorityQueue<ScoreElem> orderByScore = new PriorityQueue<>(query.size(), new CompareScoreElem());
 
             for (String t : query) {
                 DictionaryElem de = dictionary.getTermStat(t);
@@ -227,10 +223,10 @@ public final class Query {
             }
 
             if(algorithmType)
-                DocumentAtATime(postingLists, idf);
-            else{
-                MaxScore.computeMaxScore(postingLists, idf, orderByScore);
-            }
+                DocumentAtATime();
+            else
+                MaxScore.computeMaxScore(orderByScore);
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
