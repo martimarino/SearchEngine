@@ -66,7 +66,7 @@ public final class DataStructureHandler {
 
             // scan all block and for each one write offset into disk
             for (int i = 0; i < dictionaryBlockOffsets.size(); i++) {
-                System.out.println("OFFSET BLOCK " + i + ": " + dictionaryBlockOffsets.get(i));
+                printDebug("OFFSET BLOCK " + i + ": " + dictionaryBlockOffsets.get(i));
                 buffer.putLong(dictionaryBlockOffsets.get(i)); //store into file the dictionary offset of the i-th block
                 if(debug)
                     appendStringToFile("Offset block " + i + ": " + dictionaryBlockOffsets.get(i), "blocks.txt");
@@ -198,7 +198,7 @@ public final class DataStructureHandler {
             // for to read all DocumentElement stored into disk
             for (int i = 0; i < docTable_channel.size(); i += DOCELEM_SIZE) {
                 de.readDocumentElementFromDisk(i, docTable_channel); // get the ith DocElem
-                if(indexBuilding == true)
+                if(indexBuilding)
                     Query.documentTable.put(de.getDocid(), de);
                 else
                     IndexMerger.documentTable.put(de.getDocid(), de);
