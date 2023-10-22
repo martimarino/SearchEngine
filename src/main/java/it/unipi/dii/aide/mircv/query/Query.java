@@ -13,9 +13,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.readCollectionStatsFromDisk;
-import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readCompressedPostingListFromDisk;
-import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readPostingListFromDisk;
-import static it.unipi.dii.aide.mircv.query.Conjunctive.executeConjunctive;
 import static it.unipi.dii.aide.mircv.query.Score.computeBM25;
 import static it.unipi.dii.aide.mircv.query.Score.computeTFIDF;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
@@ -274,11 +271,9 @@ public final class Query {
         try (
                 RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
                 RandomAccessFile tf_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
-                RandomAccessFile skip_raf = new RandomAccessFile(SKIP_FILE, "rw")
         ){
             docId_channel = docid_raf.getChannel();
             termFreq_channel = tf_raf.getChannel();
-            skip_channel = skip_raf.getChannel();
 
             for (String t : query) {
                 DictionaryElem de = dictionary.getTermStat(t);
@@ -310,7 +305,7 @@ public final class Query {
 
                         score = score + computeScore(scoreType, i);
 
-                        postingLists.get(i).next();
+                        postingLists.get(i).next(true);
 
                         if(postingLists.get(i).getCurrPosting() == null) {
                             notNext.set(i, true);

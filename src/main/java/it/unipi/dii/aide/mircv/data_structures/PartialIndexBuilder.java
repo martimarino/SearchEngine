@@ -94,14 +94,13 @@ public final class PartialIndexBuilder {
                         dictElem.addDf(1);
                     dictElem.addCf(1);
 
-                    N_POSTINGS++;
-
 //                    if(!termList.contains(term))
 //                        termList.add(term);
 
                     if(debug)
                         appendStringToFile(term, "partialDict_" + dictionaryBlockOffsets.size() + ".txt");
                 }
+
                 docCounter++;       // update DocID counter
 
                 if(Runtime.getRuntime().totalMemory() > memoryAvailable){
@@ -111,9 +110,6 @@ public final class PartialIndexBuilder {
                     storeDocumentTableIntoDisk(); // store document table one document at a time for each block
 
                     freeMemory();
-                    System.gc();
-                    System.out.println("********** Free memory **********");
-                    N_POSTINGS = 0; // new partial index
                 }
             }
 
@@ -121,8 +117,6 @@ public final class PartialIndexBuilder {
                 storeIndexAndDictionaryIntoDisk();  //store index and dictionary to disk
                 storeDocumentTableIntoDisk(); // store document table one document at a time for each block
                 freeMemory();
-                System.gc();
-                System.out.println("********** Free memory **********");
             }
 
             DataStructureHandler.storeBlockOffsetsIntoDisk();
@@ -164,11 +158,16 @@ public final class PartialIndexBuilder {
         }
     }
 
-    // method to free memory by deleting the information in document table, dictionary,and inverted index
+    /***
+     * Method to free memory by deleting the information in partial document table, dictionary and inverted index.
+     * It also calls Java garbage collector
+     */
     private static void freeMemory(){
         documentTable.clear();
         dictionary.getTermToTermStat().clear();
         invertedIndex.clear();
+        System.gc();
+        System.out.println("********** Free memory **********");
     }
 
 }

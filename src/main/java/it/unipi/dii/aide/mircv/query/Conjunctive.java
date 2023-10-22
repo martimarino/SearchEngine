@@ -67,7 +67,7 @@ public class Conjunctive {
         for (PostingList pl : orderedConjPostingLists) {
 
             if((pl.getSl() != null) && (pl.getSl().getCurrSkipInfo() != null) && (currentDocId > pl.getSl().getCurrSkipInfo().getMaxDocId()))
-                pl.nextGEQ(currentDocId);
+                pl.nextGEQ(currentDocId, false);
             else
                 while ((pl.getCurrPosting() != null) && (pl.getCurrPosting().getDocId() < currentDocId))
                     pl.next(false);
@@ -89,5 +89,4 @@ public class Conjunctive {
 
         return result;
     }
-
 }

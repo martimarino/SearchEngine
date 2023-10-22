@@ -66,7 +66,7 @@ public final class DataStructureHandler {
 
             // scan all block and for each one write offset into disk
             for (int i = 0; i < dictionaryBlockOffsets.size(); i++) {
-                printDebug("OFFSET BLOCK " + i + ": " + dictionaryBlockOffsets.get(i));
+                System.out.println("OFFSET BLOCK " + i + ": " + dictionaryBlockOffsets.get(i));
                 buffer.putLong(dictionaryBlockOffsets.get(i)); //store into file the dictionary offset of the i-th block
                 if(debug)
                     appendStringToFile("Offset block " + i + ": " + dictionaryBlockOffsets.get(i), "blocks.txt");
@@ -146,8 +146,8 @@ public final class DataStructureHandler {
         StringBuilder debug_pl = new StringBuilder();
         StringBuilder debug_docid = new StringBuilder();
 
-        // Create buffers for docid and termfreq
         try {
+            // Create buffers for docid and termfreq
             MappedByteBuffer bufferdocid = docId_channel.map(FileChannel.MapMode.READ_WRITE, docId_channel.size(), (long) len*Integer.BYTES); // from 0 to number of postings * int dimension
             MappedByteBuffer buffertermfreq = termFreq_channel.map(FileChannel.MapMode.READ_WRITE, termFreq_channel.size(), (long) len*Integer.BYTES); //from 0 to number of postings * int dimension
 

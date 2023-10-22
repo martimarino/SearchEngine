@@ -107,7 +107,7 @@ public class MaxScore {
                         else
                             score = score + Score.computeTFIDF(orderedIdf.get(i), p.get(i).getCurrPosting());
 
-                        p.get(i).next();
+                        p.get(i).next(true);
 
                         if( p.get(i).getCurrPosting() == null) {
                             notNext.set(i, true);
@@ -123,7 +123,7 @@ public class MaxScore {
                         break;
 
                     if(p.get(i).getSl() != null)
-                        p.get(i).nextGEQ(current);
+                        p.get(i).nextGEQ(current, true);
 
                     if(p.get(i).getCurrPosting() == null)
                     {
