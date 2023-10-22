@@ -1,4 +1,4 @@
-package it.unipi.dii.aide.mircv.query;
+package it.unipi.dii.aide.mircv.query.scores;
 
 public class ScoreElem {
     private int index;

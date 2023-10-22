@@ -3,6 +3,10 @@ package it.unipi.dii.aide.mircv.query;
 
 import it.unipi.dii.aide.mircv.data_structures.*;
 import it.unipi.dii.aide.mircv.data_structures.Dictionary;
+import it.unipi.dii.aide.mircv.query.algorithms.MaxScore;
+import it.unipi.dii.aide.mircv.query.scores.CompareScoreElem;
+import it.unipi.dii.aide.mircv.query.scores.Score;
+import it.unipi.dii.aide.mircv.query.scores.ScoreElem;
 import it.unipi.dii.aide.mircv.utils.FileSystem;
 import it.unipi.dii.aide.mircv.utils.TextProcessor;
 
@@ -13,8 +17,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.readCollectionStatsFromDisk;
-import static it.unipi.dii.aide.mircv.query.Score.computeBM25;
-import static it.unipi.dii.aide.mircv.query.Score.computeTFIDF;
+import static it.unipi.dii.aide.mircv.query.scores.Score.computeBM25;
+import static it.unipi.dii.aide.mircv.query.scores.Score.computeTFIDF;
+import static it.unipi.dii.aide.mircv.query.algorithms.DAAT.DocumentAtATime;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 import static it.unipi.dii.aide.mircv.data_structures.Flags.readFlagsFromDisk;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
@@ -41,9 +46,9 @@ public final class Query {
     static HashMap<Integer, Integer> index_len = new HashMap<>();
 
     //------------------ //
-    public static ArrayList<Double> idf = new ArrayList<>();
-    public static PriorityQueue<ResultBlock> resultQueueInverse;
-    public static PriorityQueue<ResultBlock> resultQueue;
+    public static PriorityQueue<ResultBlock> resultQueueInverse; // contains the final results, in decreasing order of score
+    public static ArrayList<Double> idf = new ArrayList<>(); // contains the idf of each query term
+
 
     public Query()  { throw new UnsupportedOperationException(); }
 
@@ -81,16 +86,13 @@ public final class Query {
 
             long startTime = System.currentTimeMillis();
             ArrayList<String> query = TextProcessor.preprocessText(q);
-            List<String> text = query.stream().distinct().collect(Collectors.toList());
+            List<String> query_terms = query.stream().distinct().collect(Collectors.toList());
             Query.k = k;
             Query.queryType = q_type;
             Query.scoreType = score;
             Query.algorithmType = algorithm;
-        //prepareStructures(text);
-            if(algorithmType)
-                DocumentAtATime(text);
-            else
-                MaxScore.computeMaxScore(text);
+            prepareStructures(query_terms);
+
             long endTime = System.currentTimeMillis();
             printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
     }
@@ -185,7 +187,10 @@ public final class Query {
 
     public static void prepareStructures(List<String> query) {
 
-        ArrayList<PostingList> postingLists = new ArrayList<>();
+        postingLists = new ArrayList<>();
+        idf = new ArrayList<>();
+        PriorityQueue<ScoreElem> orderByScore = new PriorityQueue<>(query.size(), new CompareScoreElem());
+        int index = 0;
 
         try (
                 RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
@@ -205,9 +210,23 @@ public final class Query {
                 PostingList pl = new PostingList(t);
                 pl.load();
                 postingLists.add(pl);
+                if(!algorithmType)
+                {
+                    if(Query.scoreType) {
+                        orderByScore.add(new ScoreElem(index, de.getMaxBM25()));
+                    }
+                    else {
+                        orderByScore.add(new ScoreElem(index, de.getMaxTFIDF()));
+                    }
+                    index++;
+                }
             }
 
-            //DocumentAtATime(postingLists, idf);
+            if(algorithmType)
+                DocumentAtATime();
+            else
+                MaxScore.computeMaxScore(orderByScore);
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -262,98 +281,13 @@ public final class Query {
         } else if (pq_res.size() < k)
             pq_res.add(new ResultBlock(acc.getDocId(), acc.getScore()));
     }
-    private static void DocumentAtATime(List<String> query){
-
-        postingLists = new ArrayList<>();
-        resultQueueInverse = new PriorityQueue<>(k, new CompareResInverse());
-        resultQueue = new PriorityQueue<>(k, new CompareRes());
-        idf = new ArrayList<>();
-        try (
-                RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
-                RandomAccessFile tf_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
-        ){
-            docId_channel = docid_raf.getChannel();
-            termFreq_channel = tf_raf.getChannel();
-
-            for (String t : query) {
-                DictionaryElem de = dictionary.getTermStat(t);
-                if (de == null) {
-                    continue;
-                }
-                idf.add(de.getIdf());
-                PostingList pl = new PostingList(t);
-                pl.load();
-                postingLists.add(pl);
-            }
-
-            int current = minDocID(postingLists);
-
-            ArrayList<Boolean> notNext = new ArrayList<>();
-
-            for (int i = 0; i < postingLists.size(); i++) {
-                notNext.add(false);
-            }
-
-            while (current != -1) {
-
-                double score = 0;
-                int next = Integer.MAX_VALUE;
-
-                for (int i = 0; i < postingLists.size(); i++) {
-
-                    if ((!notNext.get(i)) && (postingLists.get(i).getCurrPosting().getDocId() == current)) {
-
-                        score = score + computeScore(scoreType, i);
-
-                        postingLists.get(i).next(true);
-
-                        if(postingLists.get(i).getCurrPosting() == null) {
-                            notNext.set(i, true);
-                            continue;
-                        }
-                    }
-                    if ((!notNext.get(i)) && postingLists.get(i).getCurrPosting().getDocId() < next){
-                        next = postingLists.get(i).getCurrPosting().getDocId();
-                    }
-                }
-
-                if (resultQueue.size() < k)
-                    resultQueue.add(new ResultBlock(current, score));
-                else if (resultQueue.size() == k && resultQueue.peek().getScore() < score) {
-                    resultQueue.poll();
-                    resultQueue.add(new ResultBlock(current, score));
-                }
 
 
-                if (!notNext.contains(false))
-                    current = -1;
-                else
-                    current = next;
-            }
-
-            while (!resultQueue.isEmpty()) {
-                ResultBlock r = resultQueue.poll();
-                resultQueueInverse.add(r);
-            }
-/*
-            printUI("Results: \n");
-
-            if (resultQueueInverse.isEmpty())
-                printUI("No result");
-
-            printUI("Document \t Score");
-            while (!resultQueueInverse.isEmpty()) {
-                printUI(resultQueueInverse.peek().getDocId() + "\t \t" + String.format("%.3f",resultQueueInverse.poll().getScore()));
-            }*/
-            printResults();
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
+    /**
+     *
+     * @param pl posting list for which identify the minimum
+     * @return the min docID from all the documents in the given posting list
+     */
         public static int minDocID(ArrayList<PostingList> pl) {
         ArrayList<Integer> first_docids = new ArrayList<>();
 
@@ -368,17 +302,26 @@ public final class Query {
         return Collections.min(first_docids);
     }
 
-    private static double computeScore(boolean scoreType, int i){
+    public static double computeScore(double idf, Posting currentPosting){
         double score = 0;
         if (scoreType)
-            score = score + computeBM25(idf.get(i), postingLists.get(i).getCurrPosting());
+            score = computeBM25(idf, currentPosting);
         else
-            score = score + computeTFIDF(idf.get(i), postingLists.get(i).getCurrPosting());
+            score = computeTFIDF(idf, currentPosting);
 
         return score;
     }
 
-    private static void printResults(){
+    public static void printResults(PriorityQueue<ResultBlock> resultQueue){
+
+        resultQueueInverse = new PriorityQueue<>(k,new CompareResInverse());
+
+        //results from increasing order priority queue to decreasing order one
+        while (!resultQueue.isEmpty()) {
+            ResultBlock r = resultQueue.poll();
+            resultQueueInverse.add(r);
+        }
+
         printUI("Results: \n");
 
         if (resultQueueInverse.isEmpty())

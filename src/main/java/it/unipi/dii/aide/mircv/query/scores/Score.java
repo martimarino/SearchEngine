@@ -1,4 +1,4 @@
-package it.unipi.dii.aide.mircv.query;
+package it.unipi.dii.aide.mircv.query.scores;
 
 import it.unipi.dii.aide.mircv.data_structures.CollectionStatistics;
 import it.unipi.dii.aide.mircv.data_structures.IndexMerger;
@@ -29,8 +29,9 @@ public final class Score {
     }
 
     public static double computeMaxBM25(ArrayList<Posting> postings, double idf){
-        double score = 0;
+        double score;
         double maxScore = 0;
+
         for(Posting p : postings)
         {
             score = computeBM25(idf, p);
@@ -51,7 +52,6 @@ public final class Score {
             {
                 maxTF = p.getTermFreq();
                 score = computeTFIDF(idf, p);
-                printDebug(score + " " + maxTF + " " + idf);
             }
         }
         return score;

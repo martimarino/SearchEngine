@@ -1,5 +1,7 @@
 package it.unipi.dii.aide.mircv.query;
 
+import it.unipi.dii.aide.mircv.query.DAATBlock;
+
 import java.util.Comparator;
 
 /**
