@@ -9,7 +9,7 @@ import java.util.*;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.*;
 import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.getDictElemSize;
 import static it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder.dictionaryBlockOffsets;
-import static it.unipi.dii.aide.mircv.query.Score.*;
+import static it.unipi.dii.aide.mircv.query.scores.Score.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 import static java.lang.Math.min;

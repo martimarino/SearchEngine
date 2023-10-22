@@ -1,8 +1,8 @@
 package it.unipi.dii.aide.mircv.query;
 
 import it.unipi.dii.aide.mircv.data_structures.*;
+import it.unipi.dii.aide.mircv.query.scores.Score;
 
-import java.io.IOException;
 import java.util.*;
 
 import static it.unipi.dii.aide.mircv.query.Query.*;

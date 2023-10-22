@@ -3,7 +3,7 @@ package it.unipi.dii.aide.mircv.data_structures;
 import it.unipi.dii.aide.mircv.compression.Unary;
 import it.unipi.dii.aide.mircv.query.Query;
 import it.unipi.dii.aide.mircv.compression.VariableBytes;
-import it.unipi.dii.aide.mircv.query.Score;
+import it.unipi.dii.aide.mircv.query.scores.Score;
 
 import java.io.*;
 import java.nio.CharBuffer;
