@@ -18,6 +18,8 @@ public class PostingList {
     private Iterator<Posting> postingIterator;
     private Posting currPosting;
     private SkipList sl;     // null if no skipping for that term
+    private double idf;
+    private double maxScore;
 
     private int docIdSize;
     private int termFreqSize;
@@ -26,11 +28,15 @@ public class PostingList {
     public PostingList(String term) {
         this.term = term;
         this.sl = null;
+        this.idf = 0;
+        this.maxScore = 0;
     }
     public PostingList(String term, ArrayList<Posting> p) {
         this.term = term;
         this.sl = null;
         this.list = p;
+        this.idf = 0;
+        this.maxScore = 0;
     }
 
     public void load() throws IOException {
@@ -204,5 +210,21 @@ public class PostingList {
         return "PostingList{" +
                 "list=" + list +
                 '}';
+    }
+
+    public double getIdf() {
+        return idf;
+    }
+
+    public void setIdf(double idf) {
+        this.idf = idf;
+    }
+
+    public double getMaxScore() {
+        return maxScore;
+    }
+
+    public void setMaxScore(double maxScore) {
+        this.maxScore = maxScore;
     }
 }

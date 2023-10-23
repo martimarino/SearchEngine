@@ -26,7 +26,7 @@ public class DAAT {
             for (int i = 0; i < postingLists.size(); i++) {
 
                 if ((postingLists.get(i).getCurrPosting() != null) && (postingLists.get(i).getCurrPosting().getDocId() == current)) {
-                    score = score + computeScore(idf.get(i), postingLists.get(i).getCurrPosting());
+                    score = score + computeScore(postingLists.get(i).getIdf(), postingLists.get(i).getCurrPosting());
 
                     postingLists.get(i).next(true);
 

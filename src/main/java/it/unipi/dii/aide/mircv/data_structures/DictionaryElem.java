@@ -203,17 +203,17 @@ public class DictionaryElem {
                 buffer.putDouble(maxBM25);
                 buffer.putDouble(maxTFIDF);
 
-                if(debug) {
+                if(Flags.isDebug_flag()) {
                     appendStringToFile(this.toString(), "merge_de.txt");
                 }
             }
 
-            if(debug && !Flags.considerSkippingBytes()) {
+/*            if(Flags.isDebug_flag() && !Flags.considerSkippingBytes()) {
                 appendStringToFile(this.toString(), "spimi_de.txt");
             }
 
-            if(debug && term.equals("of"))
-                appendStringToFile("DE STORED -> " + this, "of_debug.txt");
+            if(Flags.isDebug_flag() && term.equals("of"))
+                appendStringToFile("DE STORED -> " + this, "of_debug.txt");*/
 
             PARTIAL_DICTIONARY_OFFSET += getDictElemSize();       // update offset
 
@@ -251,8 +251,8 @@ public class DictionaryElem {
                 idf = buffer.getDouble();
             }
 
-            if(debug && term.equals("of"))
-                appendStringToFile("DE READ -> " + this, "of_debug.txt");
+/*            if(Flags.isDebug_flag() && term.equals("of"))
+                appendStringToFile("DE READ -> " + this, "of_debug.txt");*/
 
         } catch (IOException e) {
             e.printStackTrace();

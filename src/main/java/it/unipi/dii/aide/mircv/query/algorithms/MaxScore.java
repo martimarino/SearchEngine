@@ -33,14 +33,14 @@ public class MaxScore {
         int next;
         int pivot = 0;
 
-        n = maxScore.size();
+        n = p.size();
 
         //compute the upperbound for each query term
-        ub.add(0, maxScore.get(0));
+        ub.add(0, p.get(0).getMaxScore());
 
         for(int i = 1; i < n; i++)
         {
-            ub.add(i, ub.get(i-1) + maxScore.get(i));
+            ub.add(i, ub.get(i-1) + p.get(i).getMaxScore());
         }
 
         int current = minDocID(p);
@@ -51,11 +51,10 @@ public class MaxScore {
             //essential postings
             for(int i = pivot; i < n; i++)
             {
-               // PostingList pl = p.get(i);
                 //if the i-th posting list has no scanned postings and the docid of the current posting is the current one to consider, the score is updated
                 if( (p.get(i).getCurrPosting() != null) && p.get(i).getCurrPosting().getDocId() == current)
                 {
-                    score = score + computeScore(orderedIdf.get(i), p.get(i).getCurrPosting());
+                    score = score + computeScore(p.get(i).getIdf(), p.get(i).getCurrPosting());
                     p.get(i).next(true); // get the next posting in the posting list, if posting list ended the current posting is set to null
 
                     if(p.get(i).getCurrPosting() == null)
@@ -80,7 +79,7 @@ public class MaxScore {
                     continue;
 
                 if((p.get(i).getCurrPosting() != null) && (p.get(i).getCurrPosting().getDocId() == current))
-                    score = score + computeScore(orderedIdf.get(i), p.get(i).getCurrPosting());
+                    score = score + computeScore(p.get(i).getIdf(), p.get(i).getCurrPosting());
             }
 
             //if the queue has not reached the maximum capacity k, every pair docid,score is put inside the queue

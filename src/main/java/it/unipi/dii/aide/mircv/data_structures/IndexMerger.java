@@ -122,10 +122,10 @@ public final class IndexMerger {
         //                printDebug("offsetDocid = " + currentDE.getOffsetDocId() + ", offset tf = " + currentDE.getOffsetTermFreq() + ", df = " + currentDE.getDf());
                 currentPL = readPostingListFromDisk(currentDE.getOffsetDocId(), currentDE.getOffsetTermFreq(), currentDE.getDf());
 
-                if(currentDE.getTerm().equals("of") && debug){
+/*                if(currentDE.getTerm().equals("of") && Flags.isDebug_flag()){
                     appendStringToFile("(merge) CURRENT DE: " + currentDE, "of_debug.txt");
                     appendStringToFile("(merge) CURRENT PL: " + currentPL, "of_debug.txt");
-                }
+                }*/
 
                 if (tempDE.getTerm().isEmpty()) {        // first iteration
 
@@ -179,7 +179,7 @@ public final class IndexMerger {
         Flags.setConsiderSkippingBytes(true);
         tempDE.setIdf(tempDE.computeIdf());
 
-        if (debug) {
+        if (Flags.isDebug_flag()) {
             appendStringToFile("TERM: '" + tempDE.getTerm() + "'", "merge_pl.txt");
             appendStringToFile("TERM: '" + tempDE.getTerm() + "'", "merge_docid.txt");
         }
@@ -188,10 +188,10 @@ public final class IndexMerger {
         tempDE.setOffsetTermFreq(termFreq_channel.size());
         tempDE.setOffsetDocId(docId_channel.size());
 
-        if(tempDE.getTerm().equals("of") && debug){
+/*        if(tempDE.getTerm().equals("of") && Flags.isDebug_flag()){
             appendStringToFile("(merge) TEMP DE: " + tempDE, "of_debug.txt");
             appendStringToFile("(merge) TEMP PL: " + tempPL, "of_debug.txt");
-        }
+        }*/
 
         assert tempPL != null;
         int lenPL = tempPL.size();

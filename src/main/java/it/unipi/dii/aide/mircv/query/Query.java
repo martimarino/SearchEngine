@@ -46,13 +46,7 @@ public final class Query {
     static HashMap<Integer, Integer> index_len = new HashMap<>();
 
     //------------------ //
-    //static PriorityQueue<ResultBlock> resultQueueInverse; // contains the final results, in decreasing order of score
-    public static ArrayList<Double> idf = new ArrayList<>(); // contains the idf of each query term
-
     public static ArrayList<PostingList> p = new ArrayList<>(); // ordered posting lists for increasing score
-    public static ArrayList<Double> orderedIdf = new ArrayList<>(); //idf ordered for increasing score
-
-    public static ArrayList<Double> maxScore = new ArrayList<>();
 
     public Query()  { throw new UnsupportedOperationException(); }
 
@@ -108,20 +102,11 @@ public final class Query {
         if(!postingLists.isEmpty())
             postingLists.clear();
 
-        if(!idf.isEmpty())
-            idf.clear();
-
         if(!pq_res.isEmpty())
             pq_res.clear();
 
-        if(!orderedIdf.isEmpty())
-            orderedIdf.clear();
-
         if(!p.isEmpty())
             p.clear();
-
-        if(!maxScore.isEmpty())
-            maxScore.clear();
 
     }
 
@@ -223,13 +208,6 @@ public final class Query {
             docId_channel = docid_raf.getChannel();
             termFreq_channel = tf_raf.getChannel();
             skip_channel = skip_raf.getChannel();
-/*
-
-            DictionaryElem d = dictionary.getTermStat("berlin");
-            ArrayList<Posting> pls = DataStructureHandler.readPostingListFromDisk(d.getOffsetDocId(), d.getOffsetTermFreq(), d.getDf());
-            for(Posting p : pls)
-                printDebug(p.getDocId() + " " + p.getTermFreq()); //if(p.getDocId() > 8744790 && p.getDocId() < 8744795)
-*/
 
             PriorityQueue<ScoreElem> orderByScore = new PriorityQueue<>(query.size(), new CompareScoreElem());
             int index = 0;
@@ -239,8 +217,8 @@ public final class Query {
                 if (de == null) {
                     continue;
                 }
-                idf.add(de.getIdf());
                 PostingList pl = new PostingList(t);
+                pl.setIdf(de.getIdf());
                 pl.load();
                 postingLists.add(pl);
                 if(!algorithmType)
@@ -259,9 +237,9 @@ public final class Query {
                 while(!orderByScore.isEmpty())
                 {
                     ScoreElem se = orderByScore.poll();
-                    p.add(postingLists.get(se.getIndex()));
-                    orderedIdf.add(idf.get(se.getIndex()));
-                    maxScore.add(se.getScore());
+                    PostingList pl = postingLists.get(se.getIndex());
+                    pl.setMaxScore(se.getScore());
+                    p.add(pl);
                 }
                 pq_res = computeMaxScore();
             }

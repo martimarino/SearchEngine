@@ -99,7 +99,7 @@ public final class PartialIndexBuilder {
 //                    if(!termList.contains(term))
 //                        termList.add(term);
 
-                    if(debug)
+                    if(Flags.isDebug_flag())
                         appendStringToFile(term, "partialDict_" + dictionaryBlockOffsets.size() + ".txt");
                 }
                 docCounter++;       // update DocID counter

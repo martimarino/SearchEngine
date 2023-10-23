@@ -2,6 +2,7 @@ package it.unipi.dii.aide.mircv.utils;
 
 import java.io.*;
 
+import it.unipi.dii.aide.mircv.data_structures.Flags;
 import org.apache.commons.io.FileUtils;
 
 import java.nio.channels.FileChannel;
@@ -66,7 +67,7 @@ public final class FileSystem {
             }
 
             // Clean or create the debug folder
-            if(debug) {
+            if(Flags.isDebug_flag()) {
                 File debug_folder = new File(DEBUG_FOLDER);
                 if (debug_folder.exists() && debug_folder.isDirectory()) {
                     File[] mergedFiles = debug_folder.listFiles();
