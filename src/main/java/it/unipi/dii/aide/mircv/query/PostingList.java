@@ -110,7 +110,6 @@ public class PostingList {
                 list.addAll(readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), sl.getArr_skipInfo().size()));
             postingIterator = list.iterator();
             currPosting = postingIterator.next();
-
         }
     }
     // advances the iterator forward to the next posting with a document identifier greater than or equal to

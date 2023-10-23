@@ -45,12 +45,16 @@ public final class DataStructureHandler {
                 buffer.putInt(de.getDocid());
                 buffer.putInt(de.getDoclength());
 
+                if(Flags.isDebug_flag())
+                    appendStringToFile(" docno: " + de.getDocno() + " docID: " + de.getDocid() + " length: " + de.getDoclength(), "document_table_debug.txt");
+
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
 
     }
+
 
     // function to store offset of the blocks into disk
     static void storeBlockOffsetsIntoDisk() {
@@ -68,7 +72,7 @@ public final class DataStructureHandler {
             for (int i = 0; i < dictionaryBlockOffsets.size(); i++) {
                 printDebug("OFFSET BLOCK " + i + ": " + dictionaryBlockOffsets.get(i));
                 buffer.putLong(dictionaryBlockOffsets.get(i)); //store into file the dictionary offset of the i-th block
-                if(debug)
+                if(Flags.isDebug_flag())
                     appendStringToFile("Offset block " + i + ": " + dictionaryBlockOffsets.get(i), "blocks.txt");
             }
 
@@ -111,7 +115,7 @@ public final class DataStructureHandler {
                     buffer_docid.putInt(posting.getDocId());         // write DocID
                     buffer_termfreq.putInt(posting.getTermFreq());   // write TermFrequency
 
-                    if(debug) {
+                    if(Flags.isDebug_flag()) {
                         appendStringToFile(dictElem.getTerm() + ": " + posting, "spimi_pl.txt");
                         appendStringToFile(dictElem.getTerm() + ": " + posting.getDocId(), "spimi_docid.txt");
                         appendStringToFile(dictElem.getTerm() + ": " + posting.getTermFreq(), "spimi_tf.txt");
@@ -129,6 +133,7 @@ public final class DataStructureHandler {
             ioException.printStackTrace();
         }
     }
+
 
     // store one posting list of a term into the disk
     public static double[] storePostingListIntoDisk(ArrayList<Posting> pl, double idf) {
@@ -154,7 +159,7 @@ public final class DataStructureHandler {
             for (Posting posting : pl) {
                 bufferdocid.putInt(posting.getDocId());
                 buffertermfreq.putInt(posting.getTermFreq());
-                if(debug) {
+                if(Flags.isDebug_flag()) {
                     debug_pl.append("{").append(posting.getDocId()).append(", ").append(posting.getTermFreq()).append("} ");
                     debug_docid.append(posting.getDocId()).append( ", ");
                 }
@@ -169,7 +174,7 @@ public final class DataStructureHandler {
                     scoreTFIDF = currentScoreTFIDF;
             }
 
-            if (debug) {
+            if (Flags.isDebug_flag()) {
                 appendStringToFile(debug_pl.toString(), "merge_pl.txt");
                 appendStringToFile(debug_docid.toString(), "merge_docid.txt");
             }
@@ -193,10 +198,9 @@ public final class DataStructureHandler {
 
             docTable_channel = docTableFile.getChannel();
 
-            DocumentElement de = new DocumentElement();
-
             // for to read all DocumentElement stored into disk
             for (int i = 0; i < docTable_channel.size(); i += DOCELEM_SIZE) {
+                DocumentElement de = new DocumentElement();
                 de.readDocumentElementFromDisk(i, docTable_channel); // get the ith DocElem
                 if(indexBuilding == true)
                     Query.documentTable.put(de.getDocid(), de);

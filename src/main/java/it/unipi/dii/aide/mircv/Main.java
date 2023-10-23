@@ -65,7 +65,7 @@ public class Main {
 
                     setSws(getUserChoice(sc, "stopwords removal"));    // take user preferences on the removal of stopwords
                     setCompression(getUserChoice(sc, "compression"));  // take user preferences on the compression
-
+                    setDebug_flag(getUserChoice(sc,"debug"));
                     storeFlagsIntoDisk();      // store Flags
                     // Do SPIMI Algorithm
                     System.out.println("\nIndexing...");
@@ -105,7 +105,7 @@ public class Main {
                         boolean type = getUserInput(sc, message);
                         message = "Select scoring type (1 for BM25, 2 for TFIDF):";
                         boolean score = getUserInput(sc, message);
-                        message = "Select algorithm type (1 for DAAT,2 for Max Score) :";
+                        message = "Select algorithm type (1 for DAAT, 2 for Max Score) :";
                         boolean algorithm = getUserInput(sc, message);
                         int nResults = getNumberOfResults(sc);
                         Query.executeQuery(q, nResults, type, score, algorithm);

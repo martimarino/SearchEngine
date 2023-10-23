@@ -1,9 +1,7 @@
 package it.unipi.dii.aide.mircv.query;
 
-
 import it.unipi.dii.aide.mircv.data_structures.*;
 import it.unipi.dii.aide.mircv.data_structures.Dictionary;
-import it.unipi.dii.aide.mircv.query.algorithms.MaxScore;
 import it.unipi.dii.aide.mircv.query.scores.CompareScoreElem;
 import it.unipi.dii.aide.mircv.query.scores.Score;
 import it.unipi.dii.aide.mircv.query.scores.ScoreElem;
@@ -17,6 +15,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.readCollectionStatsFromDisk;
+import static it.unipi.dii.aide.mircv.query.Conjunctive.sortByValue;
+import static it.unipi.dii.aide.mircv.query.algorithms.MaxScore.computeMaxScore;
 import static it.unipi.dii.aide.mircv.query.scores.Score.computeBM25;
 import static it.unipi.dii.aide.mircv.query.scores.Score.computeTFIDF;
 import static it.unipi.dii.aide.mircv.query.algorithms.DAAT.DocumentAtATime;
@@ -39,16 +39,20 @@ public final class Query {
     public static PriorityQueue<ResultBlock> pq_res;   // contains results (increasing)
     public static PriorityQueue<ResultBlock> inverse_pq_res;  // contains results (decreasing)
 
-    public static ArrayList<PostingList> postingLists = new ArrayList<>();
+    public static ArrayList<PostingList> postingLists = new ArrayList<>(); // contains the posting lists of the query terms
     static HashMap<String, PostingList> term_pl = new HashMap<>();
 
     static HashMap<Integer, Double> index_score = new HashMap<>();
     static HashMap<Integer, Integer> index_len = new HashMap<>();
 
     //------------------ //
-    public static PriorityQueue<ResultBlock> resultQueueInverse; // contains the final results, in decreasing order of score
+    //static PriorityQueue<ResultBlock> resultQueueInverse; // contains the final results, in decreasing order of score
     public static ArrayList<Double> idf = new ArrayList<>(); // contains the idf of each query term
 
+    public static ArrayList<PostingList> p = new ArrayList<>(); // ordered posting lists for increasing score
+    public static ArrayList<Double> orderedIdf = new ArrayList<>(); //idf ordered for increasing score
+
+    public static ArrayList<Double> maxScore = new ArrayList<>();
 
     public Query()  { throw new UnsupportedOperationException(); }
 
@@ -72,6 +76,7 @@ public final class Query {
             long endTime = System.currentTimeMillis();
             printTime("Dictionary loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
         }
+
         if (documentTable.isEmpty()) {
             long startTime = System.currentTimeMillis();
             DataStructureHandler.readDocumentTableFromDisk(true);
@@ -84,17 +89,40 @@ public final class Query {
 
     public static void executeQuery(String q, int k, boolean q_type, boolean score, boolean algorithm) throws IOException {
 
-            long startTime = System.currentTimeMillis();
-            ArrayList<String> query = TextProcessor.preprocessText(q);
-            List<String> query_terms = query.stream().distinct().collect(Collectors.toList());
-            Query.k = k;
-            Query.queryType = q_type;
-            Query.scoreType = score;
-            Query.algorithmType = algorithm;
-            prepareStructures(query_terms);
+        long startTime = System.currentTimeMillis();
+        ArrayList<String> query = TextProcessor.preprocessText(q);
+        List<String> query_terms = query.stream().distinct().collect(Collectors.toList());
+        Query.k = k;
+        Query.queryType = q_type;
+        Query.scoreType = score;
+        Query.algorithmType = algorithm;
+        prepareStructures(query_terms);
+        printResults();
+        clearStructures();
+        long endTime = System.currentTimeMillis();
+        printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+    }
 
-            long endTime = System.currentTimeMillis();
-            printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+    private static void clearStructures() {
+
+        if(!postingLists.isEmpty())
+            postingLists.clear();
+
+        if(!idf.isEmpty())
+            idf.clear();
+
+        if(!pq_res.isEmpty())
+            pq_res.clear();
+
+        if(!orderedIdf.isEmpty())
+            orderedIdf.clear();
+
+        if(!p.isEmpty())
+            p.clear();
+
+        if(!maxScore.isEmpty())
+            maxScore.clear();
+
     }
 
     public static void executeQueryPQ(String q, int k, boolean q_type, boolean scoreType) throws IOException {
@@ -187,11 +215,6 @@ public final class Query {
 
     public static void prepareStructures(List<String> query) {
 
-        postingLists = new ArrayList<>();
-        idf = new ArrayList<>();
-        PriorityQueue<ScoreElem> orderByScore = new PriorityQueue<>(query.size(), new CompareScoreElem());
-        int index = 0;
-
         try (
                 RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
                 RandomAccessFile tf_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
@@ -200,6 +223,16 @@ public final class Query {
             docId_channel = docid_raf.getChannel();
             termFreq_channel = tf_raf.getChannel();
             skip_channel = skip_raf.getChannel();
+/*
+
+            DictionaryElem d = dictionary.getTermStat("berlin");
+            ArrayList<Posting> pls = DataStructureHandler.readPostingListFromDisk(d.getOffsetDocId(), d.getOffsetTermFreq(), d.getDf());
+            for(Posting p : pls)
+                printDebug(p.getDocId() + " " + p.getTermFreq()); //if(p.getDocId() > 8744790 && p.getDocId() < 8744795)
+*/
+
+            PriorityQueue<ScoreElem> orderByScore = new PriorityQueue<>(query.size(), new CompareScoreElem());
+            int index = 0;
 
             for (String t : query) {
                 DictionaryElem de = dictionary.getTermStat(t);
@@ -212,20 +245,26 @@ public final class Query {
                 postingLists.add(pl);
                 if(!algorithmType)
                 {
-                    if(Query.scoreType) {
+                    if(Query.scoreType)
                         orderByScore.add(new ScoreElem(index, de.getMaxBM25()));
-                    }
-                    else {
+                    else
                         orderByScore.add(new ScoreElem(index, de.getMaxTFIDF()));
-                    }
-                    index++;
                 }
+                index++;
             }
-
             if(algorithmType)
-                DocumentAtATime();
-            else
-                MaxScore.computeMaxScore(orderByScore);
+                pq_res = DocumentAtATime();
+            else {
+                //idf, posting lists and maxscore are ordered by the order define by orderByScore (increasing value of score)
+                while(!orderByScore.isEmpty())
+                {
+                    ScoreElem se = orderByScore.poll();
+                    p.add(postingLists.get(se.getIndex()));
+                    orderedIdf.add(idf.get(se.getIndex()));
+                    maxScore.add(se.getScore());
+                }
+                pq_res = computeMaxScore();
+            }
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -233,7 +272,6 @@ public final class Query {
             e.printStackTrace();
         }
     }
-
 
     private static void DAATalgorithm() {
 
@@ -281,8 +319,6 @@ public final class Query {
         } else if (pq_res.size() < k)
             pq_res.add(new ResultBlock(acc.getDocId(), acc.getScore()));
     }
-
-
     /**
      *
      * @param pl posting list for which identify the minimum
@@ -303,7 +339,7 @@ public final class Query {
     }
 
     public static double computeScore(double idf, Posting currentPosting){
-        double score = 0;
+        double score;
         if (scoreType)
             score = computeBM25(idf, currentPosting);
         else
@@ -312,13 +348,13 @@ public final class Query {
         return score;
     }
 
-    public static void printResults(PriorityQueue<ResultBlock> resultQueue){
+    public static void printResults(){
 
-        resultQueueInverse = new PriorityQueue<>(k,new CompareResInverse());
+        PriorityQueue<ResultBlock> resultQueueInverse = new PriorityQueue<>(k,new CompareResInverse());
 
         //results from increasing order priority queue to decreasing order one
-        while (!resultQueue.isEmpty()) {
-            ResultBlock r = resultQueue.poll();
+        while (!pq_res.isEmpty()) {
+            ResultBlock r = pq_res.poll();
             resultQueueInverse.add(r);
         }
 

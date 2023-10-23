@@ -49,7 +49,7 @@ class QueryTest {
     }
 */
 
-/*    @Test
+    @Test
     void name() {
         int numberOfResults = 10;
         int avgTimePQ = 0;
@@ -71,6 +71,7 @@ class QueryTest {
                 String time = "query \"" + query + " \" time : " + (endTime - startTime) + "ms";
                 System.out.println(time);
                 avgTime += (endTime - startTime);
+                avgTimePQ += (endTimePQ - startTimePQ);
                 nQuery++;
 
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
@@ -111,22 +112,21 @@ class QueryTest {
             e.printStackTrace();
         }
 
-    }*/
+    }
 
     @Test
     void testMaxScore() {
 
         int numberOfResults = 10;
-        int avgTimePQ = 0;
         int avgTime = 0;
         String filename = "outputMaxScore.txt";
         int nQuery = 0;
         try (BufferedReader TSVReader = new BufferedReader(new FileReader("src/main/resources/msmarco-test2020-queries.tsv"))) {
             String line = null;
             while ((line = TSVReader.readLine()) != null) {
-                String query = line.split("\t")[1]; //splitting the line and adding its items in String[]
+                String query = line.split("\t")[1];
                 long startTime = System.currentTimeMillis();
-                Query.executeQuery(query, numberOfResults, false, false, true);
+                Query.executeQuery(query, numberOfResults, false, false, false);
                 long endTime = System.currentTimeMillis();
                 String time = "query \"" + query + " \" time : " + (endTime - startTime) + "ms";
                 System.out.println(time);

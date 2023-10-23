@@ -15,11 +15,9 @@ public final class Score {
     }
 
     public static double computeTFIDF(Double idf, Posting p) {
-
         double tf = 1 + Math.log10(p.getTermFreq());
         return tf*idf;
     }
-
 
     public static double computeBM25(Double idf, Posting p){
         return (p.getTermFreq()/

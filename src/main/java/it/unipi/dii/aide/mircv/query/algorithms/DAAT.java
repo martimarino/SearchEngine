@@ -10,39 +10,30 @@ import static it.unipi.dii.aide.mircv.query.Query.*;
 public class DAAT {
 
     public static PriorityQueue<ResultBlock> resultQueue;
-    //public static ArrayList<PostingList> postingLists = new ArrayList<>();
 
-    public static void DocumentAtATime() {
+    public static PriorityQueue<ResultBlock> DocumentAtATime() {
 
         resultQueue = new PriorityQueue<>(k, new CompareRes());
 
         int current = minDocID(postingLists);
 
-        ArrayList<Boolean> notNext = new ArrayList<>();
-
-        for (int i = 0; i < postingLists.size(); i++) {
-            notNext.add(false);
-        }
-
         while (current != -1) {
 
             double score = 0;
             int next = Integer.MAX_VALUE;
-
+     /*       if(current == 8744791)
+                System.out.println("current: " + current + " " + documentTable.get(current).getDocno());*/
             for (int i = 0; i < postingLists.size(); i++) {
 
-                if ((!notNext.get(i)) && (postingLists.get(i).getCurrPosting().getDocId() == current)) {
-
+                if ((postingLists.get(i).getCurrPosting() != null) && (postingLists.get(i).getCurrPosting().getDocId() == current)) {
                     score = score + computeScore(idf.get(i), postingLists.get(i).getCurrPosting());
 
-                    postingLists.get(i).next();
+                    postingLists.get(i).next(true);
 
-                    if (postingLists.get(i).getCurrPosting() == null) {
-                        notNext.set(i, true);
+                    if (postingLists.get(i).getCurrPosting() == null)
                         continue;
-                    }
                 }
-                if ((!notNext.get(i)) && postingLists.get(i).getCurrPosting().getDocId() < next) {
+                if ((postingLists.get(i).getCurrPosting() != null) && postingLists.get(i).getCurrPosting().getDocId() < next) {
                     next = postingLists.get(i).getCurrPosting().getDocId();
                 }
             }
@@ -54,12 +45,13 @@ public class DAAT {
                 resultQueue.add(new ResultBlock(current, score));
             }
 
-            if (!notNext.contains(false))
+            if (next == Integer.MAX_VALUE)
                 current = -1;
             else
                 current = next;
+
         }
 
-        printResults(resultQueue);
+        return resultQueue;
     }
 }

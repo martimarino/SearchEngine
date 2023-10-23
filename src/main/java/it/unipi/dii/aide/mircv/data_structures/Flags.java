@@ -21,6 +21,7 @@ public final class Flags {
 //    private static boolean isQuery = false;
 
     private static boolean skip_flag = false;
+    private static boolean debug_flag = false;
 
     public static boolean isSwsEnabled() { return sws_flag; }
 
@@ -111,4 +112,7 @@ public final class Flags {
         Flags.skip_flag = skip_flag;
     }
 
+    public static boolean isDebug_flag() {return debug_flag;}
+
+    public static void setDebug_flag(boolean debug_flag) {Flags.debug_flag = debug_flag;}
 }

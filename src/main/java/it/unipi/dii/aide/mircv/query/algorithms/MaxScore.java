@@ -1,50 +1,37 @@
 package it.unipi.dii.aide.mircv.query.algorithms;
-
 import it.unipi.dii.aide.mircv.query.*;
-import it.unipi.dii.aide.mircv.query.scores.ScoreElem;
 import java.util.*;
 
 import static it.unipi.dii.aide.mircv.query.Query.*;
 
+
 public class MaxScore {
 
+/*
     private static  PriorityQueue<ResultBlock> resultQueue; //stores the results in increasing order
-    //private static ArrayList<PostingList> postingLists; //contains all the posting lists read from disk
-    //private static ArrayList<Double> idf; // contains all the idf of each query term
-    public static ArrayList<Double> orderedIdf; //idf ordered for increasing score
+    private static ArrayList<PostingList> postingLists = new ArrayList<>(); //contains all the posting lists read from disk
+    private static ArrayList<Double> idf = new ArrayList<>(); // contains all the idf of each query term
+    public static ArrayList<Double> orderedIdf = new ArrayList<>(); //idf ordered for increasing score
 
-    private static ArrayList<Double> ub; //contains all the max scores (upper bound) of each query term
-    public static ArrayList<PostingList> p; // ordered posting lists for increasing score
+    private static ArrayList<Double> ub = new ArrayList<>(); //contains all the max scores (upper bound) of each query term
+    public static ArrayList<PostingList> p = new ArrayList<>(); // ordered posting lists for increasing score
+*/
 
     //private static PriorityQueue<ScoreElem> orderByScore; //index, score pairs ordered in increasing order
-
     /**
      * Performs the MaxScore algorithm
      * @param
-     */
-    public static void computeMaxScore(PriorityQueue<ScoreElem> orderByScore) {
+     **/
+    public static PriorityQueue<ResultBlock> computeMaxScore() {
 
-        resultQueue = new PriorityQueue<>(k,new CompareRes());
-        ub = new ArrayList<>();
-        p = new ArrayList<>();
-        orderedIdf = new ArrayList<>();
+        PriorityQueue<ResultBlock> resultQueue = new PriorityQueue<>(k,new CompareRes());
+        ArrayList<Double> ub = new ArrayList<>();
 
         int n;
         double threshold = 0;
         double score;
         int next;
         int pivot = 0;
-
-        ArrayList<Double> maxScore = new ArrayList<>();
-
-        //idf, posting lists and maxscore are ordered by the order define by orderByScore (increasing value of score)
-        while(!orderByScore.isEmpty())
-        {
-            ScoreElem se = orderByScore.poll();
-            p.add(postingLists.get(se.getIndex()));
-            orderedIdf.add(idf.get(se.getIndex()));
-            maxScore.add(se.getScore());
-        }
 
         n = maxScore.size();
 
@@ -56,7 +43,7 @@ public class MaxScore {
             ub.add(i, ub.get(i-1) + maxScore.get(i));
         }
 
-        int current = Query.minDocID(p);
+        int current = minDocID(p);
 
         while(pivot < n && current != -1){
             score = 0;
@@ -64,15 +51,15 @@ public class MaxScore {
             //essential postings
             for(int i = pivot; i < n; i++)
             {
+               // PostingList pl = p.get(i);
                 //if the i-th posting list has no scanned postings and the docid of the current posting is the current one to consider, the score is updated
                 if( (p.get(i).getCurrPosting() != null) && p.get(i).getCurrPosting().getDocId() == current)
                 {
                     score = score + computeScore(orderedIdf.get(i), p.get(i).getCurrPosting());
-                    p.get(i).next(); // get the next posting in the posting list, if posting list ended the current posting is set to null
+                    p.get(i).next(true); // get the next posting in the posting list, if posting list ended the current posting is set to null
 
-                    if( p.get(i).getCurrPosting() == null)
+                    if(p.get(i).getCurrPosting() == null)
                         continue;
-
                 }
                 // next is the next docid of the current postings among all the posting lists
                 if((p.get(i).getCurrPosting() != null) && p.get(i).getCurrPosting().getDocId() < next)
@@ -117,8 +104,7 @@ public class MaxScore {
                 current = -1;
         }
 
-        printResults(resultQueue);
-
+        return resultQueue;
     }
 
 }
