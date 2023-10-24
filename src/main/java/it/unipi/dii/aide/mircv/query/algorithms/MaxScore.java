@@ -40,7 +40,7 @@ public class MaxScore {
 
         for(int i = 1; i < n; i++)
         {
-            ub.add(i, ub.get(i-1) + p.get(i).getMaxScore());
+            ub.add(i, ub.get(i-1) + p.get(i).getMaxScore()); // each uppebound is given by the maxscore of the previous ones
         }
 
         int current = minDocID(p);
