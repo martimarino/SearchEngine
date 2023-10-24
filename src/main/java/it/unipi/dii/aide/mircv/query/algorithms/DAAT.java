@@ -20,8 +20,7 @@ public class DAAT {
 
             double score = 0;
             int next = Integer.MAX_VALUE;
-     /*       if(current == 8744791)
-                System.out.println("current: " + current + " " + documentTable.get(current).getDocno());*/
+
             for (int i = 0; i < postingLists.size(); i++) {
 
                 if ((postingLists.get(i).getCurrPosting() != null) && (postingLists.get(i).getCurrPosting().getDocId() == current)) {

@@ -54,7 +54,7 @@ public class TestConjunctive {
             while ((line = TSVReader.readLine()) != null) {
                 String query = line.split("\t")[1]; //splitting the line and adding its items in String[]
                 long startTime = System.currentTimeMillis();
-                Query.executeQueryPQ(query, 10, false, false);
+                Query.executeQueryPQ(query, 10, true, false, false);
                 long endTime = System.currentTimeMillis();
                 String time = "query = \"" + query + " \"";
                 System.out.println(time);
