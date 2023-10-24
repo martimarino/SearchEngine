@@ -6,6 +6,7 @@ import it.unipi.dii.aide.mircv.query.scores.Score;
 import java.util.*;
 
 import static it.unipi.dii.aide.mircv.query.Query.*;
+import static it.unipi.dii.aide.mircv.utils.Constants.printDebug;
 
 public class Conjunctive {
     
@@ -33,6 +34,7 @@ public class Conjunctive {
         postingLists.clear();
         index_len.clear();
 
+        int counter = 0; 
         do {
             // poll from the shortest posting list
             Posting polled = shortest.getCurrPosting();
@@ -50,21 +52,20 @@ public class Conjunctive {
                 for (PostingList orderedConjPostingList : orderedConjPostingLists)
                     score += Score.computeTFIDF(dictionary.getTermStat(orderedConjPostingList.term).getIdf(), orderedConjPostingList.getCurrPosting());
 
-
-                if (pq_res.size() < k) {
-                    pq_res.add(new ResultBlock(currentDocId, score));
-                } else if (pq_res.peek().getScore() < score) {     // sostituisco elemento con peggior score con quello corrente
-                    pq_res.remove();
-                    pq_res.add(new ResultBlock(currentDocId, score));
+                if (conj_res.size() < k) {
+                    conj_res.add(new ResultBlock(currentDocId, score));
+                } else if (conj_res.peek().getScore() < score) {     // sostituisco elemento con peggior score con quello corrente
+                    conj_res.remove();
+                    conj_res.add(new ResultBlock(currentDocId, score));
                 }
                counter++;  
             }
             shortest.next(true);
 
         } while (shortest.getCurrPosting() != null);
-
-        orderedConjPostingLists.clear();
-
+        
+        printDebug("FIND: " + counter);
+        return conj_res;
     }
 
     private static boolean checkSameDocid () {

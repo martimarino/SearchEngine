@@ -24,7 +24,7 @@ public class MaxScore {
      **/
     public static PriorityQueue<ResultBlock> computeMaxScore() {
 
-        PriorityQueue<ResultBlock> resultQueue = new PriorityQueue<>(k,new CompareRes());
+        PriorityQueue<ResultBlock> resultQueue = new PriorityQueue<>(k,new ResultBlock.CompareRes());
         ArrayList<Double> ub = new ArrayList<>();
 
         int n;
@@ -73,7 +73,7 @@ public class MaxScore {
 
                 //it is peak as current element of the posting list the one with docid >= current
                 if(p.get(i).getSl() != null)
-                    p.get(i).nextGEQ(current);
+                    p.get(i).nextGEQ(current, true);
 
                 if(p.get(i).getCurrPosting() == null)
                     continue;

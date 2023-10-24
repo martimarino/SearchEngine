@@ -15,7 +15,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.readCollectionStatsFromDisk;
-import static it.unipi.dii.aide.mircv.query.Conjunctive.sortByValue;
 import static it.unipi.dii.aide.mircv.query.algorithms.MaxScore.computeMaxScore;
 import static it.unipi.dii.aide.mircv.query.scores.Score.computeBM25;
 import static it.unipi.dii.aide.mircv.query.scores.Score.computeTFIDF;
@@ -29,24 +28,22 @@ public final class Query {
     public static final HashMap<Integer, DocumentElement> documentTable = new HashMap<>();
     public static final Dictionary dictionary = new Dictionary();
 
-
     public static int k; //number of result to return
     private static boolean disj_conj; // (false = disjunctive, true = conjunctive)
     public static boolean tfidf_bm25; // (false = TFIDF or true = BM25)
     public static boolean daat_maxscore; // (false = DAAT, true = MaxScore)
 
     static PriorityQueue<DAATBlock> pq_DAAT;    // used during DAAT algorithm
-    public static PriorityQueue<ResultBlock> pq_res;   // contains results (increasing)
-    public static PriorityQueue<ResultBlock> inverse_pq_res;  // contains results (decreasing)
-
-    public static ArrayList<PostingList> postingLists = new ArrayList<>(); // contains the posting lists of the query terms
     static HashMap<String, PostingList> term_pl = new HashMap<>();
-
     static HashMap<Integer, Double> index_score = new HashMap<>();
     static HashMap<Integer, Integer> index_len = new HashMap<>();
 
     //------------------ //
+
     public static ArrayList<PostingList> p = new ArrayList<>(); // ordered posting lists for increasing score
+    public static ArrayList<PostingList> postingLists = new ArrayList<>(); // contains the posting lists of the query terms
+    public static PriorityQueue<ResultBlock> pq_res;   // contains results (increasing)
+    public static PriorityQueue<ResultBlock> inverse_pq_res;  // contains results (decreasing)
 
     public Query()  { throw new UnsupportedOperationException(); }
 
@@ -97,7 +94,6 @@ public final class Query {
         printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
     }
 
-    public static void executeQueryPQ(String q, int k, boolean isConjunctive, boolean isDaat) throws IOException {
     private static void clearStructures() {
 
         if(!postingLists.isEmpty())
@@ -111,7 +107,7 @@ public final class Query {
 
     }
 
-    public static void executeQueryPQ(String q, int k, boolean q_type, boolean scoreType) throws IOException {
+    public static void executeQueryPQ(String q, int k, boolean isConjunctive, boolean isDaat) throws IOException {
 
         long startTime = System.currentTimeMillis();
         ArrayList<String> query = TextProcessor.preprocessText(q);
@@ -201,6 +197,9 @@ public final class Query {
 
     public static void prepareStructures(List<String> query) {
 
+        pq_res = new PriorityQueue<>(k, new ResultBlock.CompareRes());
+        inverse_pq_res = new PriorityQueue<>(k, new ResultBlock.CompareResInverse());
+
         try (
                 RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
                 RandomAccessFile tf_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
@@ -223,28 +222,39 @@ public final class Query {
                 pl.setIdf(de.getIdf());
                 pl.load();
                 postingLists.add(pl);
-                if(!daat_maxscore)
+
+                if(daat_maxscore)
                 {
                     if(Query.tfidf_bm25)
                         orderByScore.add(new ScoreElem(index, de.getMaxBM25()));
                     else
                         orderByScore.add(new ScoreElem(index, de.getMaxTFIDF()));
                 }
+                if(disj_conj)
+                {
+                    if (pl.getLen() == 0 || pl.getList() == null)
+                        continue;
+
+                    index_len.put(index, pl.getLen());
+                }
                 index++;
             }
 
-            if(daat_maxscore)
-                pq_res = DocumentAtATime();
-            else {
-                //idf, posting lists and maxscore are ordered by the order define by orderByScore (increasing value of score)
-                while(!orderByScore.isEmpty())
-                {
-                    ScoreElem se = orderByScore.poll();
-                    PostingList pl = postingLists.get(se.getIndex());
-                    pl.setMaxScore(se.getScore());
-                    p.add(pl);
+            if(disj_conj) {
+                pq_res = Conjunctive.executeConjunctive();
+            }else {
+                if (!daat_maxscore)
+                    pq_res = DocumentAtATime();
+                else {
+                    //idf, posting lists and maxscore are ordered by the order define by orderByScore (increasing value of score)
+                    while (!orderByScore.isEmpty()) {
+                        ScoreElem se = orderByScore.poll();
+                        PostingList pl = postingLists.get(se.getIndex());
+                        pl.setMaxScore(se.getScore());
+                        p.add(pl);
+                    }
+                    pq_res = computeMaxScore();
                 }
-                pq_res = computeMaxScore();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -329,7 +339,7 @@ public final class Query {
 
     public static void printResults(){
 
-        PriorityQueue<ResultBlock> resultQueueInverse = new PriorityQueue<>(k,new CompareResInverse());
+        PriorityQueue<ResultBlock> resultQueueInverse = new PriorityQueue<>(k,new ResultBlock.CompareResInverse());
 
         //results from increasing order priority queue to decreasing order one
         while (!pq_res.isEmpty()) {
@@ -344,18 +354,12 @@ public final class Query {
             return;
         }
 
-//        printUI("Document \t Score");
-//        while (!resultQueueInverse.isEmpty()) {
-//            printUI(resultQueueInverse.peek().getDocId() + "\t \t" + String.format("%.3f",resultQueueInverse.poll().getScore()));
-//        }
-
-
         System.out.format("%15s%15s\n", "Document", "Score");
         System.out.format("%45s\n", "-".repeat(45));
 
         while (!resultQueueInverse.isEmpty()) {
             ResultBlock polled = resultQueueInverse.poll();
-            printUI(polled.getDocId() + "\t \t" + String.format("%.3f",polled.getScore()));
+            printUI(polled.getDocId() + "\t \t" + String.format("%.3f",polled.getScore()) + " \t \t " + documentTable.get(polled.getDocId()).getDocno());
         }
         System.out.format("%45s\n", "-".repeat(45));
     }

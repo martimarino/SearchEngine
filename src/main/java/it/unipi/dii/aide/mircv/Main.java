@@ -107,11 +107,14 @@ public class Main {
                         boolean type = getUserInput(sc, message);
                         message = "Select scoring type (1 for BM25, 2 for TFIDF):";
                         boolean score = getUserInput(sc, message);
-                        message = "Select algorithm type (1 for DAAT, 2 for Max Score) :";
-                        boolean algorithm = getUserInput(sc, message);
+                        boolean algorithm = false;
+                        if(!type) {
+                            message = "Select algorithm type (1 for Max Score, 2 for DAAT) :";
+                            algorithm = getUserInput(sc, message);
+                        }
                         int nResults = getNumberOfResults(sc);
-//                        Query.executeQuery(q, nResults, type, score, algorithm);
-                        Query.executeQueryPQ(q, nResults, true, true);
+                        Query.executeQuery(q, nResults, type, score, algorithm);
+                        //Query.executeQueryPQ(q, nResults, true, true);
                         closeChannels();
                     }
 
@@ -171,10 +174,10 @@ public class Main {
     private static boolean getUserInput(Scanner sc, String message){
         while(true){
             printUI(message);
-            String scoringType = sc.nextLine().toLowerCase().trim();
-            if(scoringType.equals("1"))
+            String text = sc.nextLine().toLowerCase().trim();
+            if(text.equals("1"))
                 return true;
-            if(scoringType.equals("2"))
+            if(text.equals("2"))
                 return false;
         }
     }
