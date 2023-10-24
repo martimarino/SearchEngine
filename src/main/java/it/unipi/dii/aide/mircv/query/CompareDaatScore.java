@@ -1,13 +1,11 @@
 package it.unipi.dii.aide.mircv.query;
 
-import it.unipi.dii.aide.mircv.query.DAATBlock;
-
 import java.util.Comparator;
 
 /**
  * class to compare the block, allows the order of the priority queue
  */
-public class CompareScore implements Comparator<DAATBlock> {
+public class CompareDaatScore implements Comparator<DAATBlock> {
     @Override
     public int compare(DAATBlock pb1, DAATBlock pb2) {
         // comparing terms

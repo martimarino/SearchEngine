@@ -31,7 +31,12 @@ public class TestSingleQuery {
 
             while ((record = buffer_collection.readLine()) != null) {
 
-                String query = "who is aziz hashim";
+//                String query = "what the best way to get clothes white";
+//                String query = "define etruscans";
+//                String query = "holidays definition";
+//                String query = "is caffeine an narcotic";
+                String query = "conformative definition";
+
                 ArrayList<String> prep_query = TextProcessor.preprocessText(query);
 
                 boolean[] check = new boolean[prep_query.size()];

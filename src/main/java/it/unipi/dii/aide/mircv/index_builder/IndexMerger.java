@@ -17,7 +17,7 @@ import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 import static java.lang.Math.min;
 
 /**
- * class to merge the InverteIndex
+ * class to merge the InvertedIndex
  */
 public final class IndexMerger {
     // Priority queue which will contain the first term (in lexicographic order) of each block. Used for merge and to
@@ -32,8 +32,8 @@ public final class IndexMerger {
     static int termCounter = 0;       // counter used only for control prints
 
     // build temp structures
-    static DictionaryElem tempDE;       // empty temporary DictionaryELem, contains the accumulated data for each term
-    static ArrayList<Posting> tempPL;      // empty temporary PostingList, contains the accumulated data for each term
+    static DictionaryElem tempDE;       // temporary DictionaryELem, contains the accumulated data for each term
+    static ArrayList<Posting> tempPL;      // temporary PostingList, contains the accumulated data for each term
     static DictionaryElem currentDE;       // current DictionaryElem, contains the data taken from the queue in the current iteration
     static ArrayList<Posting> currentPL;   // current PostingList, contains the data taken from the queue in the current iteration
 

@@ -2,13 +2,11 @@ package it.unipi.dii.aide.mircv.query;
 
 import it.unipi.dii.aide.mircv.data_structures.*;
 import it.unipi.dii.aide.mircv.data_structures.Dictionary;
-import it.unipi.dii.aide.mircv.query.scores.CompareScoreElem;
 import it.unipi.dii.aide.mircv.query.scores.Score;
 import it.unipi.dii.aide.mircv.query.scores.ScoreElem;
 import it.unipi.dii.aide.mircv.utils.FileSystem;
 import it.unipi.dii.aide.mircv.utils.TextProcessor;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.*;
@@ -35,7 +33,6 @@ public final class Query {
 
     static PriorityQueue<DAATBlock> pq_DAAT;    // used during DAAT algorithm
     static HashMap<String, PostingList> term_pl = new HashMap<>();
-    static HashMap<Integer, Double> index_score = new HashMap<>();
     static HashMap<Integer, Integer> index_len = new HashMap<>();
 
     //------------------ //
@@ -47,6 +44,10 @@ public final class Query {
 
     public Query()  { throw new UnsupportedOperationException(); }
 
+    /***
+     * Check if all the necessary files are present in the folder to load them in memory.
+     * @return false if necessary files are not in the folder, true if they have been correctly load in memory.
+     */
     public static boolean queryStartControl() {
 
         // -- control for file into disk
@@ -67,17 +68,26 @@ public final class Query {
             long endTime = System.currentTimeMillis();
             printTime("Dictionary loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
         }
-
+/*
         if (documentTable.isEmpty()) {
             long startTime = System.currentTimeMillis();
             DataStructureHandler.readDocumentTableFromDisk(false);
             long endTime = System.currentTimeMillis();
             printTime("Document Table loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
-        }
+        }*/
 
         return true;
     }
 
+    /***
+     * Executes the query passed with the configuration specified.
+     * @param q -> query to process
+     * @param k -> number of results to return
+     * @param disj_conj (query type) -> false = disjunctive, true = conjunctive
+     * @param tfidf_bm25 (score type) -> false = TFIDF, true = BM25
+     * @param daat_maxscore (algorithm type) -> false = DAAT, true = MaxScore
+     * @throws IOException
+     */
     public static void executeQuery(String q, int k, boolean disj_conj, boolean tfidf_bm25, boolean daat_maxscore) throws IOException {
 
         long startTime = System.currentTimeMillis();
@@ -116,7 +126,7 @@ public final class Query {
         tfidf_bm25 = isDaat;
         List<String> query_terms = query.stream().distinct().collect(Collectors.toList());
 
-        pq_DAAT = new PriorityQueue<>(query_terms.size(), new CompareScore());
+        pq_DAAT = new PriorityQueue<>(query_terms.size(), new CompareDaatScore());
         pq_res = new PriorityQueue<>(k, new ResultBlock.CompareRes());
         inverse_pq_res = new PriorityQueue<>(k, new ResultBlock.CompareResInverse());
 
@@ -138,7 +148,6 @@ public final class Query {
             for (String t : query_terms) {
 
                 PostingList pl = new PostingList(t);
-                pl.load();
 
                 postingLists.add(pl);
                 term_pl.put(t, pl);
@@ -146,7 +155,6 @@ public final class Query {
                 if (pl.getLen() == 0 || pl.getList() == null)
                     continue;
 
-//                index_score.put(index, pl.getScore());
                 index_len.put(index, pl.getLen());
 
                 pq_DAAT.add(new DAATBlock(t, pl.getList().get(0).getDocId(), Score.computeTFIDF(dictionary.getTermStat(t).getIdf(), pl.getCurrPosting())));
@@ -190,11 +198,15 @@ public final class Query {
         pq_res.clear();
         inverse_pq_res.clear();
         index_len.clear();
-        index_score.clear();
         term_pl.clear();
 
     }
 
+    /***
+     * Create the necessary data structures, open file channels, read the posting lists of the query terms
+     * (entire or first block if the have skipping) and calls the function for the configuration requested.
+     * @param query
+     */
     public static void prepareStructures(List<String> query) {
 
         pq_res = new PriorityQueue<>(k, new ResultBlock.CompareRes());
@@ -209,7 +221,7 @@ public final class Query {
             termFreq_channel = tf_raf.getChannel();
             skip_channel = skip_raf.getChannel();
 
-            PriorityQueue<ScoreElem> orderByScore = new PriorityQueue<>(query.size(), new CompareScoreElem());
+            PriorityQueue<ScoreElem> orderByScore = new PriorityQueue<>(query.size(), new ScoreElem.CompareScoreElem());
             int index = 0;
 
             for (String t : query) {
@@ -220,7 +232,6 @@ public final class Query {
 
                 PostingList pl = new PostingList(t);
                 pl.setIdf(de.getIdf());
-                pl.load();
                 postingLists.add(pl);
 
                 if(daat_maxscore)
@@ -278,7 +289,7 @@ public final class Query {
                 if (pb.getDocId() == acc.getDocId()) {
                     acc.setScore(acc.getScore() + pb.getScore());
                 } else {
-                    System.out.println(new ResultBlock(acc.getDocId(), acc.getScore()));
+                    //System.out.println(new ResultBlock(acc.getDocId(), acc.getScore()));
                     if (pq_res.size() == k) {
                         if (acc.getScore() > pq_res.peek().getScore()) {
                             pq_res.remove();
@@ -290,15 +301,13 @@ public final class Query {
                 }
             }
             //prendo prossimo elemento del termine per cui abbiamo fatto poll e lo metto in pq_DAAT calcolandone lo scoreType
-            Iterator<Posting> iterToAdvance =
-                    Query.term_pl.get(pb.getTerm()).getPostingIterator();
-            if (iterToAdvance.hasNext()) {
-                Posting currentPosting = iterToAdvance.next();
+            Query.term_pl.get(pb.getTerm()).next(true);
+            Posting currentPosting = Query.term_pl.get(pb.getTerm()).getCurrPosting();
+            if(currentPosting != null)
                 Query.pq_DAAT.add(new DAATBlock(pb.getTerm(), currentPosting.getDocId(), computeTFIDF(dictionary.getTermToTermStat().get(pb.getTerm()).getIdf(), currentPosting)));
-            }
         }
 
-        System.out.println(new ResultBlock(acc.getDocId(), acc.getScore()));
+        //System.out.println(new ResultBlock(acc.getDocId(), acc.getScore()));
         if (pq_res.size() == k) {
             if (acc.getScore() > pq_res.peek().getScore()) {
                 pq_res.remove();
@@ -313,7 +322,7 @@ public final class Query {
      * @param pl posting list for which identify the minimum
      * @return the min docID from all the documents in the given posting list
      */
-        public static int minDocID(ArrayList<PostingList> pl) {
+    public static int minDocID(ArrayList<PostingList> pl) {
         ArrayList<Integer> first_docids = new ArrayList<>();
 
         for(PostingList p : pl){
@@ -359,7 +368,7 @@ public final class Query {
 
         while (!resultQueueInverse.isEmpty()) {
             ResultBlock polled = resultQueueInverse.poll();
-            printUI(polled.getDocId() + "\t \t" + String.format("%.3f",polled.getScore()) + " \t \t " + documentTable.get(polled.getDocId()).getDocno());
+            printUI(polled.getDocId() + "\t \t" + String.format("%.3f",polled.getScore()) + " \t \t ");
         }
         System.out.format("%45s\n", "-".repeat(45));
     }

@@ -17,37 +17,16 @@ public class PostingList {
     private ArrayList<Posting> list = null;
     private Iterator<Posting> postingIterator;
     private Posting currPosting;
-    private SkipList sl;     // null if no skipping for that term
-    private double idf;
-    private double maxScore;
+    private SkipList sl = null;     // null if no skipping for that term
+    private double idf = 0;
+    private double maxScore = 0;
 
     private int docIdSize;
     private int termFreqSize;
     private int len = 0;
 
-    public PostingList(String term) {
+    public PostingList(String term) throws IOException {
         this.term = term;
-        this.sl = null;
-        this.idf = 0;
-        this.maxScore = 0;
-    }
-    public PostingList(String term, ArrayList<Posting> p) {
-        this.term = term;
-        this.sl = null;
-        this.list = p;
-        this.idf = 0;
-        this.maxScore = 0;
-    }
-
-    public int postingsToRead(){
-        int fullSkipLen = (int) Math.ceil(Math.sqrt(len));
-        if(sl.getSkipInfoIterator().hasNext())
-            return fullSkipLen;
-        else
-            return len-(fullSkipLen*(sl.getArr_skipInfo().size()-1));
-    }
-
-    public void load() throws IOException {
 
         DictionaryElem de = dictionary.getTermStat(term);
 
@@ -80,7 +59,15 @@ public class PostingList {
         assert list != null;
         this.postingIterator = list.iterator();
         this.currPosting = postingIterator.next();
+    }
 
+
+    public int postingsToRead(){
+        int fullSkipLen = (int) Math.ceil(Math.sqrt(len));
+        if(sl.getSkipInfoIterator().hasNext())
+            return fullSkipLen;
+        else
+            return len-(fullSkipLen*(sl.getArr_skipInfo().size()-1));
     }
 
     //moves sequentially the iterator to the next posting
