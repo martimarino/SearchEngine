@@ -2,17 +2,17 @@ package it.unipi.dii.aide.mircv;
 
 import it.unipi.dii.aide.mircv.data_structures.DataStructureHandler;
 import it.unipi.dii.aide.mircv.data_structures.Flags;
-import it.unipi.dii.aide.mircv.data_structures.IndexMerger;
-import it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder;
+import it.unipi.dii.aide.mircv.index_builder.IndexMerger;
+import it.unipi.dii.aide.mircv.index_builder.PartialIndexBuilder;
 import it.unipi.dii.aide.mircv.query.Query;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 import static it.unipi.dii.aide.mircv.data_structures.Flags.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
-import static it.unipi.dii.aide.mircv.query.Query.*;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 
 public class Main {
@@ -47,6 +47,8 @@ public class Main {
                     delete_mergedFiles();
                     //setCompression(true);  // take user preferences on the compression
 
+                    RandomAccessFile blocksFile = new RandomAccessFile(BLOCKOFFSETS_FILE, "rw");
+                    blocks_channel = blocksFile.getChannel();
                     DataStructureHandler.readBlockOffsetsFromDisk();
 
                     setSws(getUserChoice(sc, "stopwords removal"));    // take user preferences on the removal of stopwords
@@ -82,7 +84,7 @@ public class Main {
                     closeChannels();
                     continue;                           // go next while iteration
 
-                case "d", "q":
+                case "q":
 
                     while (true) {
                         Flags.setConsiderSkippingBytes(true);
@@ -108,7 +110,8 @@ public class Main {
                         message = "Select algorithm type (1 for DAAT, 2 for Max Score) :";
                         boolean algorithm = getUserInput(sc, message);
                         int nResults = getNumberOfResults(sc);
-                        Query.executeQuery(q, nResults, type, score, algorithm);
+//                        Query.executeQuery(q, nResults, type, score, algorithm);
+                        Query.executeQueryPQ(q, nResults, true, true);
                         closeChannels();
                     }
 

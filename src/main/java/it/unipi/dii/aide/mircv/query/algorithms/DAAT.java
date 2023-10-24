@@ -1,6 +1,5 @@
 package it.unipi.dii.aide.mircv.query.algorithms;
-import it.unipi.dii.aide.mircv.query.CompareRes;
-import it.unipi.dii.aide.mircv.query.PostingList;
+import it.unipi.dii.aide.mircv.data_structures.Posting;
 import it.unipi.dii.aide.mircv.query.ResultBlock;
 import java.util.ArrayList;
 import java.util.PriorityQueue;
@@ -13,7 +12,7 @@ public class DAAT {
 
     public static PriorityQueue<ResultBlock> DocumentAtATime() {
 
-        resultQueue = new PriorityQueue<>(k, new CompareRes());
+        resultQueue = new PriorityQueue<>(k, new ResultBlock.CompareRes());
 
         int current = minDocID(postingLists);
 

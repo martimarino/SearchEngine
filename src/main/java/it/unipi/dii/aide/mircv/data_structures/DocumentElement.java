@@ -1,6 +1,7 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;

@@ -58,7 +58,7 @@ public class PostingList {
             if (Flags.isCompressionEnabled())
                 list = readCompressedPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), de.getTermFreqSize(), de.getDocIdSize(), de.getSkipArrLen());
             else
-                list = readPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), de.getSkipArrLen());
+                list = readPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), skipInfo.getNPostings());
 
         } else {    // read all postings
             if (Flags.isCompressionEnabled())
@@ -89,7 +89,7 @@ public class PostingList {
                 if (Flags.isCompressionEnabled())
                     list.addAll(readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), termFreqSize, docIdSize, sl.getArr_skipInfo().size()));
                 else
-                    list.addAll(readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), sl.getArr_skipInfo().size()));
+                    list.addAll(readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), si.getNPostings()));
                 postingIterator = list.iterator();
                 currPosting = postingIterator.next();
             } else {
@@ -98,29 +98,30 @@ public class PostingList {
         }
     }
 
-    public void next() {
-        if (postingIterator.hasNext()) {
-            currPosting = postingIterator.next();
-        } else {
-            if (sl == null || !sl.getSkipInfoIterator().hasNext()) {
-                currPosting = null;
-                return;
-            }
-
-            sl.next();
-            SkipInfo si = sl.getCurrSkipInfo();
-            list.clear();
-            if (Flags.isCompressionEnabled())
-                list.addAll(readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), termFreqSize, docIdSize, sl.getArr_skipInfo().size()));
-            else
-                list.addAll(readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), sl.getArr_skipInfo().size()));
-            postingIterator = list.iterator();
-            currPosting = postingIterator.next();
-        }
-    }
+//    public void next() {
+//        if (postingIterator.hasNext()) {
+//            currPosting = postingIterator.next();
+//        } else {
+//            if (sl == null || !sl.getSkipInfoIterator().hasNext()) {
+//                currPosting = null;
+//                return;
+//            }
+//
+//            sl.next();
+//            SkipInfo si = sl.getCurrSkipInfo();
+//            list.clear();
+//            if (Flags.isCompressionEnabled())
+//                list.addAll(readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), termFreqSize, docIdSize, sl.getArr_skipInfo().size()));
+//            else
+//                list.addAll(readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), sl.getArr_skipInfo().size()));
+//            postingIterator = list.iterator();
+//            currPosting = postingIterator.next();
+//
+//        }
+//    }
     // advances the iterator forward to the next posting with a document identifier greater than or equal to
     // d ⇒ skipping
-    public void nextGEQ(int targetDocId) {
+    public void nextGEQ(int targetDocId, boolean firstPL) {
 
         assert sl != null;
         if (sl.getCurrSkipInfo() == null) {
@@ -142,7 +143,7 @@ public class PostingList {
         if (Flags.isCompressionEnabled())
             list = readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), termFreqSize, docIdSize, sl.getArr_skipInfo().size());
         else
-            list = readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), sl.getArr_skipInfo().size());
+            list = readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), si.getNPostings());
 
         assert list != null;
         postingIterator = list.iterator();
@@ -150,14 +151,14 @@ public class PostingList {
 
         if(currPosting != null)
             while(postingIterator.hasNext() && (currPosting.getDocId() < targetDocId))
-                next();
-                //next(false);
+                next(firstPL);
     }
 
 
     public Posting getCurrPosting() {
         return currPosting;
     }
+
     public void setCurrPosting(Posting p){ this.currPosting = p;}
 
 

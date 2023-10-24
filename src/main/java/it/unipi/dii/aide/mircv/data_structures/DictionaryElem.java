@@ -14,7 +14,7 @@ import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
  */
 public class DictionaryElem {
 
-    static int getDictElemSize() {
+    public static int getDictElemSize() {
         // if compression case, need to store 2 more integers (dimension of compressed DocID and Term Frequency values)
         int DICT_ELEM_SIZE = TERM_DIM + 2*Integer.BYTES + 2*Long.BYTES;
         return DICT_ELEM_SIZE + ((Flags.considerSkippingBytes() && Flags.isCompressionEnabled()) ? 2*Integer.BYTES : 0)
@@ -43,7 +43,7 @@ public class DictionaryElem {
     private double maxBM25;
 
 
-    DictionaryElem() {
+    public DictionaryElem() {
         this.df = 0;
         this.cf = 0;
         this.term = "";
@@ -166,7 +166,7 @@ public class DictionaryElem {
     /**
      * function to store one dictionary elem into disk
      */
-    void storeDictionaryElemIntoDisk(){
+    public void storeDictionaryElemIntoDisk(){
 
         MappedByteBuffer buffer;
         try {

@@ -6,8 +6,8 @@ import java.util.Iterator;
 
 public class SkipList {
 
-    private ArrayList<SkipInfo> arr_skipInfo;
-    private Iterator<SkipInfo> skipInfoIterator;
+    private final ArrayList<SkipInfo> arr_skipInfo;
+    private final Iterator<SkipInfo> skipInfoIterator;
 
     private SkipInfo currSkipInfo;
 
@@ -37,14 +37,7 @@ public class SkipList {
         }
         currSkipInfo = null;
         return false;
-
     }
-
-    //returns the score of the current posting
-    public double score() {
-        return 0.0;
-    }
-
 
     public SkipInfo getCurrSkipInfo() {
         return currSkipInfo;
@@ -54,20 +47,8 @@ public class SkipList {
         return arr_skipInfo;
     }
 
-    public void setArr_skipInfo(ArrayList<SkipInfo> arr_skipInfo) {
-        this.arr_skipInfo = arr_skipInfo;
-    }
-
     public Iterator<SkipInfo> getSkipInfoIterator() {
         return skipInfoIterator;
-    }
-
-    public void setSkipInfoIterator(Iterator<SkipInfo> skipInfoIterator) {
-        this.skipInfoIterator = skipInfoIterator;
-    }
-
-    public void setCurrSkipInfo(SkipInfo currSkipInfo) {
-        this.currSkipInfo = currSkipInfo;
     }
 
     public double getMaxTFIDF() {

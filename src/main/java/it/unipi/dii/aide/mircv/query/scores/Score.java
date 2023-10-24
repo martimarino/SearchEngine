@@ -1,12 +1,10 @@
 package it.unipi.dii.aide.mircv.query.scores;
 
 import it.unipi.dii.aide.mircv.data_structures.CollectionStatistics;
-import it.unipi.dii.aide.mircv.data_structures.IndexMerger;
+import it.unipi.dii.aide.mircv.index_builder.IndexMerger;
 import it.unipi.dii.aide.mircv.data_structures.Posting;
 
 import java.util.ArrayList;
-
-import static it.unipi.dii.aide.mircv.utils.Constants.printDebug;
 
 public final class Score {
 
