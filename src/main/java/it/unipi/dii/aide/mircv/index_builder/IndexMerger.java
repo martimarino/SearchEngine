@@ -214,7 +214,7 @@ public final class IndexMerger {
                 List<Posting> subPL = tempPL.subList(i, min(i + skipInterval, lenPL));
                 ArrayList<Posting> tempSubPL = new ArrayList<>(subPL);
                 if (Flags.isCompressionEnabled()) {
-                    SkipInfo sp = new SkipInfo(tempSubPL.get(tempSubPL.size()-1).getDocId(), docId_channel.size(), termFreq_channel.size(), tempSubPL.size());
+                    SkipInfo sp = new SkipInfo(tempSubPL.get(tempSubPL.size()-1).getDocId(), docId_channel.size(), termFreq_channel.size());
                     sp.storeSkipInfoToDisk();
                     tempDE.setMaxBM25(computeMaxBM25(tempSubPL, tempDE.getIdf()));
                     tempDE.setMaxTFIDF(computeMaxTFIDF(tempSubPL, tempDE.getIdf()));
@@ -223,7 +223,7 @@ public final class IndexMerger {
                     tempCompressedLength[0] += compressedLength[0];
                     tempCompressedLength[1] += compressedLength[1];
                 } else {
-                    SkipInfo sp = new SkipInfo(subPL.get(subPL.size()-1).getDocId(), docId_channel.size(),  termFreq_channel.size(), tempSubPL.size());
+                    SkipInfo sp = new SkipInfo(subPL.get(subPL.size()-1).getDocId(), docId_channel.size(),  termFreq_channel.size());
                     sp.storeSkipInfoToDisk();
 //                                    if(tempDE.getTerm().equals("of"))
 //                                        System.out.println("SKIP INFO STORED (term of): " + sp);

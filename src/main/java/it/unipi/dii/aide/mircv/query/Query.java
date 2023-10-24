@@ -31,9 +31,9 @@ public final class Query {
 
 
     public static int k; //number of result to return
-    private static boolean disj_conj; // if conjunctive true, disjunctive false
-    public static boolean tfidf_bm25; //type of score function (true = TFIDF or false = BM25)
-    public static boolean daat_maxscore; //true = DAAT, false = MaxScore
+    private static boolean disj_conj; // (false = disjunctive, true = conjunctive)
+    public static boolean tfidf_bm25; // (false = TFIDF or true = BM25)
+    public static boolean daat_maxscore; // (false = DAAT, true = MaxScore)
 
     static PriorityQueue<DAATBlock> pq_DAAT;    // used during DAAT algorithm
     public static PriorityQueue<ResultBlock> pq_res;   // contains results (increasing)
@@ -218,6 +218,7 @@ public final class Query {
                 if (de == null) {
                     continue;
                 }
+
                 PostingList pl = new PostingList(t);
                 pl.setIdf(de.getIdf());
                 pl.load();
@@ -245,9 +246,6 @@ public final class Query {
                 }
                 pq_res = computeMaxScore();
             }
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -299,6 +297,7 @@ public final class Query {
         } else if (pq_res.size() < k)
             pq_res.add(new ResultBlock(acc.getDocId(), acc.getScore()));
     }
+
     /**
      *
      * @param pl posting list for which identify the minimum

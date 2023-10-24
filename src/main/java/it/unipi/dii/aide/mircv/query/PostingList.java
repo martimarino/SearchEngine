@@ -39,6 +39,14 @@ public class PostingList {
         this.maxScore = 0;
     }
 
+    public int postingsToRead(){
+        int fullSkipLen = (int) Math.ceil(Math.sqrt(len));
+        if(sl.getSkipInfoIterator().hasNext())
+            return fullSkipLen;
+        else
+            return len-(fullSkipLen*(sl.getArr_skipInfo().size()-1));
+    }
+
     public void load() throws IOException {
 
         DictionaryElem de = dictionary.getTermStat(term);
@@ -48,6 +56,8 @@ public class PostingList {
             return;
         }
 
+        len = de.getDf();
+
         this.docIdSize = de.getDocIdSize();
         this.termFreqSize = de.getTermFreqSize();
 
@@ -56,9 +66,9 @@ public class PostingList {
             SkipInfo skipInfo = sl.getCurrSkipInfo();
 
             if (Flags.isCompressionEnabled())
-                list = readCompressedPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), de.getTermFreqSize(), de.getDocIdSize(), de.getSkipArrLen());
+                list = readCompressedPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), de.getTermFreqSize(), de.getDocIdSize(), postingsToRead());
             else
-                list = readPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), skipInfo.getNPostings());
+                list = readPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), postingsToRead());
 
         } else {    // read all postings
             if (Flags.isCompressionEnabled())
@@ -70,8 +80,6 @@ public class PostingList {
         assert list != null;
         this.postingIterator = list.iterator();
         this.currPosting = postingIterator.next();
-
-        len = de.getDf();
 
     }
 
@@ -87,9 +95,9 @@ public class PostingList {
                 SkipInfo si = sl.getCurrSkipInfo();
                 list.clear();
                 if (Flags.isCompressionEnabled())
-                    list.addAll(readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), termFreqSize, docIdSize, sl.getArr_skipInfo().size()));
+                    list.addAll(readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), termFreqSize, docIdSize, postingsToRead()));
                 else
-                    list.addAll(readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), si.getNPostings()));
+                    list.addAll(readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), postingsToRead()));
                 postingIterator = list.iterator();
                 currPosting = postingIterator.next();
             } else {
@@ -98,27 +106,6 @@ public class PostingList {
         }
     }
 
-//    public void next() {
-//        if (postingIterator.hasNext()) {
-//            currPosting = postingIterator.next();
-//        } else {
-//            if (sl == null || !sl.getSkipInfoIterator().hasNext()) {
-//                currPosting = null;
-//                return;
-//            }
-//
-//            sl.next();
-//            SkipInfo si = sl.getCurrSkipInfo();
-//            list.clear();
-//            if (Flags.isCompressionEnabled())
-//                list.addAll(readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), termFreqSize, docIdSize, sl.getArr_skipInfo().size()));
-//            else
-//                list.addAll(readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), sl.getArr_skipInfo().size()));
-//            postingIterator = list.iterator();
-//            currPosting = postingIterator.next();
-//
-//        }
-//    }
     // advances the iterator forward to the next posting with a document identifier greater than or equal to
     // d ⇒ skipping
     public void nextGEQ(int targetDocId, boolean firstPL) {
@@ -141,9 +128,9 @@ public class PostingList {
         SkipInfo si = sl.getCurrSkipInfo();
 
         if (Flags.isCompressionEnabled())
-            list = readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), termFreqSize, docIdSize, sl.getArr_skipInfo().size());
+            list = readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), termFreqSize, docIdSize, postingsToRead());
         else
-            list = readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), si.getNPostings());
+            list = readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), postingsToRead());
 
         assert list != null;
         postingIterator = list.iterator();
@@ -158,9 +145,6 @@ public class PostingList {
     public Posting getCurrPosting() {
         return currPosting;
     }
-
-    public void setCurrPosting(Posting p){ this.currPosting = p;}
-
 
     public String getTerm() {
         return term;

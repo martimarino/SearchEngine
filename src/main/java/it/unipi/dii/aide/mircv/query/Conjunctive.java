@@ -8,11 +8,16 @@ import java.util.*;
 import static it.unipi.dii.aide.mircv.query.Query.*;
 
 public class Conjunctive {
-
+    
+    public static PriorityQueue<ResultBlock> conj_res;   // contains results (increasing)
+    
     static ArrayList<PostingList> orderedConjPostingLists;
     static int currentDocId;
+    
 
-    public static void executeConjunctive() {
+    public static PriorityQueue<ResultBlock> executeConjunctive() {
+
+        conj_res = new PriorityQueue<>(k, new ResultBlock.CompareRes());
 
         // create array of posting lists ordered increasing df
         orderedConjPostingLists = new ArrayList<>();
@@ -33,7 +38,7 @@ public class Conjunctive {
             Posting polled = shortest.getCurrPosting();
 
             if (polled == null)
-                return;
+                return conj_res;
 
             currentDocId = polled.getDocId();
 
@@ -52,7 +57,7 @@ public class Conjunctive {
                     pq_res.remove();
                     pq_res.add(new ResultBlock(currentDocId, score));
                 }
-                System.out.println(new ResultBlock(currentDocId, score));
+               counter++;  
             }
             shortest.next(true);
 

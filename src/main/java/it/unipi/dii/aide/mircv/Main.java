@@ -103,7 +103,7 @@ public class Main {
                         if (q.equals("x"))
                             return;
 
-                        String message = "Select Conjunctive or Disjunctive ( 1 for Conjunctive, 2 for Disjunctive)";
+                        String message = "Select Conjunctive or Disjunctive (1 for Conjunctive, 2 for Disjunctive)";
                         boolean type = getUserInput(sc, message);
                         message = "Select scoring type (1 for BM25, 2 for TFIDF):";
                         boolean score = getUserInput(sc, message);
