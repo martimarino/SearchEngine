@@ -1,6 +1,5 @@
 package it.unipi.dii.aide.mircv.query.algorithms;
-import it.unipi.dii.aide.mircv.query.CompareRes;
-import it.unipi.dii.aide.mircv.query.PostingList;
+import it.unipi.dii.aide.mircv.data_structures.Posting;
 import it.unipi.dii.aide.mircv.query.ResultBlock;
 import java.util.ArrayList;
 import java.util.PriorityQueue;
@@ -14,7 +13,7 @@ public class DAAT {
 
     public static void DocumentAtATime() {
 
-        resultQueue = new PriorityQueue<>(k, new CompareRes());
+        resultQueue = new PriorityQueue<>(k, new ResultBlock.CompareRes());
 
         int current = minDocID(postingLists);
 
@@ -29,20 +28,20 @@ public class DAAT {
             double score = 0;
             int next = Integer.MAX_VALUE;
 
-            for (int i = 0; i < postingLists.size(); i++) {
+            for (int i = 0; i < postingLists.size() && !(notNext.get(i)); i++) {
 
-                if ((!notNext.get(i)) && (postingLists.get(i).getCurrPosting().getDocId() == current)) {
+                if (postingLists.get(i).getCurrPosting().getDocId() == current) {
 
                     score = score + computeScore(idf.get(i), postingLists.get(i).getCurrPosting());
 
-                    postingLists.get(i).next();
+                    postingLists.get(i).next(true);
 
                     if (postingLists.get(i).getCurrPosting() == null) {
                         notNext.set(i, true);
                         continue;
                     }
                 }
-                if ((!notNext.get(i)) && postingLists.get(i).getCurrPosting().getDocId() < next) {
+                if (postingLists.get(i).getCurrPosting().getDocId() < next) {
                     next = postingLists.get(i).getCurrPosting().getDocId();
                 }
             }
@@ -54,7 +53,7 @@ public class DAAT {
                 resultQueue.add(new ResultBlock(current, score));
             }
 
-            if (!notNext.contains(false))
+            if (!notNext.contains(false))   // all terms processed
                 current = -1;
             else
                 current = next;

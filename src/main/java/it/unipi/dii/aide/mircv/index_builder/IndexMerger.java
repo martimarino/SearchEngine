@@ -1,4 +1,6 @@
-package it.unipi.dii.aide.mircv.data_structures;
+package it.unipi.dii.aide.mircv.index_builder;
+
+import it.unipi.dii.aide.mircv.data_structures.*;
 
 import java.io.*;
 import java.nio.MappedByteBuffer;
@@ -8,7 +10,7 @@ import java.util.*;
 
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.*;
 import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.getDictElemSize;
-import static it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder.dictionaryBlockOffsets;
+import static it.unipi.dii.aide.mircv.index_builder.PartialIndexBuilder.dictionaryBlockOffsets;
 import static it.unipi.dii.aide.mircv.query.scores.Score.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
@@ -78,7 +80,7 @@ public final class IndexMerger {
             // array containing the current read offset for each block
             ArrayList<Long> currentBlockOffset = new ArrayList<>(nrBlocks);
             currentBlockOffset.addAll(dictionaryBlockOffsets);
-            readDocumentTableFromDisk(false);
+            readDocumentTableFromDisk(true);
 
             // var which indicates the steps of 'i' progression print during merge
             System.out.println("Compression " + Flags.isCompressionEnabled());
@@ -176,6 +178,7 @@ public final class IndexMerger {
     }
 
     private static void writeOnDisk() throws IOException {
+
         Flags.setConsiderSkippingBytes(true);
         tempDE.setIdf(tempDE.computeIdf());
 
@@ -198,6 +201,9 @@ public final class IndexMerger {
 
         int[] tempCompressedLength = new int[2];
 
+        if(tempDE.getTerm().equals("is"))
+            System.out.println();
+
         if(lenPL >= SKIP_POINTERS_THRESHOLD) {
             int skipInterval = (int) Math.ceil(Math.sqrt(lenPL));        // one skip every sqrt(docs)
             int nSkip = 0;
@@ -208,7 +214,7 @@ public final class IndexMerger {
                 List<Posting> subPL = tempPL.subList(i, min(i + skipInterval, lenPL));
                 ArrayList<Posting> tempSubPL = new ArrayList<>(subPL);
                 if (Flags.isCompressionEnabled()) {
-                    SkipInfo sp = new SkipInfo(subPL.get(subPL.size()-1).getDocId(), docId_channel.size(), termFreq_channel.size());
+                    SkipInfo sp = new SkipInfo(tempSubPL.get(tempSubPL.size()-1).getDocId(), docId_channel.size(), termFreq_channel.size(), tempSubPL.size());
                     sp.storeSkipInfoToDisk();
                     tempDE.setMaxBM25(computeMaxBM25(tempSubPL, tempDE.getIdf()));
                     tempDE.setMaxTFIDF(computeMaxTFIDF(tempSubPL, tempDE.getIdf()));
@@ -217,7 +223,7 @@ public final class IndexMerger {
                     tempCompressedLength[0] += compressedLength[0];
                     tempCompressedLength[1] += compressedLength[1];
                 } else {
-                    SkipInfo sp = new SkipInfo(subPL.get(subPL.size()-1).getDocId(), docId_channel.size(),  termFreq_channel.size());
+                    SkipInfo sp = new SkipInfo(subPL.get(subPL.size()-1).getDocId(), docId_channel.size(),  termFreq_channel.size(), tempSubPL.size());
                     sp.storeSkipInfoToDisk();
 //                                    if(tempDE.getTerm().equals("of"))
 //                                        System.out.println("SKIP INFO STORED (term of): " + sp);

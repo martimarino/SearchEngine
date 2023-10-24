@@ -1,20 +1,14 @@
 package it.unipi.dii.aide.mircv;
 
 import it.unipi.dii.aide.mircv.data_structures.Flags;
-import it.unipi.dii.aide.mircv.data_structures.IndexMerger;
-import it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder;
 import it.unipi.dii.aide.mircv.query.Query;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
-import java.util.ArrayList;
 
-import static it.unipi.dii.aide.mircv.data_structures.Flags.*;
 import static it.unipi.dii.aide.mircv.query.Query.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
-import static it.unipi.dii.aide.mircv.utils.FileSystem.closeChannels;
-import static it.unipi.dii.aide.mircv.utils.FileSystem.file_cleaner;
 import static org.junit.Assert.assertTrue;
 
 class QueryTest {

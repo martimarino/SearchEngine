@@ -27,11 +27,6 @@ public class PostingList {
         this.term = term;
         this.sl = null;
     }
-    public PostingList(String term, ArrayList<Posting> p) {
-        this.term = term;
-        this.sl = null;
-        this.list = p;
-    }
 
     public void load() throws IOException {
 
@@ -52,7 +47,7 @@ public class PostingList {
             if (Flags.isCompressionEnabled())
                 list = readCompressedPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), de.getTermFreqSize(), de.getDocIdSize(), de.getSkipArrLen());
             else
-                list = readPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), de.getSkipArrLen());
+                list = readPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), skipInfo.getNPostings());
 
         } else {    // read all postings
             if (Flags.isCompressionEnabled())
@@ -83,7 +78,7 @@ public class PostingList {
                 if (Flags.isCompressionEnabled())
                     list.addAll(readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), termFreqSize, docIdSize, sl.getArr_skipInfo().size()));
                 else
-                    list.addAll(readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), sl.getArr_skipInfo().size()));
+                    list.addAll(readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), si.getNPostings()));
                 postingIterator = list.iterator();
                 currPosting = postingIterator.next();
             } else {
@@ -137,7 +132,7 @@ public class PostingList {
         if (Flags.isCompressionEnabled())
             list = readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), termFreqSize, docIdSize, sl.getArr_skipInfo().size());
         else
-            list = readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), sl.getArr_skipInfo().size());
+            list = readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), si.getNPostings());
 
         assert list != null;
         postingIterator = list.iterator();
@@ -152,6 +147,7 @@ public class PostingList {
     public Posting getCurrPosting() {
         return currPosting;
     }
+
     public void setCurrPosting(Posting p){ this.currPosting = p;}
 
 

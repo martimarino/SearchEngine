@@ -1,5 +1,7 @@
 package it.unipi.dii.aide.mircv.query;
 
+import java.util.Comparator;
+
 public class ResultBlock {
     private int docId;
     private double score;
@@ -34,5 +36,33 @@ public class ResultBlock {
                 ", score=" + score +
                 '}';
     }
+
+
+    public static class CompareRes implements Comparator<ResultBlock> {
+        @Override
+        public int compare(ResultBlock pb1, ResultBlock pb2) {
+
+            int scoreCompare = Double.compare(pb1.getScore(), pb2.getScore());
+
+            if (scoreCompare == 0)
+                return Integer.compare(pb1.getDocId(), pb2.getDocId());
+
+            return scoreCompare;
+        }
+    }
+
+    public static class CompareResInverse implements Comparator<ResultBlock> {
+        @Override
+        public int compare(ResultBlock pb1, ResultBlock pb2) {
+
+            int scoreCompare = Double.compare(pb2.getScore(), pb1.getScore());
+
+            if (scoreCompare == 0)
+                return Integer.compare(pb1.getDocId(), pb2.getDocId());
+
+            return scoreCompare;
+        }
+    }
+
 }
 

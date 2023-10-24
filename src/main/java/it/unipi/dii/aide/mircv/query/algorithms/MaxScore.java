@@ -24,7 +24,7 @@ public class MaxScore {
      */
     public static void computeMaxScore(PriorityQueue<ScoreElem> orderByScore) {
 
-        resultQueue = new PriorityQueue<>(k,new CompareRes());
+        resultQueue = new PriorityQueue<>(k,new ResultBlock.CompareRes());
         ub = new ArrayList<>();
         p = new ArrayList<>();
         orderedIdf = new ArrayList<>();
@@ -37,7 +37,7 @@ public class MaxScore {
 
         ArrayList<Double> maxScore = new ArrayList<>();
 
-        //idf, posting lists and maxscore are ordered by the order define by orderByScore (increasing value of score)
+        //idf, posting lists and maxscore are ordered by the order defined by orderByScore (increasing value of score)
         while(!orderByScore.isEmpty())
         {
             ScoreElem se = orderByScore.poll();
@@ -68,7 +68,7 @@ public class MaxScore {
                 if( (p.get(i).getCurrPosting() != null) && p.get(i).getCurrPosting().getDocId() == current)
                 {
                     score = score + computeScore(orderedIdf.get(i), p.get(i).getCurrPosting());
-                    p.get(i).next(); // get the next posting in the posting list, if posting list ended the current posting is set to null
+                    p.get(i).next(true); // get the next posting in the posting list, if posting list ended the current posting is set to null
 
                     if( p.get(i).getCurrPosting() == null)
                         continue;
@@ -87,7 +87,7 @@ public class MaxScore {
 
                 //it is peak as current element of the posting list the one with docid >= current
                 if(p.get(i).getSl() != null)
-                    p.get(i).nextGEQ(current);
+                    p.get(i).nextGEQ(current, true);
 
                 if(p.get(i).getCurrPosting() == null)
                     continue;

@@ -1,6 +1,8 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
 import it.unipi.dii.aide.mircv.compression.Unary;
+import it.unipi.dii.aide.mircv.index_builder.IndexMerger;
+import it.unipi.dii.aide.mircv.index_builder.PartialIndexBuilder;
 import it.unipi.dii.aide.mircv.query.Query;
 import it.unipi.dii.aide.mircv.compression.VariableBytes;
 import it.unipi.dii.aide.mircv.query.scores.Score;
@@ -13,9 +15,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 import static it.unipi.dii.aide.mircv.data_structures.DocumentElement.*;
-import static it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder.*;
+import static it.unipi.dii.aide.mircv.index_builder.PartialIndexBuilder.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
+
+import static it.unipi.dii.aide.mircv.index_builder.PartialIndexBuilder.dictionaryBlockOffsets;
 
 /**
  * This class handles the storage and retrieval of data structures used for document indexing.
@@ -23,7 +27,7 @@ import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 public final class DataStructureHandler {
 
     // function to store the whole document table into disk
-    static void storeDocumentTableIntoDisk() {
+    public static void storeDocumentTableIntoDisk() {
 
         try {
             MappedByteBuffer buffer = docTable_channel.map(FileChannel.MapMode.READ_WRITE, docTable_channel.size(), (long) DOCELEM_SIZE * PartialIndexBuilder.documentTable.size());
@@ -53,7 +57,7 @@ public final class DataStructureHandler {
     }
 
     // function to store offset of the blocks into disk
-    static void storeBlockOffsetsIntoDisk() {
+    public static void storeBlockOffsetsIntoDisk() {
 
         System.out.println("\nStoring block offsets into disk...");
 
@@ -199,9 +203,9 @@ public final class DataStructureHandler {
             for (int i = 0; i < docTable_channel.size(); i += DOCELEM_SIZE) {
                 de.readDocumentElementFromDisk(i, docTable_channel); // get the ith DocElem
                 if(indexBuilding)
-                    Query.documentTable.put(de.getDocid(), de);
-                else
                     IndexMerger.documentTable.put(de.getDocid(), de);
+                else
+                    Query.documentTable.put(de.getDocid(), de);
             }
 
         }catch (IOException ioe) {

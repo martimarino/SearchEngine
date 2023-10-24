@@ -1,8 +1,6 @@
 package it.unipi.dii.aide.mircv;
 
 import it.unipi.dii.aide.mircv.data_structures.Flags;
-import it.unipi.dii.aide.mircv.data_structures.IndexMerger;
-import it.unipi.dii.aide.mircv.data_structures.PartialIndexBuilder;
 import it.unipi.dii.aide.mircv.query.Query;
 
 import java.io.BufferedReader;
@@ -11,10 +9,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import static it.unipi.dii.aide.mircv.Main.getUserChoice;
-import static it.unipi.dii.aide.mircv.data_structures.Flags.*;
-import static it.unipi.dii.aide.mircv.utils.Constants.formatTime;
-import static it.unipi.dii.aide.mircv.utils.Constants.printTime;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 
 public class TestConjunctive {
