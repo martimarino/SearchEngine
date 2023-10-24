@@ -35,7 +35,6 @@ public final class Query {
 
     static PriorityQueue<DAATBlock> pq_DAAT;    // used during DAAT algorithm
     static HashMap<String, PostingList> term_pl = new HashMap<>();
-    static HashMap<Integer, Double> index_score = new HashMap<>();
     static HashMap<Integer, Integer> index_len = new HashMap<>();
 
     //------------------ //
@@ -138,15 +137,12 @@ public final class Query {
             for (String t : query_terms) {
 
                 PostingList pl = new PostingList(t);
-                pl.load();
-
                 postingLists.add(pl);
                 term_pl.put(t, pl);
 
                 if (pl.getLen() == 0 || pl.getList() == null)
                     continue;
 
-//                index_score.put(index, pl.getScore());
                 index_len.put(index, pl.getLen());
 
                 pq_DAAT.add(new DAATBlock(t, pl.getList().get(0).getDocId(), Score.computeTFIDF(dictionary.getTermStat(t).getIdf(), pl.getCurrPosting())));
@@ -190,7 +186,6 @@ public final class Query {
         pq_res.clear();
         inverse_pq_res.clear();
         index_len.clear();
-        index_score.clear();
         term_pl.clear();
 
     }
@@ -220,8 +215,6 @@ public final class Query {
 
                 PostingList pl = new PostingList(t);
                 pl.setIdf(de.getIdf());
-                pl.load();
-                postingLists.add(pl);
 
                 if(daat_maxscore)
                 {
