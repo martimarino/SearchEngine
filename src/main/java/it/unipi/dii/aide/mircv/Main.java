@@ -103,14 +103,14 @@ public class Main {
                         if (q.equals("x"))
                             return;
 
-                        String message = "Select Conjunctive or Disjunctive (1 for Conjunctive, 2 for Disjunctive)";
-                        boolean type = getUserInput(sc, message);
-                        message = "Select scoring type (1 for BM25, 2 for TFIDF):";
-                        boolean score = getUserInput(sc, message);
+                        String message = "Select Conjunctive (c) or Disjunctive (d)";
+                        boolean type = getUserInput(sc, message, "c", "d");
+                        message = "Select scoring type between bm25 and tfidf:";
+                        boolean score = getUserInput(sc, message, "bm25", "tfidf");
                         boolean algorithm = false;
                         if(!type) {
-                            message = "Select algorithm type (1 for Max Score, 2 for DAAT) :";
-                            algorithm = getUserInput(sc, message);
+                            message = "Select algorithm type, please write maxscore for Max score or daat for DAAT) :";
+                            algorithm = getUserInput(sc, message, "maxscore", "daat");
                         }
                         int nResults = getNumberOfResults(sc);
                         Query.executeQuery(q, nResults, type, score, algorithm);
@@ -161,7 +161,7 @@ public class Main {
             printUI("No results found for this query.");
     }
 
-    private static int getNumberOfResults(Scanner sc){
+    public static int getNumberOfResults(Scanner sc){
         while(true) {
             printUI("Insert number of results (10 or 20):");
             int k = Integer.parseInt(sc.nextLine().trim());
@@ -171,13 +171,13 @@ public class Main {
         }
     }
 
-    private static boolean getUserInput(Scanner sc, String message){
+    public static boolean getUserInput(Scanner sc, String message, String option1, String option2){
         while(true){
             printUI(message);
             String text = sc.nextLine().toLowerCase().trim();
-            if(text.equals("1"))
+            if(text.equals(option1))
                 return true;
-            if(text.equals("2"))
+            if(text.equals(option2))
                 return false;
         }
     }

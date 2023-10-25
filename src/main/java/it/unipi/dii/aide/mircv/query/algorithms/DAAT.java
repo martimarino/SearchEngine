@@ -8,11 +8,9 @@ import static it.unipi.dii.aide.mircv.query.Query.*;
 
 public class DAAT {
 
-    public static PriorityQueue<ResultBlock> resultQueue;
-
     public static PriorityQueue<ResultBlock> DocumentAtATime() {
 
-        resultQueue = new PriorityQueue<>(k, new ResultBlock.CompareRes());
+        PriorityQueue<ResultBlock> resultQueue = new PriorityQueue<>(k, new ResultBlock.CompareRes());
 
         int current = minDocID(postingLists);
 

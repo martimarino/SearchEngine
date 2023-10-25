@@ -97,6 +97,8 @@ public class PostingList {
     // d ⇒ skipping
     public void nextGEQ(int targetDocId, boolean firstPL) {
 
+        boolean getNewBlock = false;
+
         assert sl != null;
         if (sl.getCurrSkipInfo() == null) {
             currPosting = null;
@@ -109,25 +111,27 @@ public class PostingList {
                 currPosting = null;
                 return;
             }
+            getNewBlock = true;
         }
+        if(getNewBlock)
+        {
+            list.clear();
+            SkipInfo si = sl.getCurrSkipInfo();
 
-        list.clear();
-        SkipInfo si = sl.getCurrSkipInfo();
+            if (Flags.isCompressionEnabled())
+                list = readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), termFreqSize, docIdSize, postingsToRead());
+            else
+                list = readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), postingsToRead());
 
-        if (Flags.isCompressionEnabled())
-            list = readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), termFreqSize, docIdSize, postingsToRead());
-        else
-            list = readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), postingsToRead());
-
-        assert list != null;
-        postingIterator = list.iterator();
-        currPosting = postingIterator.next();
+            assert list != null;
+            postingIterator = list.iterator();
+            currPosting = postingIterator.next();
+        }
 
         if(currPosting != null)
             while(postingIterator.hasNext() && (currPosting.getDocId() < targetDocId))
                 next(firstPL);
     }
-
 
     public Posting getCurrPosting() {
         return currPosting;

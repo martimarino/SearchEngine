@@ -3,6 +3,7 @@ package it.unipi.dii.aide.mircv.query;
 import it.unipi.dii.aide.mircv.data_structures.*;
 import it.unipi.dii.aide.mircv.query.scores.Score;
 
+import java.io.IOException;
 import java.util.*;
 
 import static it.unipi.dii.aide.mircv.query.Query.*;
@@ -16,7 +17,7 @@ public class Conjunctive {
     static int currentDocId;
     
 
-    public static PriorityQueue<ResultBlock> executeConjunctive() {
+    public static PriorityQueue<ResultBlock> executeConjunctive() throws IOException {
 
         conj_res = new PriorityQueue<>(k, new ResultBlock.CompareRes());
 
@@ -68,12 +69,12 @@ public class Conjunctive {
         return conj_res;
     }
 
-    private static boolean checkSameDocid () {
+    private static boolean checkSameDocid () throws IOException {
 
         for (PostingList pl : orderedConjPostingLists) {
 
             if((pl.getSl() != null) && (pl.getSl().getCurrSkipInfo() != null) && (currentDocId > pl.getSl().getCurrSkipInfo().getMaxDocId()))
-                pl.nextGEQ(currentDocId, false);
+                pl.nextGEQ(currentDocId, true);
             else
                 while ((pl.getCurrPosting() != null) && (pl.getCurrPosting().getDocId() < currentDocId))
                     pl.next(false);
