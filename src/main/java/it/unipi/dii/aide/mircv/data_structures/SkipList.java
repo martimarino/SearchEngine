@@ -1,8 +1,15 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Iterator;
+
+import static it.unipi.dii.aide.mircv.data_structures.SkipInfo.SKIPPING_INFO_SIZE;
+import static it.unipi.dii.aide.mircv.utils.Constants.SKIP_FILE;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.skip_channel;
 
 public class SkipList {
 
@@ -17,16 +24,25 @@ public class SkipList {
 
     public SkipList(long offset, int nSkipBlocks) throws IOException {
 
-        this.arr_skipInfo = new ArrayList<>();
+        try (
+                RandomAccessFile skipFile = new RandomAccessFile(SKIP_FILE, "rw")
+        ) {
+            skip_channel = skipFile.getChannel();
+            MappedByteBuffer skipPointsBuffer = skip_channel.map(FileChannel.MapMode.READ_ONLY, offset , SKIPPING_INFO_SIZE + (long) nSkipBlocks * SKIPPING_INFO_SIZE);
 
-        for(int i = 0; i < nSkipBlocks; i++) {
-            SkipInfo skipInfo = new SkipInfo();
-            skipInfo.readSkipInfoFromDisk(offset, i);
-            arr_skipInfo.add(skipInfo);
+            this.arr_skipInfo = new ArrayList<>();
+
+            for (int i = 0; i < nSkipBlocks; i++) {
+                SkipInfo skipInfo = new SkipInfo();
+                skipInfo.setMaxDocId(skipPointsBuffer.getLong());
+                skipInfo.setDocIdOffset(skipPointsBuffer.getLong());
+                skipInfo.setFreqOffset(skipPointsBuffer.getLong());
+                arr_skipInfo.add(skipInfo);
+            }
+
+            this.skipInfoIterator = arr_skipInfo.iterator();
+            currSkipInfo = skipInfoIterator.next();
         }
-
-        this.skipInfoIterator = arr_skipInfo.iterator();
-        currSkipInfo = skipInfoIterator.next();
     }
 
     public boolean next() {

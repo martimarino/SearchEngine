@@ -256,7 +256,6 @@ public final class DataStructureHandler {
      * @return the posting lists read from disk
      */
     public static ArrayList<Posting> readPostingListFromDisk(long offsetDocId, long offsetTermFreq, int posting_size) {
-
         ArrayList<Posting> pl = new ArrayList<>();
 
         MappedByteBuffer docidBuffer;
@@ -296,8 +295,6 @@ public final class DataStructureHandler {
 
         ArrayList<Integer> tf = new ArrayList<>();
         ArrayList<Integer> docid  = new ArrayList<>();
-        double score = 0;
-        double currentScore = 0;
         int[] length = new int[3];
         //number of postings in the posting list
         for(Posting ps : pl) {
