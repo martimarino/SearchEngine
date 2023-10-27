@@ -106,7 +106,7 @@ public final class Query {
             p.clear();
     }
 
-    public static void executeQueryPQ(String q, int k, boolean isConjunctive, boolean isDaat, boolean isTfidf) throws IOException {
+   /* public static void executeQueryPQ(String q, int k, boolean isConjunctive, boolean isDaat, boolean isTfidf) throws IOException {
 
         long startTime = System.currentTimeMillis();
         ArrayList<String> query = TextProcessor.preprocessText(q);
@@ -191,7 +191,7 @@ public final class Query {
         index_len.clear();
         term_pl.clear();
 
-    }
+    }*/
 
     public static void prepareStructures(List<String> query) {
 
@@ -206,16 +206,12 @@ public final class Query {
 
             PriorityQueue<ScoreElem> orderByScore = new PriorityQueue<>(query.size(), new CompareScoreElem());
             int index = 0;
-
             for (String t : query) {
                 DictionaryElem de = dictionary.getTermStat(t);
                 if (de == null) {
                     continue;
                 }
-
                 PostingList pl = new PostingList(t);
-                pl.setIdf(de.getIdf());
-
                 if(daat_maxscore)
                 {
                     double score;

@@ -3,6 +3,8 @@ package it.unipi.dii.aide.mircv.query;
 import it.unipi.dii.aide.mircv.data_structures.*;
 
 import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -14,7 +16,7 @@ public class PostingList {
 
     public String term;
 
-    private ArrayList<Posting> list = null;
+    private ArrayList<Posting> list;
     private Iterator<Posting> postingIterator;
     private Posting currPosting;
     private SkipList sl = null;     // null if no skipping for that term
@@ -23,44 +25,34 @@ public class PostingList {
 
     private int docIdSize;
     private int termFreqSize;
-    private int len = 0;
+    private int len;
 
     public PostingList(String term) throws IOException {
         this.term = term;
 
         DictionaryElem de = dictionary.getTermStat(term);
-
-        if (de == null) {
-            System.out.println("Term " + term + " not present in dictionary");
-            return;
-        }
-
         len = de.getDf();
 
         this.docIdSize = de.getDocIdSize();
         this.termFreqSize = de.getTermFreqSize();
-
         if (de.getSkipArrLen() > 0) {   // if there are skipping blocks read partial postings of the first block
             sl = new SkipList(de.getSkipOffset(), de.getSkipArrLen());
             SkipInfo skipInfo = sl.getCurrSkipInfo();
-
             if (Flags.isCompressionEnabled())
                 list = readCompressedPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), de.getTermFreqSize(), de.getDocIdSize(), postingsToRead());
             else
                 list = readPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), postingsToRead());
-
         } else {    // read all postings
+
             if (Flags.isCompressionEnabled())
                 list = readCompressedPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getTermFreqSize(), de.getDocIdSize(), de.getDf());
             else
                 list = readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf());
         }
-
-        assert list != null;
         this.postingIterator = list.iterator();
         this.currPosting = postingIterator.next();
+        this.idf = de.getIdf();
     }
-
 
     public int postingsToRead(){
         int fullSkipLen = (int) Math.ceil(Math.sqrt(len));
@@ -97,7 +89,7 @@ public class PostingList {
     // d ⇒ skipping
     public void nextGEQ(int targetDocId, boolean firstPL) {
 
-        boolean getNewBlock = false;
+        boolean isNew = false;
 
         assert sl != null;
         if (sl.getCurrSkipInfo() == null) {
@@ -111,9 +103,9 @@ public class PostingList {
                 currPosting = null;
                 return;
             }
-            getNewBlock = true;
+            isNew = true;
         }
-        if(getNewBlock)
+        if(isNew)
         {
             list.clear();
             SkipInfo si = sl.getCurrSkipInfo();

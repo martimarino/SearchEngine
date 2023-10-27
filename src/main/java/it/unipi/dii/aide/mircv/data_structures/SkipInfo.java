@@ -49,23 +49,6 @@ public class SkipInfo {
 
     }
 
-
-    public void readSkipInfoFromDisk(long start, int iter) {
-
-        try (
-                RandomAccessFile skipFile = new RandomAccessFile(SKIP_FILE, "rw")
-        ) {
-            skip_channel = skipFile.getChannel();
-            MappedByteBuffer skipPointsBuffer = skip_channel.map(FileChannel.MapMode.READ_ONLY, start+ (long) iter *SKIPPING_INFO_SIZE, SKIPPING_INFO_SIZE);
-
-            this.maxDocId = skipPointsBuffer.getLong();
-            this.docIdOffset = skipPointsBuffer.getLong();
-            this.freqOffset = skipPointsBuffer.getLong();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     @Override
     public String toString() {
         return "SkipInfo{" +
@@ -73,5 +56,17 @@ public class SkipInfo {
                 ", docIdOffset=" + docIdOffset +
                 ", freqOffset=" + freqOffset +
                 '}';
+    }
+
+    public void setMaxDocId(long maxDocId) {
+        this.maxDocId = maxDocId;
+    }
+
+    public void setDocIdOffset(long docIdOffset) {
+        this.docIdOffset = docIdOffset;
+    }
+
+    public void setFreqOffset(long freqOffset) {
+        this.freqOffset = freqOffset;
     }
 }

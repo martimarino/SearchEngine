@@ -3,6 +3,7 @@ package it.unipi.dii.aide.mircv.test;
 import it.unipi.dii.aide.mircv.Main;
 import it.unipi.dii.aide.mircv.data_structures.*;
 import it.unipi.dii.aide.mircv.query.Query;
+import it.unipi.dii.aide.mircv.utils.FileSystem;
 
 import java.io.*;
 import java.util.Scanner;
