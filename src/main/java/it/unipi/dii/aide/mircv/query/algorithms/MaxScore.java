@@ -1,5 +1,7 @@
 package it.unipi.dii.aide.mircv.query.algorithms;
 import it.unipi.dii.aide.mircv.query.*;
+
+import java.io.IOException;
 import java.util.*;
 
 import static it.unipi.dii.aide.mircv.query.Query.*;
@@ -22,7 +24,7 @@ public class MaxScore {
      * Performs the MaxScore algorithm
      * @param
      **/
-    public static PriorityQueue<ResultBlock> computeMaxScore() {
+    public static PriorityQueue<ResultBlock> computeMaxScore() throws IOException {
 
         PriorityQueue<ResultBlock> resultQueue = new PriorityQueue<>(k,new ResultBlock.CompareRes());
         ArrayList<Double> ub = new ArrayList<>();

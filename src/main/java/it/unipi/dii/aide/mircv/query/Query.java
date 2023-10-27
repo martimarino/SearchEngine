@@ -213,7 +213,6 @@ public final class Query {
      */
     public static void prepareStructures(List<String> query) {
 
-
         try (
                 RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
                 RandomAccessFile tf_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
@@ -267,6 +266,7 @@ public final class Query {
                         p.add(postingLists.get(orderByScore.poll().getIndex()));
                     }
                     pq_res = computeMaxScore();
+                    orderByScore.clear();
                 }
             }
         } catch (IOException e) {
