@@ -7,9 +7,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.*;
 
-import static it.unipi.dii.aide.mircv.query.Query.*;
-import static it.unipi.dii.aide.mircv.utils.Constants.*;
-import static org.junit.Assert.assertTrue;
+import static it.unipi.dii.aide.mircv.query.Query.queryStartControl;
+import static it.unipi.dii.aide.mircv.utils.Constants.printTime;
 
 class QueryTest {
 
@@ -50,7 +49,7 @@ class QueryTest {
         int avgTime = 0;
         int nQuery = 0;
         try (BufferedReader TSVReader = new BufferedReader(new FileReader("src/main/resources/msmarco-test2020-queries.tsv"))) {
-            String line = null;
+            String line;
             while ((line = TSVReader.readLine()) != null) {
                 String query = line.split("\t")[1]; //splitting the line and adding its items in String[]
                 long startTimePQ = System.currentTimeMillis();
@@ -116,7 +115,7 @@ class QueryTest {
         String filename = "outputMaxScore.txt";
         int nQuery = 0;
         try (BufferedReader TSVReader = new BufferedReader(new FileReader("src/main/resources/msmarco-test2020-queries.tsv"))) {
-            String line = null;
+            String line;
             while ((line = TSVReader.readLine()) != null) {
                 String query = line.split("\t")[1];
                 long startTime = System.currentTimeMillis();

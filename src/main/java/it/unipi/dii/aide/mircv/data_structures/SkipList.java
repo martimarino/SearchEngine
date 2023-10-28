@@ -61,10 +61,6 @@ public class SkipList {
         return currSkipInfo;
     }
 
-    public ArrayList<SkipInfo> getArr_skipInfo() {
-        return arr_skipInfo;
-    }
-
     public Iterator<SkipInfo> getSkipInfoIterator() {
         return skipInfoIterator;
     }

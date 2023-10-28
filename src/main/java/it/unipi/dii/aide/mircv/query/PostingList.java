@@ -8,7 +8,6 @@ import java.util.Iterator;
 
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readCompressedPostingListFromDisk;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readPostingListFromDisk;
-import static it.unipi.dii.aide.mircv.query.Query.dictionary;
 
 public class PostingList {
 
@@ -41,6 +40,7 @@ public class PostingList {
             else
                 list = readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf());
         }
+        assert list != null;
         this.postingIterator = list.iterator();
         this.currPosting = postingIterator.next();
         this.idf = de.getIdf();
@@ -57,6 +57,7 @@ public class PostingList {
                 sl.next();
                 SkipInfo si = sl.getCurrSkipInfo();
                 list.clear();
+                System.out.println("term: " + term);
                 if (Flags.isCompressionEnabled())
                     list.addAll(readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), si.getDocIdBlockLen(), si.getTermFreqBlockLen()));
                 else
@@ -127,10 +128,6 @@ public class PostingList {
 
     public void setList(ArrayList<Posting> list) {
         this.list = list;
-    }
-
-    public Iterator<Posting> getPostingIterator() {
-        return postingIterator;
     }
 
     public SkipList getSl() {

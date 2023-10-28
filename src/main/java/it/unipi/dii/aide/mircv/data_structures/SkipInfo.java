@@ -1,11 +1,9 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
-import static it.unipi.dii.aide.mircv.utils.Constants.SKIP_FILE;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.skip_channel;
 
 public class SkipInfo {

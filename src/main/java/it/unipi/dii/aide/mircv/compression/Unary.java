@@ -62,10 +62,11 @@ public class Unary {
      * @return  an ArrayList containing the decompressed Term Frequency values
      */
 
-    public static ArrayList<Integer> integersDecompression(byte[] compressedArray) {
+    public static ArrayList<Integer> integersDecompression(byte[] compressedArray, int totNum) {
         ArrayList<Integer> decompressedList = new ArrayList<>();
         int currentBit = 7;
         int currentValue = 0;
+        int nIntegers = 0;
 
         for (byte currentByteValue : compressedArray) {
 
@@ -75,9 +76,15 @@ public class Unary {
 
                 currentValue++;
                 if (bit == 0) {
+                    currentValue++;
                     // If bit is 0, add current value to decompressed list
                     decompressedList.add(currentValue);
+
                     currentValue = 0; // Reset current value
+                    nIntegers++;
+                    if (nIntegers == totNum) {
+                        return decompressedList;
+                    }
                 }
 
                 currentBit--;
@@ -89,7 +96,6 @@ public class Unary {
                 }
             }
         }
-        return decompressedList;
-
+            return decompressedList;
     }
 }

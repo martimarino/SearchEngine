@@ -22,7 +22,6 @@ public class MaxScore {
     //private static PriorityQueue<ScoreElem> orderByScore; //index, score pairs ordered in increasing order
     /**
      * Performs the MaxScore algorithm
-     * @param
      **/
     public static PriorityQueue<ResultBlock> computeMaxScore() throws IOException {
 
