@@ -37,6 +37,8 @@ public class SkipList {
                 skipInfo.setMaxDocId(skipPointsBuffer.getLong());
                 skipInfo.setDocIdOffset(skipPointsBuffer.getLong());
                 skipInfo.setFreqOffset(skipPointsBuffer.getLong());
+                skipInfo.setDocIdBlockLen(skipPointsBuffer.getInt());
+                skipInfo.setTermFreqBlockLen(skipPointsBuffer.getInt());
                 arr_skipInfo.add(skipInfo);
             }
 

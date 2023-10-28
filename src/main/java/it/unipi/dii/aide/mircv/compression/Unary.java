@@ -59,49 +59,38 @@ public class Unary {
      * fuction to compress the Term Frequency values using Unary compression
      *
      * @param compressedArray           array containing the compressed Term Frequency values
-     * @param totNum                    total number of integers to decompress
      * @return  an ArrayList containing the decompressed Term Frequency values
      */
 
-    public static ArrayList<Integer> integersDecompression(byte[] compressedArray, int totNum) {
+    public static ArrayList<Integer> integersDecompression(byte[] compressedArray) {
         ArrayList<Integer> decompressedList = new ArrayList<>();
         int currentBit = 7;
         int currentValue = 0;
-        int nIntegers = 0;
-        int currentByte = 0;
 
         for (byte currentByteValue : compressedArray) {
 
-            while (currentBit >= 0) {
+            while (true) {
                 // Read current bit
                 int bit = (currentByteValue >> currentBit) & 1;
 
-                if (bit == 1) {
-                    // If bit is 1, increment current value
-                    currentValue++;
-                } else {
-                    currentValue++;
+                currentValue++;
+                if (bit == 0) {
                     // If bit is 0, add current value to decompressed list
                     decompressedList.add(currentValue);
-
                     currentValue = 0; // Reset current value
-                    nIntegers++;
-                    if (nIntegers == totNum) {
-                        return decompressedList;
-                    }
                 }
 
                 currentBit--;
 
                 // check if all byte read
                 if (currentBit < 0) {
-                    currentByte++;
                     currentBit = 7; // Go to the most meaningful bit of the next byte
                     break;
                 }
             }
         }
         return decompressedList;
+
     }
 
 }

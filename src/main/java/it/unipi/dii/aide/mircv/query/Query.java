@@ -1,10 +1,7 @@
 package it.unipi.dii.aide.mircv.query;
 
-import it.unipi.dii.aide.mircv.data_structures.*;
 import it.unipi.dii.aide.mircv.data_structures.Dictionary;
-import it.unipi.dii.aide.mircv.query.algorithms.MaxScore;
-import it.unipi.dii.aide.mircv.query.scores.CompareScoreElem;
-import it.unipi.dii.aide.mircv.query.scores.Score;
+import it.unipi.dii.aide.mircv.data_structures.*;
 import it.unipi.dii.aide.mircv.query.scores.ScoreElem;
 import it.unipi.dii.aide.mircv.utils.FileSystem;
 import it.unipi.dii.aide.mircv.utils.TextProcessor;
@@ -15,13 +12,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.readCollectionStatsFromDisk;
+import static it.unipi.dii.aide.mircv.data_structures.Flags.readFlagsFromDisk;
+import static it.unipi.dii.aide.mircv.query.algorithms.DAAT.DocumentAtATime;
 import static it.unipi.dii.aide.mircv.query.algorithms.MaxScore.computeMaxScore;
 import static it.unipi.dii.aide.mircv.query.scores.Score.computeBM25;
 import static it.unipi.dii.aide.mircv.query.scores.Score.computeTFIDF;
-import static it.unipi.dii.aide.mircv.query.algorithms.DAAT.DocumentAtATime;
-import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
-import static it.unipi.dii.aide.mircv.data_structures.Flags.readFlagsFromDisk;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 
 public final class Query {
 
@@ -70,13 +67,13 @@ public final class Query {
             long endTime = System.currentTimeMillis();
             printTime("Dictionary loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
         }
-/*
+
         if (documentTable.isEmpty()) {
             long startTime = System.currentTimeMillis();
-            DataStructureHandler.readDocumentTableFromDisk(false);
+//            DataStructureHandler.readDocumentTableFromDisk(false);
             long endTime = System.currentTimeMillis();
             printTime("Document Table loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
-        }*/
+        }
 
         return true;
     }
@@ -167,7 +164,7 @@ public final class Query {
             if (Query.disj_conj)
                 Conjunctive.executeConjunctive();
             else {
-                if(daat_maxscore)
+                if(!isDaat)
                     MaxScore.computeMaxScore();
                 else
                     DAATalgorithm(); // scelta tra isDaat e maxscore
@@ -229,7 +226,7 @@ public final class Query {
                 if (de == null) {
                     continue;
                 }
-                PostingList pl = new PostingList(t);
+                PostingList pl = new PostingList(de);
                 if(daat_maxscore)
                 {
                     double score;
@@ -337,7 +334,7 @@ public final class Query {
     public static double computeScore(double idf, Posting currentPosting){
         double score = 0;
         if (tfidf_bm25)
-            score = computeBM25(idf, currentPosting);
+            score = computeBM25(idf, currentPosting, false);
         else
             score = computeTFIDF(idf, currentPosting);
 

@@ -53,26 +53,25 @@ public class TestConjunctive {
 
             while ((line = TSVReader.readLine()) != null) {
                 String query = line.split("\t")[1]; //splitting the line and adding its items in String[]
-                long startTime = System.currentTimeMillis();
-                //Query.executeQueryPQ(query, 10, true, false, false);
-                long endTime = System.currentTimeMillis();
-                String time = "query = \"" + query + " \"";
-                System.out.println(time);
+                startTime = System.currentTimeMillis();
+                Query.executeQuery(query, 10, true, false, false);
+                endTime = System.currentTimeMillis();
                 avgTime += (int) (endTime - startTime);
+                String time = "query = \"" + query + " \"" + " -> " + (endTime - startTime) + " ms";
+                System.out.println(time);
                 timeQueries.add(avgTime);
                 nQuery++;
             }
             closeChannels();
 
             long end = System.currentTimeMillis() - startTime;
-            System.out.println("Query executed in: " + end + " ms");
 
             /* Add time to array */
             timeQueries.add(end);
 
             avgTime /= nQuery;
 
-            System.out.println("The average time to process test queries is: -> " + avgTime + " ms");
+            System.out.println(" *** The average time to process test queries is -> " + avgTime + " ms");
         }
     }
 }

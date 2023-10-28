@@ -35,7 +35,9 @@ public class TestSingleQuery {
 //                String query = "define etruscans";
 //                String query = "holidays definition";
 //                String query = "is caffeine an narcotic";
-                String query = "conformative definition";
+//                String query = "conformative definition";
+
+                String query = "who is aziz hashim";
 
                 ArrayList<String> prep_query = TextProcessor.preprocessText(query);
 
@@ -62,7 +64,7 @@ public class TestSingleQuery {
                 }
                 boolean ok = true;
                 for (boolean c : check)
-                    ok &= c;
+                    ok |= c;
 
                 if(ok)
                     System.out.println(record);

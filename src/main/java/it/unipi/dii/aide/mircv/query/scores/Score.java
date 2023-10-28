@@ -3,6 +3,7 @@ package it.unipi.dii.aide.mircv.query.scores;
 import it.unipi.dii.aide.mircv.data_structures.CollectionStatistics;
 import it.unipi.dii.aide.mircv.index_builder.IndexMerger;
 import it.unipi.dii.aide.mircv.data_structures.Posting;
+import it.unipi.dii.aide.mircv.query.Query;
 
 import java.util.ArrayList;
 
@@ -17,9 +18,9 @@ public final class Score {
         return tf*idf;
     }
 
-    public static double computeBM25(Double idf, Posting p){
+    public static double computeBM25(Double idf, Posting p, boolean indexBuilding){
         return (p.getTermFreq()/
-                ((1-0.75) + 0.75*(IndexMerger.documentTable.get(p.getDocId()).getDoclength() /
+                ((1-0.75) + 0.75*((indexBuilding ? IndexMerger.documentTable.get(p.getDocId()).getDoclength() : Query.documentTable.get(p.getDocId()).getDoclength()) /
                         (CollectionStatistics.getTotDocLen()/CollectionStatistics.getNDocs()))
                         + p.getTermFreq()))*idf;
     }
@@ -30,7 +31,7 @@ public final class Score {
 
         for(Posting p : postings)
         {
-            score = computeBM25(idf, p);
+            score = computeBM25(idf, p, true);
             if(score > maxScore)
                 maxScore = score;
         }

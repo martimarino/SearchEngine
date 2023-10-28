@@ -60,7 +60,7 @@ public final class CollectionStatistics {
         try (
                 RandomAccessFile statsRAF = new RandomAccessFile(new File(STATS_FILE), "rw")
         ) {
-            ByteBuffer statsBuffer = ByteBuffer.allocate(INT_BYTES + DOUBLE_BYTES);   // bytes to read from disk
+            ByteBuffer statsBuffer = ByteBuffer.allocate(Integer.BYTES + DOUBLE_BYTES);   // bytes to read from disk
             statsRAF.getChannel().position(0);
 
             statsRAF.getChannel().read(statsBuffer);            // Read flag values from file
@@ -89,7 +89,7 @@ public final class CollectionStatistics {
                 RandomAccessFile docStats = new RandomAccessFile(STATS_FILE, "rw");
                 FileChannel channel = docStats.getChannel()
         ) {
-            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, INT_BYTES + DOUBLE_BYTES); // integer size * number of int to store (1) + double size * number of double to store (1)
+            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, Integer.BYTES + DOUBLE_BYTES); // integer size * number of int to store (1) + double size * number of double to store (1)
 
             buffer.putInt(nDocs);           // write total number of document in collection
             buffer.putDouble(totDocLen);    // write sum of the all document length in the collection

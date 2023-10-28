@@ -33,8 +33,6 @@ public final class Constants {
 
     // -------------------------------- Constants for variable bytes -------------------------------------------
 
-    public static final int INT_BYTES = Integer.BYTES;
-    public static final int LONG_BYTES = Long.BYTES;
     public static final int DOUBLE_BYTES = Double.BYTES;
 
     public static final int TERM_DIM = 20;                      // Length of a term (in bytes)

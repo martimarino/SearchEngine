@@ -106,7 +106,7 @@ public final class PartialIndexBuilder {
                 docCounter++;       // update DocID counter
 
                 if(Runtime.getRuntime().totalMemory() > memoryAvailable){
-                    System.out.println("********** Memory full **********");
+                    printDebug("********** Memory full **********");
 
                     storeIndexAndDictionaryIntoDisk();  //store index and dictionary to disk
                     storeDocumentTableIntoDisk(); // store document table one document at a time for each block
@@ -169,7 +169,7 @@ public final class PartialIndexBuilder {
         dictionary.getTermToTermStat().clear();
         invertedIndex.clear();
         System.gc();
-        System.out.println("********** Free memory **********");
+        printDebug("********** Free memory **********");
     }
 
 }

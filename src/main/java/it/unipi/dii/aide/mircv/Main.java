@@ -70,7 +70,7 @@ public class Main {
                     setDebug_flag(getUserChoice(sc,"debug"));
                     storeFlagsIntoDisk();      // store Flags
                     // Do SPIMI Algorithm
-                    System.out.println("\nIndexing...");
+                    System.out.println("Indexing...");
                     startTime = System.currentTimeMillis();         // start time to SPIMI Algorithm
                     PartialIndexBuilder.SPIMIalgorithm();          // do SPIMI
                     endTime = System.currentTimeMillis();           // end time of SPIMI algorithm
@@ -118,6 +118,9 @@ public class Main {
                         closeChannels();
                     }
 
+                case "x":
+                    return;
+
                 default:
                     break;
             }
@@ -133,7 +136,7 @@ public class Main {
      */
     public static boolean getUserChoice(Scanner sc, String option) {
         while (true) {
-            printUI("\nType Y or N for " + option + " option");   // print of the option
+            printUI("Type Y or N for " + option + " option");   // print of the option
             String choice = sc.nextLine().toUpperCase();                    // take the user's choice
             // check the user's input
             if (choice.equals("Y")) {

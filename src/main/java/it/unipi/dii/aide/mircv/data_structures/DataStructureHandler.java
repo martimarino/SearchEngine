@@ -66,7 +66,7 @@ public final class DataStructureHandler {
         System.out.println("\nStoring block offsets into disk...");
 
         try {
-            MappedByteBuffer buffer = blocks_channel.map(FileChannel.MapMode.READ_WRITE, 0, (long) LONG_BYTES * dictionaryBlockOffsets.size()); //offset_size (size of dictionary offset) * number of blocks
+            MappedByteBuffer buffer = blocks_channel.map(FileChannel.MapMode.READ_WRITE, 0, (long) Long.BYTES * dictionaryBlockOffsets.size()); //offset_size (size of dictionary offset) * number of blocks
 
             // Buffer not created
             if(buffer == null)
@@ -107,8 +107,8 @@ public final class DataStructureHandler {
                 dictElem.setOffsetDocId(INDEX_OFFSET);
 
                 // Create buffers for docid and termfreq
-                MappedByteBuffer buffer_docid = partialDocId_channel.map(FileChannel.MapMode.READ_WRITE, partialDocId_channel.size(), (long) posList.size() * INT_BYTES); // from 0 to number of postings * int dimension
-                MappedByteBuffer buffer_termfreq = partialTermFreq_channel.map(FileChannel.MapMode.READ_WRITE, partialTermFreq_channel.size(), (long) posList.size() * INT_BYTES); //from 0 to number of postings * int dimension
+                MappedByteBuffer buffer_docid = partialDocId_channel.map(FileChannel.MapMode.READ_WRITE, partialDocId_channel.size(), (long) posList.size() * Integer.BYTES); // from 0 to number of postings * int dimension
+                MappedByteBuffer buffer_termfreq = partialTermFreq_channel.map(FileChannel.MapMode.READ_WRITE, partialTermFreq_channel.size(), (long) posList.size() * Integer.BYTES); //from 0 to number of postings * int dimension
 
                 // iterate through all the postings of the posting list
                 for (Posting posting : posList) {
@@ -125,7 +125,7 @@ public final class DataStructureHandler {
                         appendStringToFile(dictElem.getTerm() + ": " + posting.getTermFreq(), "spimi_tf.txt");
                     }
 
-                    INDEX_OFFSET += INT_BYTES;
+                    INDEX_OFFSET += Integer.BYTES;
                 }
 
                 // store dictionary entry to disk
@@ -168,7 +168,7 @@ public final class DataStructureHandler {
                     debug_docid.append(posting.getDocId()).append( ", ");
                 }
 
-                currentScoreBM25 = Score.computeBM25(idf, posting);
+                currentScoreBM25 = Score.computeBM25(idf, posting, true);
                 currentScoreTFIDF = Score.computeTFIDF(idf, posting);
 
                 if(currentScoreBM25 > scoreBM25)
@@ -233,9 +233,9 @@ public final class DataStructureHandler {
                 return;
 
             // iterate through all files for #blocks times
-            for(int i = 0; i < blocks_channel.size()/ LONG_BYTES; i++){
+            for(int i = 0; i < blocks_channel.size()/ Long.BYTES; i++){
                 dictionaryBlockOffsets.add(buffer.getLong());
-                buffer.position((i+1)*LONG_BYTES); //skip to position of the data of the next block to read
+                buffer.position((i+1)*Long.BYTES); //skip to position of the data of the next block to read
                 printDebug("OFFSET BLOCK " + i + ": " + dictionaryBlockOffsets.get(i));
             }
 
@@ -256,6 +256,7 @@ public final class DataStructureHandler {
      * @return the posting lists read from disk
      */
     public static ArrayList<Posting> readPostingListFromDisk(long offsetDocId, long offsetTermFreq, int posting_size) {
+
         ArrayList<Posting> pl = new ArrayList<>();
 
         MappedByteBuffer docidBuffer;
@@ -263,10 +264,10 @@ public final class DataStructureHandler {
 
         try {
 
-            if(Flags.considerSkippingBytes()){
+            if(Flags.considerSkippingBytes()){      // merge or query mode
                 docidBuffer = docId_channel.map(FileChannel.MapMode.READ_ONLY, offsetDocId, (long) posting_size * Integer.BYTES);
                 termfreqBuffer = termFreq_channel.map(FileChannel.MapMode.READ_ONLY, offsetTermFreq, (long) posting_size * Integer.BYTES);
-            } else {
+            } else {    //
                 docidBuffer = partialDocId_channel.map(FileChannel.MapMode.READ_ONLY, offsetDocId, (long) posting_size * Integer.BYTES);
                 termfreqBuffer = partialTermFreq_channel.map(FileChannel.MapMode.READ_ONLY, offsetTermFreq, (long) posting_size * Integer.BYTES);
             }
@@ -293,25 +294,32 @@ public final class DataStructureHandler {
 
     public static int[] storeCompressedPostingIntoDisk(ArrayList<Posting> pl){
 
+        // ArrayList per memorizzare le frequenze dei termini (tf) e gli ID dei documenti (docid)
         ArrayList<Integer> tf = new ArrayList<>();
         ArrayList<Integer> docid  = new ArrayList<>();
-        int[] length = new int[3];
-        //number of postings in the posting list
+        // array di interi per memorizzare le lunghezze dei dati compressi
+        int[] length = new int[2];
+
+        // Estrai le frequenze dei termini e gli ID dei documenti dai Posting nell'ArrayList
         for(Posting ps : pl) {
             tf.add(ps.getTermFreq());
             docid.add(ps.getDocId());
         }
 
+        // Comprimi i dati delle frequenze dei termini e degli ID dei documenti
         byte[] compressedTf = Unary.integersCompression(tf);
         byte[] compressedDocId = VariableBytes.integersCompression(docid);
         // Create buffers for docid and termfreq
         try {
+            // Crea MappedByteBuffer per memorizzare i dati compressi nei FileChannels
             MappedByteBuffer buffertermfreq = termFreq_channel.map(FileChannel.MapMode.READ_WRITE, termFreq_channel.size(), compressedTf.length); //number of bytes of compressed tfs
             MappedByteBuffer bufferdocid = docId_channel.map(FileChannel.MapMode.READ_WRITE, docId_channel.size(), compressedDocId.length); //number of bytes of compressed docids
 
+            // Scrivi i dati compressi nei buffer
             buffertermfreq.put(compressedTf);
             bufferdocid.put(compressedDocId);
 
+            // Memorizza le lunghezze dei dati compressi nell'array di lunghezze
             length[0] = compressedTf.length;
             length[1] = compressedDocId.length;
             return length;
@@ -329,33 +337,42 @@ public final class DataStructureHandler {
      * @param offsetTermFreq    offset from where to start the read of the Term Frequency values
      * @param termFreqSize      size of the compressed Term Frequency values
      * @param docIdSize         size of the compressed DocID values
-     * @param posting_size      posting list size
      * @return termfreq and docid compressed length
      */
-    public static ArrayList<Posting> readCompressedPostingListFromDisk(long offsetDocId, long offsetTermFreq, int termFreqSize, int docIdSize, int posting_size) {
+    public static ArrayList<Posting> readCompressedPostingListFromDisk(long offsetDocId, long offsetTermFreq, int termFreqSize, int docIdSize) {
 
+        // ArrayList vuota per memorizzare i posting decompressi
         ArrayList<Posting> uncompressed = new ArrayList<>();
+        // due array di byte per memorizzare i dati compressi letti dai file
         byte[] docids = new byte[docIdSize];
         byte[] tf = new byte[termFreqSize];
 
         try {
+            // due oggetti MappedByteBuffer per leggere i dati dal disco utilizzando i FileChannels
             MappedByteBuffer docidBuffer = docId_channel.map(FileChannel.MapMode.READ_ONLY, offsetDocId, docIdSize);
             MappedByteBuffer termfreqBuffer = termFreq_channel.map(FileChannel.MapMode.READ_ONLY, offsetTermFreq, termFreqSize);
 
+            // legge i dati compressi nei byte array
             termfreqBuffer.get(tf, 0, termFreqSize);
-            docidBuffer.get(docids, 0, docIdSize );
+            docidBuffer.get(docids, 0, docIdSize);
 
-            ArrayList<Integer> uncompressedTf = Unary.integersDecompression(tf, posting_size);
+            // ecomprime i dati utilizzando metodi personalizzati
             ArrayList<Integer> uncompressedDocid = VariableBytes.integersDecompression(docids);
-            for(int i = 0; i < posting_size; i++) {
+            ArrayList<Integer> uncompressedTf = Unary.integersDecompression(tf);
+
+
+            // itera attraverso i dati decompressi e crea oggetti Posting
+            for(int i = 0; i < uncompressedTf.size(); i++) {
                 //System.out.println("docid: " + uncompressedDocid.get(i)  + " tf: " + uncompressedTf.get(i));
                 uncompressed.add(new Posting(uncompressedDocid.get(i), uncompressedTf.get(i))); // add the posting to the posting list
             }
+            // restituisce l'ArrayList contenente i posting decompressi
             return uncompressed;
+
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        // in caso di errore
         return null;
     }
 

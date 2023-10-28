@@ -69,7 +69,7 @@ public class MaxScore {
             //non essential postings
             for(int i = pivot - 1; i > 0; i--)
             {
-                //if the score plus the upper bound of the non essential posting list is below the threshold, the non essential posting list(and the lower too) is not considered
+                //if the score plus the upper bound of the non-essential posting list is below the threshold, the non-essential posting list(and the lower too) is not considered
                 if(score + ub.get(i) <= threshold)
                     break;
 

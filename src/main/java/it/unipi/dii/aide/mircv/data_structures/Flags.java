@@ -41,7 +41,7 @@ public final class Flags {
 */
     // function to store the user's choices for the flags
     public static void storeFlagsIntoDisk() {
-        System.out.println("Storing flags into disk...");
+        System.out.print("\nStoring flags into disk...");
 
         try (
                 RandomAccessFile raf = new RandomAccessFile(FLAGS_FILE, "rw")
@@ -53,6 +53,8 @@ public final class Flags {
             buffer.putInt(isSwsEnabled() ? 1 : 0);             // write stop words removal user's choice
             buffer.putInt(isCompressionEnabled() ? 1 : 0);     // write compression user's choice
 /*            buffer.putInt(isScoringEnabled() ? 1 : 0);         // write scoring user's choice*/
+
+            System.out.println(" DONE");
 
         } catch (IOException ioe) {
             ioe.printStackTrace();

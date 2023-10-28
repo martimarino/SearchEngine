@@ -20,6 +20,7 @@ import static java.lang.Math.min;
  * class to merge the InvertedIndex
  */
 public final class IndexMerger {
+
     // Priority queue which will contain the first term (in lexicographic order) of each block. Used for merge and to
     // take from all the blocks the terms in the right order.
     private static final PriorityQueue<TermBlock> pq = new PriorityQueue<>(dictionaryBlockOffsets.isEmpty() ? 1 : dictionaryBlockOffsets.size(), new CompareTerm());
@@ -124,11 +125,6 @@ public final class IndexMerger {
         //                printDebug("offsetDocid = " + currentDE.getOffsetDocId() + ", offset tf = " + currentDE.getOffsetTermFreq() + ", df = " + currentDE.getDf());
                 currentPL = readPostingListFromDisk(currentDE.getOffsetDocId(), currentDE.getOffsetTermFreq(), currentDE.getDf());
 
-/*                if(currentDE.getTerm().equals("of") && Flags.isDebug_flag()){
-                    appendStringToFile("(merge) CURRENT DE: " + currentDE, "of_debug.txt");
-                    appendStringToFile("(merge) CURRENT PL: " + currentPL, "of_debug.txt");
-                }*/
-
                 if (tempDE.getTerm().isEmpty()) {        // first iteration
 
                     //set temp variables values with value of the element taken in the current iteration
@@ -148,9 +144,6 @@ public final class IndexMerger {
 
                         assert tempPL != null;
                         tempPL.addAll(currentPL);               // add all new postings
-
-//                        if(currentDE.getMaxTf() > tempDE.getMaxTf())       //update maxTf
-//                            tempDE.setMaxTf(currentDE.getMaxTf());
                     }
                     else{    // different term found, write to disk the complete data of the previous term
 
@@ -191,7 +184,7 @@ public final class IndexMerger {
         tempDE.setOffsetTermFreq(termFreq_channel.size());
         tempDE.setOffsetDocId(docId_channel.size());
 
-/*        if(tempDE.getTerm().equals("of") && Flags.isDebug_flag()){
+/*        if(tempDE.getTerm().equals("of") && Flags.isDebug_flag()) {
             appendStringToFile("(merge) TEMP DE: " + tempDE, "of_debug.txt");
             appendStringToFile("(merge) TEMP PL: " + tempPL, "of_debug.txt");
         }*/
@@ -200,9 +193,6 @@ public final class IndexMerger {
         int lenPL = tempPL.size();
 
         int[] tempCompressedLength = new int[2];
-
-        if(tempDE.getTerm().equals("is"))
-            System.out.println();
 
         if(lenPL >= SKIP_POINTERS_THRESHOLD) {
             int skipInterval = (int) Math.ceil(Math.sqrt(lenPL));        // one skip every sqrt(docs)
@@ -214,22 +204,26 @@ public final class IndexMerger {
                 List<Posting> subPL = tempPL.subList(i, min(i + skipInterval, lenPL));
                 ArrayList<Posting> tempSubPL = new ArrayList<>(subPL);
                 if (Flags.isCompressionEnabled()) {
-                    SkipInfo sp = new SkipInfo(tempSubPL.get(tempSubPL.size()-1).getDocId(), docId_channel.size(), termFreq_channel.size());
-                    sp.storeSkipInfoToDisk();
+                    SkipInfo sp = new SkipInfo(tempSubPL.get(tempSubPL.size()-1).getDocId(), docId_channel.size(), termFreq_channel.size(), -1, -1);
                     tempDE.setMaxBM25(computeMaxBM25(tempSubPL, tempDE.getIdf()));
                     tempDE.setMaxTFIDF(computeMaxTFIDF(tempSubPL, tempDE.getIdf()));
                     int[] compressedLength = DataStructureHandler.storeCompressedPostingIntoDisk(tempSubPL);//store index with compression - unary compression for termfreq
                     assert compressedLength != null;
-                    tempCompressedLength[0] += compressedLength[0];
-                    tempCompressedLength[1] += compressedLength[1];
-                } else {
-                    SkipInfo sp = new SkipInfo(subPL.get(subPL.size()-1).getDocId(), docId_channel.size(),  termFreq_channel.size());
+                    tempCompressedLength[0] += compressedLength[0];// tf
+                    tempCompressedLength[1] += compressedLength[1]; //docid
+                    sp.setTermFreqBlockLen(compressedLength[0]);
+                    sp.setDocIdBlockLen(compressedLength[1]);
                     sp.storeSkipInfoToDisk();
-//                                    if(tempDE.getTerm().equals("of"))
-//                                        System.out.println("SKIP INFO STORED (term of): " + sp);
+                } else {
+                    SkipInfo sp = new SkipInfo(tempSubPL.get(tempSubPL.size()-1).getDocId(), docId_channel.size(), termFreq_channel.size(), tempSubPL.size(), tempSubPL.size());
+                    sp.storeSkipInfoToDisk();
+//                    if(tempDE.getTerm().equals("of"))
+//                        System.out.println("SKIP INFO STORED (term of): " + sp);
                     double[] score = storePostingListIntoDisk(tempSubPL, tempDE.getIdf());
+                    assert score != null;
                     tempDE.setMaxBM25(score[0]);
-                    tempDE.setMaxTFIDF(score[1]);                                }
+                    tempDE.setMaxTFIDF(score[1]);
+                }
                 nSkip++;
             }
             tempDE.setSkipArrLen(nSkip);

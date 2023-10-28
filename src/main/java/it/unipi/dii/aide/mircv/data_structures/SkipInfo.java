@@ -10,20 +10,24 @@ import static it.unipi.dii.aide.mircv.utils.FileSystem.skip_channel;
 
 public class SkipInfo {
 
-    public static final int SKIPPING_INFO_SIZE = 3 * Long.BYTES;
+    public static final int SKIPPING_INFO_SIZE = 3 * Long.BYTES + 2 * Integer.BYTES;
 
-    private long maxDocId;      // max docid of the block
-    private long docIdOffset;   // docid offset of the first posting of the block
-    private long freqOffset;    // termfreq offset of the first posting of the block
+    private long maxDocId;          // max docid of the block
+    private long docIdOffset;       // docid offset of the first posting of the block
+    private long freqOffset;        // termfreq offset of the first posting of the block
+    private int docIdBlockLen;      // docid block len
+    private int termFreqBlockLen;   // termFreq block len
 
     public SkipInfo() {
 
     }
 
-    public SkipInfo(long maxDocId, long docIdOffset, long freqOffset) {
+    public SkipInfo(long maxDocId, long docIdOffset, long freqOffset, int termFreqBlockLen, int docIdBlockLen) {
         this.maxDocId = maxDocId;
         this.docIdOffset = docIdOffset;
         this.freqOffset = freqOffset;
+        this.docIdBlockLen = docIdBlockLen;
+        this.termFreqBlockLen = termFreqBlockLen;
     }
 
     public long getMaxDocId() {
@@ -46,6 +50,8 @@ public class SkipInfo {
         skipPointsBuffer.putLong(this.maxDocId);
         skipPointsBuffer.putLong(this.docIdOffset);
         skipPointsBuffer.putLong(this.freqOffset);
+        skipPointsBuffer.putInt(this.docIdBlockLen);
+        skipPointsBuffer.putInt(this.termFreqBlockLen);
 
     }
 
@@ -69,4 +75,21 @@ public class SkipInfo {
     public void setFreqOffset(long freqOffset) {
         this.freqOffset = freqOffset;
     }
+
+    public int getDocIdBlockLen() {
+        return docIdBlockLen;
+    }
+
+    public int getTermFreqBlockLen() {
+        return termFreqBlockLen;
+    }
+
+    public void setDocIdBlockLen(int docIdBlockLen) {
+        this.docIdBlockLen = docIdBlockLen;
+    }
+
+    public void setTermFreqBlockLen(int termFreqBlockLen) {
+        this.termFreqBlockLen = termFreqBlockLen;
+    }
+
 }
