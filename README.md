@@ -6,7 +6,7 @@ The main parts of the project are:
 2. [Query Processing](#query)
 3. [Performance Evaluation](#performance)
 
-## Index Building {#index}
+# Index Building
 
 To generate the index, the file "collection.tsv", available at https://microsoft.github.io/msmarco/TREC-Deep-Learning-2020, must be placed inside *src/main/resources*. The index building starts executing the Main.java file in the path *src/main/java/it/unipi/dii/aide/mircv*.
 After the program launch, the user sets out his preferences about: 
@@ -24,7 +24,7 @@ aswering to the questions displayed by the command line interface.
 - flags
 All the files are used in the query phase.
 
-## Query Processing {#query}
+# Query Processing
 Executing the file Main.java as before, after the index build, the user can insert the query choosing between different options displaues by the command line interface: 
 - Conjunctive or disjunctive queries
 - DAAT or MaxScore algorithm
@@ -32,7 +32,7 @@ Executing the file Main.java as before, after the index build, the user can inse
 - the number of document to obtain
 Subsequently the top k documents are returned.
 
-## Performance Evaluation {#performance}
+# Performance Evaluation
 To evaluate the performance of the system, the *msmarco-test2020-queries.tsv*, that can be downloaded from *https://microsoft.github.io/msmarco/TREC-Deep-Learning-2020* must be added to *src/main/resources*.
 The performance test starts with the execution of the file Test.java in *src/main/java/it/unipi/dii/aide/mircv/test*. The user must choose between the options displayed by the command line interface, reguarding: 
 - Conjunctive or disjunctive queries
