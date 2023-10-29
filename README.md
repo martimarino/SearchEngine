@@ -40,5 +40,6 @@ The performance test starts with the execution of the file Test.java in *src/mai
 - DAAT or MaxScore
 - TFIDF or BM25
 - Number of results to retrieve
+  
 The program shows the execution time of each query and the average response time. 
 These results are saved into files with different names depending on the selected options in the path *src/main/resources/performance*.
