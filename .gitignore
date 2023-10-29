@@ -1,3 +1,4 @@
 /src/main/resources/*
 !src/main/resources/stopwords.txt
 /target/
+/src/test/

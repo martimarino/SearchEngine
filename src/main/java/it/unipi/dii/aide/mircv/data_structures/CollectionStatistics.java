@@ -8,7 +8,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
-import static it.unipi.dii.aide.mircv.utils.FileSystem.appendStringToFile;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.saveIntoFile;
 
 /**
  * class to contain the statistics of the collection
@@ -95,7 +95,7 @@ public final class CollectionStatistics {
             buffer.putDouble(totDocLen);    // write sum of the all document length in the collection
 
             if(Flags.isDebug_flag())
-                appendStringToFile("Ndocs: " + getNDocs() + " Doclength: " + getTotDocLen(), "collection_stats_debug.txt");
+                saveIntoFile("Ndocs: " + getNDocs() + " Doclength: " + getTotDocLen(), "collection_stats_debug.txt");
 
         } catch (IOException ioe) {
             ioe.printStackTrace();

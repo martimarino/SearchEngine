@@ -14,7 +14,6 @@ public class VariableBytes {
      */
     public static byte[] integersCompression(ArrayList<Integer> docidsToCompress){
 
-        int nDocId = docidsToCompress.size();
         int byteSize = 0;
         int currentIndex;
         int currentByte = 0;

@@ -42,12 +42,4 @@ public class Posting {
                 ", termFreq=" + termFreq +
                 '}';
     }
-
-    public double getMaxBM25() {
-        return 0;
-    }
-
-    public double getMaxTFIDF() {
-        return 0;
-    }
 }

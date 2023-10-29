@@ -122,7 +122,6 @@ public final class IndexMerger {
                 // get current elem of dictionary
                 currentDE.readDictionaryElemFromDisk(currentBlockOffset.get(block_id));
                 // get current posting list
-        //                printDebug("offsetDocid = " + currentDE.getOffsetDocId() + ", offset tf = " + currentDE.getOffsetTermFreq() + ", df = " + currentDE.getDf());
                 currentPL = readPostingListFromDisk(currentDE.getOffsetDocId(), currentDE.getOffsetTermFreq(), currentDE.getDf());
 
                 if (tempDE.getTerm().isEmpty()) {        // first iteration
@@ -172,12 +171,12 @@ public final class IndexMerger {
 
     private static void writeOnDisk() throws IOException {
 
-        Flags.setConsiderSkippingBytes(true);
+        Flags.setConsiderSkipInfo(true);
         tempDE.setIdf(tempDE.computeIdf());
 
         if (Flags.isDebug_flag()) {
-            appendStringToFile("TERM: '" + tempDE.getTerm() + "'", "merge_pl.txt");
-            appendStringToFile("TERM: '" + tempDE.getTerm() + "'", "merge_docid.txt");
+            saveIntoFile("TERM: '" + tempDE.getTerm() + "'", "merge_pl.txt");
+            saveIntoFile("TERM: '" + tempDE.getTerm() + "'", "merge_docid.txt");
         }
         //update DocID and Term Frequency offset ( equal to the end of the files)
         tempDE.setOffsetTermFreq(termFreq_channel.size());
@@ -199,7 +198,7 @@ public final class IndexMerger {
                 ArrayList<Posting> tempSubPL = new ArrayList<>(subPL);
                 if(tempDE.getTerm().equals("berlin") || tempDE.getTerm().equals("center"))
                     for(Posting p : subPL)
-                        appendStringToFile(" docid: " + p.getDocId() + " tf: " + p.getTermFreq(), tempDE.getTerm() + ".txt");
+                        saveIntoFile(" docid: " + p.getDocId() + " tf: " + p.getTermFreq(), tempDE.getTerm() + ".txt");
                 if (Flags.isCompressionEnabled()) {
                     SkipInfo sp = new SkipInfo(tempSubPL.get(tempSubPL.size()-1).getDocId(), docId_channel.size(), termFreq_channel.size(), -1, -1);
                     tempDE.setMaxBM25(computeMaxBM25(tempSubPL, tempDE.getIdf()));
@@ -245,7 +244,7 @@ public final class IndexMerger {
         }
         tempDE.storeDictionaryElemIntoDisk();
         termCounter++;
-        Flags.setConsiderSkippingBytes(false);
+        Flags.setConsiderSkipInfo(false);
 
     }
 

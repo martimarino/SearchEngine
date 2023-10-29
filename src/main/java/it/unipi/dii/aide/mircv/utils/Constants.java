@@ -14,7 +14,6 @@ public final class Constants {
     // -------------------------------- Constants for file paths -------------------------------------------
 
     public static String COLLECTION_PATH = RES_FOLDER + "collection.tar.gz";
-//    public static String COLLECTION_PATH = "src/test/resources/small_collection.tar.gz";
 
     public static final String PARTIAL_DICTIONARY_FILE = PARTIAL_FOLDER + "partial_dictionary"; // file in which is stored the vocabulary in blocks
     public static final String PARTIAL_DOCID_FILE = PARTIAL_FOLDER + "partial_docId";  // file containing the docId (element of posting list) for each block
@@ -29,11 +28,6 @@ public final class Constants {
     public static final String FLAGS_FILE = RES_FOLDER + "flags"; // file in which flags are stored
     public static final String STATS_FILE = RES_FOLDER + "collectionStatistics"; // file in which collection statistics are stored
 
-/*
-    public static final String FLAGS_FILE = MERGED_FOLDER + "flags"; // file in which flags are stored
-    public static final String STATS_FILE = MERGED_FOLDER + "collectionStatistics"; // file in which collection statistics are stored
-*/
-
     public static final String SKIP_FILE = MERGED_FOLDER + "skipInfo";
 
     // -------------------------------- Constants for variable bytes -------------------------------------------
@@ -42,9 +36,7 @@ public final class Constants {
 
     public static final int TERM_DIM = 20;                      // Length of a term (in bytes)
 
-    public static int SKIP_POINTERS_THRESHOLD = 1024;
-//    public static int SKIP_POINTERS_THRESHOLD = 128;
-//    public static int SKIP_POINTERS_THRESHOLD = Integer.MAX_VALUE;
+    public static final int SKIP_POINTERS_THRESHOLD = 1024;
 
     // -------------------------------------- Constants for file offsets ----------------------------------------------
 

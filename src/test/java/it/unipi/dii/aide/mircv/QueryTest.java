@@ -16,7 +16,7 @@ class QueryTest {
 
     @BeforeAll
     static void getFromFile(){
-        Flags.setConsiderSkippingBytes(true);
+        Flags.setConsiderSkipInfo(true);
         queryStartControl();
 
     }

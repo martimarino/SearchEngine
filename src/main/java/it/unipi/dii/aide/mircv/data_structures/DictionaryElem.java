@@ -17,9 +17,9 @@ public class DictionaryElem {
     public static int getDictElemSize() {
         // if compression case, need to store 2 more integers (dimension of compressed DocID and Term Frequency values)
         int DICT_ELEM_SIZE = TERM_DIM + 2*Integer.BYTES + 2*Long.BYTES;
-        return DICT_ELEM_SIZE + ((Flags.considerSkippingBytes() && Flags.isCompressionEnabled()) ? 2*Integer.BYTES : 0)
-                              + ((Flags.considerSkippingBytes()) ? (2*Long.BYTES + Integer.BYTES) : 0)
-                                + ((Flags.considerSkippingBytes()) ? (2*Long.BYTES) : 0);
+        return DICT_ELEM_SIZE + ((Flags.considerSkipInfo() && Flags.isCompressionEnabled()) ? 2*Integer.BYTES : 0)
+                              + ((Flags.considerSkipInfo()) ? (2*Long.BYTES + Integer.BYTES) : 0)
+                                + ((Flags.considerSkipInfo()) ? (2*Long.BYTES) : 0);
     }
 
     private String term;        //32 byte
@@ -90,12 +90,6 @@ public class DictionaryElem {
     public void setTerm(String term) { this.term = term; }
 
     public double getIdf() { return idf; }
-//
-//    public double getMaxTf() { return maxTf; }
-//
-//    public void setMaxTf(double maxTf) { this.maxTf = maxTf; }
-//
-//    public double getMaxTFIDF() { return maxTFIDF; }
 
     public int getDf() { return df; }
 
@@ -170,7 +164,7 @@ public class DictionaryElem {
 
         MappedByteBuffer buffer;
         try {
-            if(!Flags.considerSkippingBytes())
+            if(!Flags.considerSkipInfo())
                 buffer = partialDict_channel.map(FileChannel.MapMode.READ_WRITE, partialDict_channel.size(), getDictElemSize());
             else{
                 buffer = dict_channel.map(FileChannel.MapMode.READ_WRITE, dict_channel.size(), getDictElemSize());
@@ -192,7 +186,7 @@ public class DictionaryElem {
             buffer.putInt(cf);                            // write cf
             buffer.putLong(offsetTermFreq);               // write offset tf
             buffer.putLong(offsetDocId);                  // write offset docid
-            if(Flags.considerSkippingBytes()) {     // if in merge phase
+            if(Flags.considerSkipInfo()) {     // if in merge phase
                 if (Flags.isCompressionEnabled()) { // need to store also the size of DocID and Term Frequency compressed values
                     buffer.putInt(termFreqSize);
                     buffer.putInt(docIdSize);
@@ -204,16 +198,9 @@ public class DictionaryElem {
                 buffer.putDouble(maxTFIDF);
 
                 if(Flags.isDebug_flag()) {
-                    appendStringToFile(this.toString(), "merge_de.txt");
+                    saveIntoFile(this.toString(), "merge_de.txt");
                 }
             }
-
-/*            if(Flags.isDebug_flag() && !Flags.considerSkippingBytes()) {
-                appendStringToFile(this.toString(), "spimi_de.txt");
-            }
-
-            if(Flags.isDebug_flag() && term.equals("of"))
-                appendStringToFile("DE STORED -> " + this, "of_debug.txt");*/
 
             PARTIAL_DICTIONARY_OFFSET += getDictElemSize();       // update offset
 
@@ -245,14 +232,11 @@ public class DictionaryElem {
             cf = buffer.getInt();                  // read cf
             offsetTermFreq = buffer.getLong();     // read offset tf
             offsetDocId = buffer.getLong();        // read offset docid
-            if(Flags.considerSkippingBytes()) {
+            if(Flags.considerSkipInfo()) {
                 skipOffset = buffer.getLong();
                 skipArrLen = buffer.getInt();
                 idf = buffer.getDouble();
             }
-
-/*            if(Flags.isDebug_flag() && term.equals("of"))
-                appendStringToFile("DE READ -> " + this, "of_debug.txt");*/
 
         } catch (IOException e) {
             e.printStackTrace();

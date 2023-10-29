@@ -50,7 +50,7 @@ public final class DataStructureHandler {
                 buffer.putInt(de.getDoclength());
 
                 if(Flags.isDebug_flag())
-                    appendStringToFile(" docno: " + de.getDocno() + " docID: " + de.getDocid() + " length: " + de.getDoclength(), "document_table_debug.txt");
+                    saveIntoFile(" docno: " + de.getDocno() + " docID: " + de.getDocid() + " length: " + de.getDoclength(), "document_table_debug.txt");
 
             }
         } catch (IOException e) {
@@ -77,7 +77,7 @@ public final class DataStructureHandler {
                 printDebug("OFFSET BLOCK " + i + ": " + dictionaryBlockOffsets.get(i));
                 buffer.putLong(dictionaryBlockOffsets.get(i)); //store into file the dictionary offset of the i-th block
                 if(Flags.isDebug_flag())
-                    appendStringToFile("Offset block " + i + ": " + dictionaryBlockOffsets.get(i), "blocks.txt");
+                    saveIntoFile("Offset block " + i + ": " + dictionaryBlockOffsets.get(i), "blocks.txt");
             }
 
             System.out.println(dictionaryBlockOffsets.size() + " blocks stored");
@@ -120,9 +120,9 @@ public final class DataStructureHandler {
                     buffer_termfreq.putInt(posting.getTermFreq());   // write TermFrequency
 
                     if(Flags.isDebug_flag()) {
-                        appendStringToFile(dictElem.getTerm() + ": " + posting, "spimi_pl.txt");
-                        appendStringToFile(dictElem.getTerm() + ": " + posting.getDocId(), "spimi_docid.txt");
-                        appendStringToFile(dictElem.getTerm() + ": " + posting.getTermFreq(), "spimi_tf.txt");
+                        saveIntoFile(dictElem.getTerm() + ": " + posting, "spimi_pl.txt");
+                        saveIntoFile(dictElem.getTerm() + ": " + posting.getDocId(), "spimi_docid.txt");
+                        saveIntoFile(dictElem.getTerm() + ": " + posting.getTermFreq(), "spimi_tf.txt");
                     }
 
                     INDEX_OFFSET += Integer.BYTES;
@@ -179,8 +179,8 @@ public final class DataStructureHandler {
             }
 
             if (Flags.isDebug_flag()) {
-                appendStringToFile(debug_pl.toString(), "merge_pl.txt");
-                appendStringToFile(debug_docid.toString(), "merge_docid.txt");
+                saveIntoFile(debug_pl.toString(), "merge_pl.txt");
+                saveIntoFile(debug_docid.toString(), "merge_docid.txt");
             }
 
             score[0] = scoreBM25;
@@ -264,7 +264,7 @@ public final class DataStructureHandler {
 
         try {
 
-            if(Flags.considerSkippingBytes()){      // merge or query mode
+            if(Flags.considerSkipInfo()){      // merge or query mode
                 docidBuffer = docId_channel.map(FileChannel.MapMode.READ_ONLY, offsetDocId, (long) posting_size * Integer.BYTES);
                 termfreqBuffer = termFreq_channel.map(FileChannel.MapMode.READ_ONLY, offsetTermFreq, (long) posting_size * Integer.BYTES);
             } else {    //
@@ -341,9 +341,6 @@ public final class DataStructureHandler {
      */
     public static ArrayList<Posting> readCompressedPostingListFromDisk(long offsetDocId, long offsetTermFreq, int termFreqSize, int docIdSize) {
 
-        System.out.println("docidsize: " + docIdSize);
-        System.out.println("termfreqsize: " + termFreqSize);
-
         // ArrayList vuota per memorizzare i posting decompressi
         ArrayList<Posting> uncompressed = new ArrayList<>();
         // due array di byte per memorizzare i dati compressi letti dai file
@@ -360,8 +357,8 @@ public final class DataStructureHandler {
             docidBuffer.get(docids, 0, docIdSize);
 
             // ecomprime i dati utilizzando metodi personalizzati
-            ArrayList<Integer> uncompressedDocid = VariableBytes.integersDecompression(docids); System.out.println("uncompressedDocid: " + uncompressedDocid.size());
-            ArrayList<Integer> uncompressedTf = Unary.integersDecompression(tf, uncompressedDocid.size()); System.out.println("uncompressedTf: " + uncompressedTf.size());
+            ArrayList<Integer> uncompressedDocid = VariableBytes.integersDecompression(docids);
+            ArrayList<Integer> uncompressedTf = Unary.integersDecompression(tf, uncompressedDocid.size());
             // itera attraverso i dati decompressi e crea oggetti Posting
             for(int i = 0; i < uncompressedTf.size(); i++) {
                 uncompressed.add(new Posting(uncompressedDocid.get(i), uncompressedTf.get(i))); // add the posting to the posting list

@@ -15,7 +15,6 @@ public final class Logger {
     public static Logger spimi_logger = new Logger("spimi.log");
     public static Logger merge_logger = new Logger("merge.log");
     public static Logger query_logger = new Logger("query.log");
-    public static Logger term_logger = new Logger("0000.log");
 
     public Logger(String logFileName) {
         this.logFileName = DEBUG_FOLDER + logFileName;

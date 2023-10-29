@@ -63,6 +63,5 @@ public class ResultBlock {
             return scoreCompare;
         }
     }
-
 }
 

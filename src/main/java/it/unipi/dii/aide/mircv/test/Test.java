@@ -1,6 +1,5 @@
 package it.unipi.dii.aide.mircv.test;
 
-import it.unipi.dii.aide.mircv.Main;
 import it.unipi.dii.aide.mircv.data_structures.*;
 import it.unipi.dii.aide.mircv.query.Query;
 import java.io.*;
@@ -14,7 +13,7 @@ import static it.unipi.dii.aide.mircv.utils.Constants.printTime;
 public class Test {
     public static void main(String[] args){
 
-        Flags.setConsiderSkippingBytes(true);
+        Flags.setConsiderSkipInfo(true);
         queryStartControl();
         Scanner sc = new Scanner(System.in);
 

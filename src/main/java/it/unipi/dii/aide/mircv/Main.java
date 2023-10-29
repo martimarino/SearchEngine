@@ -1,54 +1,36 @@
 package it.unipi.dii.aide.mircv;
 
 import it.unipi.dii.aide.mircv.data_structures.CollectionStatistics;
-import it.unipi.dii.aide.mircv.data_structures.DataStructureHandler;
 import it.unipi.dii.aide.mircv.data_structures.Flags;
-import it.unipi.dii.aide.mircv.index_builder.IndexMerger;
-import it.unipi.dii.aide.mircv.index_builder.PartialIndexBuilder;
+import it.unipi.dii.aide.mircv.index_builder.IndexBuilder;
 import it.unipi.dii.aide.mircv.query.Query;
 import it.unipi.dii.aide.mircv.utils.FileSystem;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import static it.unipi.dii.aide.mircv.data_structures.Flags.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 
 public class Main {
 
+    public static Scanner sc = new Scanner(System.in);
+    public static long startTime, endTime;                // variables to calculate the execution time
+
     public static void main(String[] args) throws IOException {
 
-        Scanner sc = new Scanner(System.in);
-        long startTime, endTime;                // variables to calculate the execution time
+        printUI("\n++++++++++++  SEARCH ENGINE  ++++++++++++\n");
+
         // while constituting the user interface
         //String mode = sc.nextLine();        // take user's choice
         if (indexOrQuery()) { //no index file, create index option
-            //file_cleaner();                             // delete all created files
-            setSws(getUserChoice(sc, "stopwords removal"));    // take user preferences on the removal of stopwords
-            setCompression(getUserChoice(sc, "compression"));  // take user preferences on the compression
-            setDebug_flag(getUserChoice(sc, "debug"));
-            storeFlagsIntoDisk();      // store Flags
-            // Do SPIMI Algorithm
-            System.out.println("\nIndexing...");
-            startTime = System.currentTimeMillis();         // start time to SPIMI Algorithm
-            PartialIndexBuilder.SPIMIalgorithm();          // do SPIMI
-            endTime = System.currentTimeMillis();           // end time of SPIMI algorithm
-            printTime("\nSPIMI Algorithm done in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
-
-            // merge blocks into disk
-            startTime = System.currentTimeMillis();         // start time to merge blocks
-            IndexMerger.mergeBlocks();                      // merge blocks
-            endTime = System.currentTimeMillis();           // end time of merge blocks
-            printTime("\nBlocks merged in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
-            closeChannels();
+            IndexBuilder.buildInvertedIndex();
         } else  //index file already present, query option
         {
-            printUI("index already present, query mode");
+            printUI("Index already present, query mode\n");
             while (true) {
-                Flags.setConsiderSkippingBytes(true);
+                Flags.setConsiderSkipInfo(true);
 
                 if (!Query.queryStartControl())
                     continue;
@@ -103,12 +85,9 @@ public class Main {
     private static boolean indexOrQuery() {
 
         // -- control for file into disk
-        if (!FileSystem.areThereAllMergedFiles() ||
+        return !FileSystem.areThereAllMergedFiles() ||
                 !Flags.isThereFlagsFile() ||
-                !CollectionStatistics.isThereStatsFile()) {
-            return true;
-        }
-        return false;
+                !CollectionStatistics.isThereStatsFile();
     }
 
     /**

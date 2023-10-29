@@ -114,22 +114,6 @@ public final class FileSystem {
 
     }
 
-    public static void delete_mergedFiles() {
-
-        File dict = new File(DICTIONARY_FILE);
-        File docid = new File(DOCID_FILE);
-        File termfreq = new File(TERMFREQ_FILE);
-        if(dict.exists() && docid.exists() && termfreq.exists()) {
-            try {
-                FileUtils.delete(dict);
-                FileUtils.delete(docid);
-                FileUtils.delete(termfreq);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     /**
      * Function that check if there are all .txt files in "/resources/merged" folder
      * The file that controls are: dictionary.txt, docId.txt, documentTable.txt, termFreq.txt
@@ -148,33 +132,6 @@ public final class FileSystem {
         return docTable.exists() && dict.exists() && docDID.exists() && docTF.exists();
     }
 
-//    // function to save docids  or tf posting list into file (in order to compare before and after compression)
-//    public static void saveDocsInFile(ArrayList<Integer> postings, String tempFileName) throws FileNotFoundException {
-//        // Create a file
-//        File outputf = new File(tempFileName);
-//
-//        try (PrintWriter outputWriter = new PrintWriter(outputf)) {
-//            for (int i = 0; i < postings.size(); i++) {
-//                printDebug("posting" + i + ": " + postings.get(i));
-//                outputWriter.print(postings.get(i));
-//                outputWriter.println(); // Add a newline character
-//            }
-//        }
-//    }
-//
-//    public static void saveDocsInFileSkipInfo(SkipInfo si, String tempFileName) {
-//        // ----------- debug file ---------------
-//        File outputf = new File(tempFileName);
-//
-//        try(PrintWriter outputWriter = new PrintWriter(outputf);) {
-//
-//            outputWriter.print(si.toString());
-//            outputWriter.println();
-//        } catch (FileNotFoundException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
-
     public static void saveStructureToFile (ArrayList<String> data, String fileName, boolean append) {
         try (FileWriter writer = new FileWriter(DEBUG_FOLDER + fileName, append)) {
             for (String line : data) {
@@ -186,7 +143,7 @@ public final class FileSystem {
         }
     }
 
-    public static void appendStringToFile(String data, String fileName) {
+    public static void saveIntoFile(String data, String fileName) {
         try (FileWriter writer = new FileWriter(DEBUG_FOLDER + fileName, true)) {
             writer.write(data);
             writer.write(System.lineSeparator());

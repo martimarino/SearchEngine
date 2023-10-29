@@ -104,7 +104,7 @@ public class Dictionary {
                 termToTermStat.put(term, dictElem);   // add DictionaryElem into memory
             }
 
-            System.out.println("vocabulary size: " + termToTermStat.size());
+            printDebug("vocabulary size: " + termToTermStat.size());
         } catch (IOException e) {
             e.printStackTrace();
         }

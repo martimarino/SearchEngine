@@ -41,7 +41,6 @@ public class SkipList {
                 skipInfo.setTermFreqBlockLen(skipPointsBuffer.getInt());
                 arr_skipInfo.add(skipInfo);
             }
-            //printDebug("skiplen: " + nSkipBlocks + " find: " + arr_skipInfo.size());
             this.skipInfoIterator = arr_skipInfo.iterator();
             currSkipInfo = skipInfoIterator.next();
         }

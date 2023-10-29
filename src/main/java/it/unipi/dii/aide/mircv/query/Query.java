@@ -36,8 +36,8 @@ public final class Query {
 
     //------------------ //
 
-    public static ArrayList<PostingList> p = new ArrayList<>(); // ordered posting lists for increasing score
-    public static ArrayList<PostingList> postingLists = new ArrayList<>(); // contains the posting lists of the query terms
+    public static final ArrayList<PostingList> p = new ArrayList<>(); // ordered posting lists for increasing score
+    public static final ArrayList<PostingList> postingLists = new ArrayList<>(); // contains the posting lists of the query terms
     public static PriorityQueue<ResultBlock> pq_res;   // contains results (increasing)
     public static PriorityQueue<ResultBlock> inverse_pq_res;  // contains results (decreasing)
 
@@ -60,8 +60,11 @@ public final class Query {
         readFlagsFromDisk();
         readCollectionStatsFromDisk();
 
-        printDebug("stopwords: " + Flags.isSwsEnabled());
-        printDebug("compression: " + Flags.isCompressionEnabled());
+        printUI("\nConfiguration:");
+        printUI(" - stopwords: " + Flags.isSwsEnabled());
+        printUI(" - compression: " + Flags.isCompressionEnabled());
+        printUI(" - debug mode: " + Flags.isDebug_flag() + "\n");
+
         // -- control for structures in memory - if not load them from disk
         if (!dictionary.dictionaryIsSet()) {
             long startTime = System.currentTimeMillis();
@@ -70,13 +73,12 @@ public final class Query {
             printTime("Dictionary loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
         }
 
-
-        if (documentTable.isEmpty()) {
-            long startTime = System.currentTimeMillis();
+//        if (documentTable.isEmpty()) {
+//            long startTime = System.currentTimeMillis();
 //            DataStructureHandler.readDocumentTableFromDisk(false);
-            long endTime = System.currentTimeMillis();
-            printTime("Document Table loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
-        }
+//            long endTime = System.currentTimeMillis();
+//            printTime("Document Table loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+//        }
 
         return true;
     }
@@ -117,94 +119,6 @@ public final class Query {
         if(!p.isEmpty())
             p.clear();
     }
-
-   /* public static void executeQueryPQ(String q, int k, boolean isConjunctive, boolean isDaat, boolean isTfidf) throws IOException {
-
-        long startTime = System.currentTimeMillis();
-        ArrayList<String> query = TextProcessor.preprocessText(q);
-        Query.k = k;
-        Query.disj_conj = isConjunctive;
-        tfidf_bm25 = isTfidf;
-        daat_maxscore = isDaat;
-        List<String> query_terms = query.stream().distinct().collect(Collectors.toList());
-
-        pq_DAAT = new PriorityQueue<>(query_terms.size(), new CompareDaatScore());
-        pq_res = new PriorityQueue<>(k, new ResultBlock.CompareRes());
-        inverse_pq_res = new PriorityQueue<>(k, new ResultBlock.CompareResInverse());
-
-        try (
-                RandomAccessFile docid_raf = new RandomAccessFile(DOCID_FILE, "rw");
-                RandomAccessFile tf_raf = new RandomAccessFile(TERMFREQ_FILE, "rw");
-                RandomAccessFile skip_raf = new RandomAccessFile(SKIP_FILE, "rw")
-        ) {
-            docId_channel = docid_raf.getChannel();
-            termFreq_channel = tf_raf.getChannel();
-            skip_channel = skip_raf.getChannel();
-
-            int index = 0;
-
-            if (q.equals("who sings monk theme song "))
-                System.out.println();
-
-            // retrieve the posting list of every query term
-            for (String t : query_terms) {
-                PostingList pl = new PostingList(t);
-
-                postingLists.add(pl);
-
-                term_pl.put(t, pl);
-
-                if (pl.getLen() == 0 || pl.getList() == null)
-                    continue;
-
-                index_len.put(index, pl.getLen());
-
-                pq_DAAT.add(new DAATBlock(t, pl.getList().get(0).getDocId(), computeScore(dictionary.getTermStat(t).getIdf(), pl.getCurrPosting())));
-
-                index++;
-            }
-
-            if (Query.disj_conj)
-                Conjunctive.executeConjunctive();
-            else {
-                if(!isDaat)
-                    MaxScore.computeMaxScore();
-                else
-                    DAATalgorithm(); // scelta tra isDaat e maxscore
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (pq_res.isEmpty()) {
-            System.out.println("\n*** No results found ***\n");
-            return;
-        }
-
-        while (!pq_res.isEmpty()) {
-            inverse_pq_res.add(pq_res.poll());
-        }
-        printUI("\nResults:\n");
-        System.out.format("%15s%15s\n", "DOCID", "SCORE");
-        System.out.format("%45s\n", "-".repeat(45));
-
-        while (!inverse_pq_res.isEmpty()) {
-            ResultBlock polled = inverse_pq_res.poll();
-            System.out.format("%15s%15s\n", polled.getDocId(), String.format("%.3f", polled.getScore()));
-        }
-        System.out.format("%45s\n", "-".repeat(45));
-
-        long endTime = System.currentTimeMillis();
-        printTime("Query performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
-
-        postingLists.clear();
-        pq_DAAT.clear();
-        pq_res.clear();
-        inverse_pq_res.clear();
-        index_len.clear();
-        term_pl.clear();
-
-    }*/
 
     /***
      * Create the necessary data structures, open file channels, read the posting lists of the query terms
@@ -270,51 +184,6 @@ public final class Query {
         }
     }
 
-    private static void DAATalgorithm() {
-
-        DAATBlock acc = null;
-        boolean firstIter = true;
-
-        while (!Query.pq_DAAT.isEmpty()) {        // iterate over documents
-
-            DAATBlock pb = Query.pq_DAAT.poll();
-            assert pb != null;
-
-            if (firstIter) {
-                acc = new DAATBlock(pb.getTerm(), pb.getDocId(), pb.getScore());
-                firstIter = false;
-            } else {
-                if (pb.getDocId() == acc.getDocId()) {
-                    acc.setScore(acc.getScore() + pb.getScore());
-                } else {
-                    //System.out.println(new ResultBlock(acc.getDocId(), acc.getScore()));
-                    if (pq_res.size() == k) {
-                        if (acc.getScore() > pq_res.peek().getScore()) {
-                            pq_res.remove();
-                            pq_res.add(new ResultBlock(acc.getDocId(), pb.getScore()));
-                        }
-                    } else if (pq_res.size() < k)
-                        pq_res.add(new ResultBlock(acc.getDocId(), acc.getScore()));
-                    acc = new DAATBlock(pb.getTerm(), pb.getDocId(), pb.getScore());
-                }
-            }
-            //prendo prossimo elemento del termine per cui abbiamo fatto poll e lo metto in pq_DAAT calcolandone lo scoreType
-            Query.term_pl.get(pb.getTerm()).next(true);
-            Posting currentPosting = Query.term_pl.get(pb.getTerm()).getCurrPosting();
-            if(currentPosting != null)
-                Query.pq_DAAT.add(new DAATBlock(pb.getTerm(), currentPosting.getDocId(), computeTFIDF(dictionary.getTermToTermStat().get(pb.getTerm()).getIdf(), currentPosting)));
-        }
-
-        //System.out.println(new ResultBlock(acc.getDocId(), acc.getScore()));
-        if (pq_res.size() == k) {
-            if (acc.getScore() > pq_res.peek().getScore()) {
-                pq_res.remove();
-                pq_res.add(new ResultBlock(acc.getDocId(), acc.getScore()));
-            }
-        } else if (pq_res.size() < k)
-            pq_res.add(new ResultBlock(acc.getDocId(), acc.getScore()));
-    }
-
     /**
      *
      * @param pl posting list for which identify the minimum
@@ -361,13 +230,14 @@ public final class Query {
             return;
         }
 
-        System.out.format("%15s%15s\n", "Document", "Score");
-        System.out.format("%45s\n", "-".repeat(45));
+        printUI(String.format("\t%-15s%-15s", "Document", "Score"));
+        printUI(String.format("%30s", "-".repeat(30)));
 
         while (!resultQueueInverse.isEmpty()) {
             ResultBlock polled = resultQueueInverse.poll();
-            printUI("\t \t" + polled.getDocId() + "\t \t" + String.format("%.3f",polled.getScore()));
+            printUI(String.format("\t%-15s%-15s", polled.getDocId(), String.format("%.3f", polled.getScore())));
         }
-        System.out.format("%45s\n", "-".repeat(45));
+        printUI(String.format("%30s\n", "-".repeat(30)));
+
     }
 }

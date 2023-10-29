@@ -14,11 +14,6 @@ public final class Flags {
 
     private static boolean sws_flag = false;            // true = stop words removal enabled, false = stop words removal disabled
     private static boolean compression_flag = false;    // true = compression enabled, false = compression disabled
- /*   private static boolean scoring_flag = false;        // true = scoring enable, false = scoring disable*/
-
-//    private static boolean isSPIMI = false;
-//    private static boolean isMerge = false;
-//    private static boolean isQuery = false;
 
     private static boolean skip_flag = false;
     private static boolean debug_flag = false;
@@ -27,20 +22,14 @@ public final class Flags {
 
     public static boolean isCompressionEnabled() { return compression_flag; }
 
-    //public static boolean isScoringEnabled() { return scoring_flag; }
-
     public static void setSws(boolean sws_flag) { Flags.sws_flag = sws_flag; }
 
     public static void setCompression(boolean compression_flag) {
         Flags.compression_flag = compression_flag;
     }
 
-    /*public static void setScoring(boolean scoring_flag) {
-        Flags.scoring_flag = scoring_flag;
-    }
-*/
-    // function to store the user's choices for the flags
     public static void storeFlagsIntoDisk() {
+
         System.out.print("\nStoring flags into disk...");
 
         try (
@@ -52,7 +41,6 @@ public final class Flags {
 
             buffer.putInt(isSwsEnabled() ? 1 : 0);             // write stop words removal user's choice
             buffer.putInt(isCompressionEnabled() ? 1 : 0);     // write compression user's choice
-/*            buffer.putInt(isScoringEnabled() ? 1 : 0);         // write scoring user's choice*/
 
             System.out.println(" DONE");
 
@@ -106,11 +94,11 @@ public final class Flags {
         return docFlags.exists();
     }
 
-    public static boolean considerSkippingBytes() {
+    public static boolean considerSkipInfo() {
         return skip_flag;
     }
 
-    public static void setConsiderSkippingBytes(boolean skip_flag) {
+    public static void setConsiderSkipInfo(boolean skip_flag) {
         Flags.skip_flag = skip_flag;
     }
 

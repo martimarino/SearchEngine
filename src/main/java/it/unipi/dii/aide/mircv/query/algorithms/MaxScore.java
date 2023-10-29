@@ -9,21 +9,10 @@ import static it.unipi.dii.aide.mircv.query.Query.*;
 
 public class MaxScore {
 
-/*
-    private static  PriorityQueue<ResultBlock> resultQueue; //stores the results in increasing order
-    private static ArrayList<PostingList> postingLists = new ArrayList<>(); //contains all the posting lists read from disk
-    private static ArrayList<Double> idf = new ArrayList<>(); // contains all the idf of each query term
-    public static ArrayList<Double> orderedIdf = new ArrayList<>(); //idf ordered for increasing score
-
-    private static ArrayList<Double> ub = new ArrayList<>(); //contains all the max scores (upper bound) of each query term
-    public static ArrayList<PostingList> p = new ArrayList<>(); // ordered posting lists for increasing score
-*/
-
-    //private static PriorityQueue<ScoreElem> orderByScore; //index, score pairs ordered in increasing order
     /**
      * Performs the MaxScore algorithm
      **/
-    public static PriorityQueue<ResultBlock> computeMaxScore() throws IOException {
+    public static PriorityQueue<ResultBlock> computeMaxScore() {
 
         PriorityQueue<ResultBlock> resultQueue = new PriorityQueue<>(k,new ResultBlock.CompareRes());
         ArrayList<Double> ub = new ArrayList<>();
