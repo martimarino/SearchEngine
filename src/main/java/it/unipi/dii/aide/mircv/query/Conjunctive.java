@@ -48,10 +48,10 @@ public class Conjunctive {
             // if the min docid is present for all terms
             if (checkSameDocid()) {
 
-                double score = Score.computeTFIDF(dictionary.getTermStat(shortest.getTerm()).getIdf(), shortest.getCurrPosting());
+                double score = computeScore(dictionary.getTermStat(shortest.getTerm()).getIdf(), shortest.getCurrPosting());
 
                 for (PostingList orderedConjPostingList : orderedConjPostingLists)
-                    score += Score.computeTFIDF(dictionary.getTermStat(orderedConjPostingList.term).getIdf(), orderedConjPostingList.getCurrPosting());
+                    score += computeScore(dictionary.getTermStat(orderedConjPostingList.term).getIdf(), orderedConjPostingList.getCurrPosting());
 
                 // add results only if the actual score is higher than the lowest score of the results
                 if (conj_res.size() < k) {
