@@ -49,17 +49,19 @@ public final class Query {
      */
     public static boolean queryStartControl() {
 
-        // -- control for file into disk
+/*        // -- control for file into disk
         if (!FileSystem.areThereAllMergedFiles() ||
                 !Flags.isThereFlagsFile() ||
                 !CollectionStatistics.isThereStatsFile()) {
             printError("Error: missing required files.");
             return false;
-        }
+        }*/
 
         readFlagsFromDisk();
         readCollectionStatsFromDisk();
 
+        printDebug("stopwords: " + Flags.isSwsEnabled());
+        printDebug("compression: " + Flags.isCompressionEnabled());
         // -- control for structures in memory - if not load them from disk
         if (!dictionary.dictionaryIsSet()) {
             long startTime = System.currentTimeMillis();
@@ -67,6 +69,7 @@ public final class Query {
             long endTime = System.currentTimeMillis();
             printTime("Dictionary loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
         }
+
 
         if (documentTable.isEmpty()) {
             long startTime = System.currentTimeMillis();

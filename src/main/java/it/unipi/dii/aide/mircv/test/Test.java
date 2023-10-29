@@ -3,8 +3,6 @@ package it.unipi.dii.aide.mircv.test;
 import it.unipi.dii.aide.mircv.Main;
 import it.unipi.dii.aide.mircv.data_structures.*;
 import it.unipi.dii.aide.mircv.query.Query;
-import it.unipi.dii.aide.mircv.utils.FileSystem;
-
 import java.io.*;
 import java.util.Scanner;
 
@@ -26,15 +24,15 @@ public class Test {
             String filename = "src/main/resources/performance/";
             String message = "Select Conjunctive (c) or Disjunctive (d)";
             boolean type = getUserInput(sc, message, "c", "d");
-            message = "Select scoring type between bm25 and tfidf:";
+            message = "Select scoring type between bm25 (b) and tfidf (t):";
             boolean score = getUserInput(sc, message, "bm25", "tfidf");
             boolean algorithm = false;
             if(!type) {
-                message = "Select algorithm type, please write maxscore for Max score or daat for DAAT) :";
+                message = "Select algorithm type between maxscore (m) or daat (d) :";
                 algorithm = getUserInput(sc, message, "maxscore", "daat");
             }
             int nResults = getNumberOfResults(sc);
-            filename += (type ? "conj" : "disj") + "_" + (score ? "bm25" : "tfidf") + "_" + (!type ? (algorithm ? "maxscore" : "daat") : "") + ".txt";
+            filename += (type ? "conj" : "disj") + "_" + (score ? "bm25" : "tfidf") + "_" + (!type ? (algorithm ? "maxscore" : "daat") : "") + "_" + (Flags.isSwsEnabled() ? "nostopwords" : "")+ ".txt";
             try (BufferedReader TSVReader = new BufferedReader(new FileReader("src/main/resources/msmarco-test2020-queries.tsv"))) {
                 String line = null;
                 while ((line = TSVReader.readLine()) != null) {

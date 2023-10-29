@@ -26,8 +26,6 @@ public class VariableBytes {
 
         for (Integer toCompress : docidsToCompress) {
             currentIndex = 0;
-            byteSize = 0;
-
             int docidVal = toCompress;
 
             byteSize = ((32 - Integer.numberOfLeadingZeros(docidVal) + 6) / 7); //size of current integer

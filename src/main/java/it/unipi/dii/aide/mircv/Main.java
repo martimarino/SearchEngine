@@ -1,10 +1,12 @@
 package it.unipi.dii.aide.mircv;
 
+import it.unipi.dii.aide.mircv.data_structures.CollectionStatistics;
 import it.unipi.dii.aide.mircv.data_structures.DataStructureHandler;
 import it.unipi.dii.aide.mircv.data_structures.Flags;
 import it.unipi.dii.aide.mircv.index_builder.IndexMerger;
 import it.unipi.dii.aide.mircv.index_builder.PartialIndexBuilder;
 import it.unipi.dii.aide.mircv.query.Query;
+import it.unipi.dii.aide.mircv.utils.FileSystem;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -21,108 +23,59 @@ public class Main {
 
         Scanner sc = new Scanner(System.in);
         long startTime, endTime;                // variables to calculate the execution time
-
         // while constituting the user interface
-        while (true) {
-            // print of the user interface
-            printUI(
-                    """
+        //String mode = sc.nextLine();        // take user's choice
+        if (indexOrQuery()) { //no index file, create index option
+            //file_cleaner();                             // delete all created files
+            setSws(getUserChoice(sc, "stopwords removal"));    // take user preferences on the removal of stopwords
+            setCompression(getUserChoice(sc, "compression"));  // take user preferences on the compression
+            setDebug_flag(getUserChoice(sc, "debug"));
+            storeFlagsIntoDisk();      // store Flags
+            // Do SPIMI Algorithm
+            System.out.println("\nIndexing...");
+            startTime = System.currentTimeMillis();         // start time to SPIMI Algorithm
+            PartialIndexBuilder.SPIMIalgorithm();          // do SPIMI
+            endTime = System.currentTimeMillis();           // end time of SPIMI algorithm
+            printTime("\nSPIMI Algorithm done in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
 
-                            ********** SEARCH ENGINE **********
-                            \tSelect an option:
-                            \t  m -> try merge only
-                            \t  i -> build the index
-                            \t  q -> query mode
-                            \t  x -> exit
-                            ***********************************
-                            """);
+            // merge blocks into disk
+            startTime = System.currentTimeMillis();         // start time to merge blocks
+            IndexMerger.mergeBlocks();                      // merge blocks
+            endTime = System.currentTimeMillis();           // end time of merge blocks
+            printTime("\nBlocks merged in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+            closeChannels();
+        } else  //index file already present, query option
+        {
+            printUI("index already present, query mode");
+            while (true) {
+                Flags.setConsiderSkippingBytes(true);
 
-            String mode = sc.nextLine();        // take user's choice
+                if (!Query.queryStartControl())
+                    continue;
 
-            // switch to run user's choice
-            switch (mode) {
+                printUI("\nInsert query (or press x to exit):");
+                String q = sc.nextLine();           // take user's query
 
-                case "m":       // per debugging, prova solo il merge
-
-                    delete_mergedFiles();
-                    //setCompression(true);  // take user preferences on the compression
-
-                    RandomAccessFile blocksFile = new RandomAccessFile(BLOCKOFFSETS_FILE, "rw");
-                    blocks_channel = blocksFile.getChannel();
-                    DataStructureHandler.readBlockOffsetsFromDisk();
-
-                    setSws(getUserChoice(sc, "stopwords removal"));    // take user preferences on the removal of stopwords
-                    setCompression(getUserChoice(sc, "compression"));  // take user preferences on the compression
-                    storeFlagsIntoDisk();      // store Flags
-
-                    startTime = System.currentTimeMillis();         // start time to merge blocks from disk
-                    IndexMerger.mergeBlocks();                      // merge
-                    endTime = System.currentTimeMillis();           // end time to merge blocks from disk
-                    printTime( "Merged in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
-                    closeChannels();
-                    continue;                                   // go next while cycle
-
-                case "i":
-                    file_cleaner();                             // delete all created files
-
-                    setSws(getUserChoice(sc, "stopwords removal"));    // take user preferences on the removal of stopwords
-                    setCompression(getUserChoice(sc, "compression"));  // take user preferences on the compression
-                    setDebug_flag(getUserChoice(sc,"debug"));
-                    storeFlagsIntoDisk();      // store Flags
-                    // Do SPIMI Algorithm
-                    System.out.println("Indexing...");
-                    startTime = System.currentTimeMillis();         // start time to SPIMI Algorithm
-                    PartialIndexBuilder.SPIMIalgorithm();          // do SPIMI
-                    endTime = System.currentTimeMillis();           // end time of SPIMI algorithm
-                    printTime("\nSPIMI Algorithm done in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
-
-                    // merge blocks into disk
-                    startTime = System.currentTimeMillis();         // start time to merge blocks
-                    IndexMerger.mergeBlocks();                      // merge blocks
-                    endTime = System.currentTimeMillis();           // end time of merge blocks
-                    printTime("\nBlocks merged in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
-                    closeChannels();
+                if (q == null || q.isEmpty()) {
+                    printError("Error: the query is empty. Please, retry.");
                     continue;                           // go next while iteration
+                }
 
-                case "q":
-
-                    while (true) {
-                        Flags.setConsiderSkippingBytes(true);
-
-                        if (!Query.queryStartControl())
-                            continue;
-
-                        printUI("\nInsert query (or press x to exit):");
-                        String q = sc.nextLine();           // take user's query
-
-                        if (q == null || q.isEmpty()) {
-                            printError("Error: the query is empty. Please, retry.");
-                            continue;                           // go next while iteration
-                        }
-
-                        if (q.equals("x"))
-                            return;
-
-                        String message = "Select Conjunctive (c) or Disjunctive (d)";
-                        boolean type = getUserInput(sc, message, "c", "d");
-                        message = "Select scoring type between bm25 and tfidf:";
-                        boolean score = getUserInput(sc, message, "bm25", "tfidf");
-                        boolean algorithm = false;
-                        if(!type) {
-                            message = "Select algorithm type, please write maxscore for Max score or daat for DAAT) :";
-                            algorithm = getUserInput(sc, message, "maxscore", "daat");
-                        }
-                        int nResults = getNumberOfResults(sc);
-                        Query.executeQuery(q, nResults, type, score, algorithm);
-                        //Query.executeQueryPQ(q, nResults, true, true);
-                        closeChannels();
-                    }
-
-                case "x":
+                if (q.equals("x"))
                     return;
 
-                default:
-                    break;
+                String message = "Select Conjunctive (c) or Disjunctive (d)";
+                boolean type = getUserInput(sc, message, "c", "d");
+                message = "Select scoring type between bm25 (b) and tfidf (t):";
+                boolean score = getUserInput(sc, message, "b", "t");
+                boolean algorithm = false;
+                if (!type) {
+                    message = "Select algorithm type between Max score (m) or DAAT (d) :";
+                    algorithm = getUserInput(sc, message, "m", "d");
+                }
+                int nResults = getNumberOfResults(sc);
+                Query.executeQuery(q, nResults, type, score, algorithm);
+                closeChannels();
             }
         }
     }
@@ -145,6 +98,17 @@ public class Main {
                 return false;
             }
         }
+    }
+
+    private static boolean indexOrQuery() {
+
+        // -- control for file into disk
+        if (!FileSystem.areThereAllMergedFiles() ||
+                !Flags.isThereFlagsFile() ||
+                !CollectionStatistics.isThereStatsFile()) {
+            return true;
+        }
+        return false;
     }
 
     /**

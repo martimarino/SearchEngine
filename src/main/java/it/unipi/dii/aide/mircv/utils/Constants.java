@@ -29,6 +29,11 @@ public final class Constants {
     public static final String FLAGS_FILE = RES_FOLDER + "flags"; // file in which flags are stored
     public static final String STATS_FILE = RES_FOLDER + "collectionStatistics"; // file in which collection statistics are stored
 
+/*
+    public static final String FLAGS_FILE = MERGED_FOLDER + "flags"; // file in which flags are stored
+    public static final String STATS_FILE = MERGED_FOLDER + "collectionStatistics"; // file in which collection statistics are stored
+*/
+
     public static final String SKIP_FILE = MERGED_FOLDER + "skipInfo";
 
     // -------------------------------- Constants for variable bytes -------------------------------------------

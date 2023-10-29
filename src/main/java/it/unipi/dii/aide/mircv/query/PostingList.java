@@ -25,10 +25,11 @@ public class PostingList {
 
         this.term = de.getTerm();
         len = de.getDf();
-
+        //System.out.println("term: " + term);
         if (de.getSkipArrLen() > 0) {   // if there are skipping blocks read partial postings of the first block
             sl = new SkipList(de.getSkipOffset(), de.getSkipArrLen());
             SkipInfo skipInfo = sl.getCurrSkipInfo();
+
             if (Flags.isCompressionEnabled())
                 list = readCompressedPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), skipInfo.getTermFreqBlockLen(), skipInfo.getDocIdBlockLen());
             else
@@ -59,7 +60,7 @@ public class PostingList {
                 list.clear();
                 System.out.println("term: " + term);
                 if (Flags.isCompressionEnabled())
-                    list.addAll(readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), si.getDocIdBlockLen(), si.getTermFreqBlockLen()));
+                    list.addAll(readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), si.getTermFreqBlockLen(), si.getDocIdBlockLen()));
                 else
                     list.addAll(readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), si.getDocIdBlockLen()));
                 postingIterator = list.iterator();

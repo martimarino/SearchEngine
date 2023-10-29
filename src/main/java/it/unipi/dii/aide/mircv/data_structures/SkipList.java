@@ -9,6 +9,7 @@ import java.util.Iterator;
 
 import static it.unipi.dii.aide.mircv.data_structures.SkipInfo.SKIPPING_INFO_SIZE;
 import static it.unipi.dii.aide.mircv.utils.Constants.SKIP_FILE;
+import static it.unipi.dii.aide.mircv.utils.Constants.printDebug;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.skip_channel;
 
 public class SkipList {
@@ -20,7 +21,6 @@ public class SkipList {
 
     private double maxTFIDF;
     private double maxBM25;
-
 
     public SkipList(long offset, int nSkipBlocks) throws IOException {
 
@@ -41,7 +41,7 @@ public class SkipList {
                 skipInfo.setTermFreqBlockLen(skipPointsBuffer.getInt());
                 arr_skipInfo.add(skipInfo);
             }
-
+            //printDebug("skiplen: " + nSkipBlocks + " find: " + arr_skipInfo.size());
             this.skipInfoIterator = arr_skipInfo.iterator();
             currSkipInfo = skipInfoIterator.next();
         }

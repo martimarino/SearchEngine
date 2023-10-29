@@ -179,15 +179,9 @@ public final class IndexMerger {
             appendStringToFile("TERM: '" + tempDE.getTerm() + "'", "merge_pl.txt");
             appendStringToFile("TERM: '" + tempDE.getTerm() + "'", "merge_docid.txt");
         }
-
         //update DocID and Term Frequency offset ( equal to the end of the files)
         tempDE.setOffsetTermFreq(termFreq_channel.size());
         tempDE.setOffsetDocId(docId_channel.size());
-
-/*        if(tempDE.getTerm().equals("of") && Flags.isDebug_flag()) {
-            appendStringToFile("(merge) TEMP DE: " + tempDE, "of_debug.txt");
-            appendStringToFile("(merge) TEMP PL: " + tempPL, "of_debug.txt");
-        }*/
 
         assert tempPL != null;
         int lenPL = tempPL.size();
@@ -203,6 +197,9 @@ public final class IndexMerger {
             for(int i = 0; i < lenPL; i += skipInterval) {
                 List<Posting> subPL = tempPL.subList(i, min(i + skipInterval, lenPL));
                 ArrayList<Posting> tempSubPL = new ArrayList<>(subPL);
+                if(tempDE.getTerm().equals("berlin") || tempDE.getTerm().equals("center"))
+                    for(Posting p : subPL)
+                        appendStringToFile(" docid: " + p.getDocId() + " tf: " + p.getTermFreq(), tempDE.getTerm() + ".txt");
                 if (Flags.isCompressionEnabled()) {
                     SkipInfo sp = new SkipInfo(tempSubPL.get(tempSubPL.size()-1).getDocId(), docId_channel.size(), termFreq_channel.size(), -1, -1);
                     tempDE.setMaxBM25(computeMaxBM25(tempSubPL, tempDE.getIdf()));
@@ -217,8 +214,6 @@ public final class IndexMerger {
                 } else {
                     SkipInfo sp = new SkipInfo(tempSubPL.get(tempSubPL.size()-1).getDocId(), docId_channel.size(), termFreq_channel.size(), tempSubPL.size(), tempSubPL.size());
                     sp.storeSkipInfoToDisk();
-//                    if(tempDE.getTerm().equals("of"))
-//                        System.out.println("SKIP INFO STORED (term of): " + sp);
                     double[] score = storePostingListIntoDisk(tempSubPL, tempDE.getIdf());
                     assert score != null;
                     tempDE.setMaxBM25(score[0]);

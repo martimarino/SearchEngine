@@ -344,7 +344,6 @@ public final class DataStructureHandler {
         System.out.println("docidsize: " + docIdSize);
         System.out.println("termfreqsize: " + termFreqSize);
 
-
         // ArrayList vuota per memorizzare i posting decompressi
         ArrayList<Posting> uncompressed = new ArrayList<>();
         // due array di byte per memorizzare i dati compressi letti dai file
@@ -359,20 +358,12 @@ public final class DataStructureHandler {
             // legge i dati compressi nei byte array
             termfreqBuffer.get(tf, 0, termFreqSize);
             docidBuffer.get(docids, 0, docIdSize);
-            if(docIdSize == 2) {
-                System.out.println("tf: " + tf);
-                System.out.println("tf len: " + tf.length);
-                System.out.println("docids: " + docids);
-                System.out.println("docids len: " + docids.length);
-            }
 
             // ecomprime i dati utilizzando metodi personalizzati
             ArrayList<Integer> uncompressedDocid = VariableBytes.integersDecompression(docids); System.out.println("uncompressedDocid: " + uncompressedDocid.size());
             ArrayList<Integer> uncompressedTf = Unary.integersDecompression(tf, uncompressedDocid.size()); System.out.println("uncompressedTf: " + uncompressedTf.size());
-
             // itera attraverso i dati decompressi e crea oggetti Posting
             for(int i = 0; i < uncompressedTf.size(); i++) {
-                //System.out.println("docid: " + uncompressedDocid.get(i)  + " tf: " + uncompressedTf.get(i));
                 uncompressed.add(new Posting(uncompressedDocid.get(i), uncompressedTf.get(i))); // add the posting to the posting list
             }
             // restituisce l'ArrayList contenente i posting decompressi

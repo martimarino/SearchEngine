@@ -20,7 +20,6 @@ public class DAAT {
             int next = Integer.MAX_VALUE;
 
             for (int i = 0; i < postingLists.size(); i++) {
-
                 if ((postingLists.get(i).getCurrPosting() != null) && (postingLists.get(i).getCurrPosting().getDocId() == current)) {
                     score = score + computeScore(postingLists.get(i).getIdf(), postingLists.get(i).getCurrPosting());
 
@@ -47,7 +46,6 @@ public class DAAT {
                 current = next;
 
         }
-
         return resultQueue;
     }
 }

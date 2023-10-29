@@ -76,7 +76,6 @@ public class Unary {
 
                 currentValue++;
                 if (bit == 0) {
-                    currentValue++;
                     // If bit is 0, add current value to decompressed list
                     decompressedList.add(currentValue);
 
@@ -99,3 +98,4 @@ public class Unary {
             return decompressedList;
     }
 }
+
