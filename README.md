@@ -26,9 +26,9 @@ All the files are used in the query phase.
 
 ## Query Processing
 Executing the file Main.java as before, after the index build, the user can insert the query choosing between different options displaues by the command line interface: 
-- Conjunctive or disjunctive queries
-- DAAT or MaxScore algorithm
-- TFIDF or BM25
+- Conjunctive (pressing *c*) or disjunctive (pressing *d*) queries
+- DAAT (pressing *d*) or MaxScore (pressing *m*) algorithm
+- TFIDF (pressing *t*) or BM25 (pressing *b*)
 - the number of document to obtain
 Subsequently the top k documents are returned.
 
