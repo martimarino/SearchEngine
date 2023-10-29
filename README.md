@@ -22,7 +22,8 @@ aswering to the questions displayed by the command line interface.
 -  skipInfo
 - collectionStatistics
 - flags
-All the files are used in the query phase.
+  
+All these files are used in the query phase.
 
 ## Query Processing
 Executing the file Main.java as before, after the index build, the user can insert the query choosing between different options displaues by the command line interface: 
