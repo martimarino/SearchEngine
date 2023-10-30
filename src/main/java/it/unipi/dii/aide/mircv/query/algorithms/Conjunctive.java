@@ -11,29 +11,14 @@ import static it.unipi.dii.aide.mircv.utils.Constants.printDebug;
 public class Conjunctive {
     
     public static PriorityQueue<ResultBlock> conj_res;   // contains results (increasing)
-    static ArrayList<PostingList> orderedConjPostingLists;      // posting lists ordered by lenght
     static int currentDocId;        // target docid
     
 
     public static PriorityQueue<ResultBlock> executeConjunctive() {
 
-        conj_res = new PriorityQueue<>(k, new ResultBlock.CompareRes());
+        conj_res = new PriorityQueue<>(k, new ResultBlock.CompareResInc());
 
-        // create array of posting lists ordered increasing df
-        orderedConjPostingLists = new ArrayList<>();
-        PostingList shortest;
-
-        // sort indices
-        index_len = (HashMap<Integer, Integer>) sortByValue(index_len);
-
-        // copy list using ordered indices
-        for (Map.Entry<Integer, Integer> entry : index_len.entrySet())
-            orderedConjPostingLists.add(postingLists.get(entry.getKey()));
-
-        shortest = orderedConjPostingLists.remove(0);
-
-        postingLists.clear();
-        index_len.clear();
+        PostingList shortest = ordered_PostingLists.remove(0);
 
         int counter = 0; 
         do {
@@ -50,8 +35,8 @@ public class Conjunctive {
 
                 double score = computeScore(dictionary.getTermStat(shortest.getTerm()).getIdf(), shortest.getCurrPosting());
 
-                for (PostingList orderedConjPostingList : orderedConjPostingLists)
-                    score += computeScore(dictionary.getTermStat(orderedConjPostingList.term).getIdf(), orderedConjPostingList.getCurrPosting());
+                for (PostingList pl : ordered_PostingLists)
+                    score += computeScore(dictionary.getTermStat(pl.term).getIdf(), pl.getCurrPosting());
 
                 // add results only if the actual score is higher than the lowest score of the results
                 if (conj_res.size() < k) {
@@ -77,10 +62,10 @@ public class Conjunctive {
      */
     private static boolean checkSameDocid () {
 
-        for (PostingList pl : orderedConjPostingLists) {
+        for (PostingList pl : ordered_PostingLists) {
 
             // if has skipping but and it is not in the right block (right = maxDocId > currentDocId)
-            if((pl.getSl() != null) && (pl.getSl().getCurrSkipInfo() != null) && (currentDocId > pl.getSl().getCurrSkipInfo().getMaxDocId()))
+            if((pl.getSl() != null) && (pl.getSl().getCurrSkipElem() != null) && (currentDocId > pl.getSl().getCurrSkipElem().getMaxDocId()))
                 pl.nextGEQ(currentDocId, false);
             else        // if no skip or has skip but already in the right block
                 while ((pl.getCurrPosting() != null) && (pl.getCurrPosting().getDocId() < currentDocId))
@@ -92,15 +77,4 @@ public class Conjunctive {
         return true;
     }
 
-    public static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(Map<K, V> map) {
-
-        List<Map.Entry<K, V>> list = new ArrayList<>(map.entrySet());
-        list.sort(Map.Entry.comparingByValue());
-        Map<K, V> result = new LinkedHashMap<>();
-
-        for (Map.Entry<K, V> entry : list)
-            result.put(entry.getKey(), entry.getValue());
-
-        return result;
-    }
 }

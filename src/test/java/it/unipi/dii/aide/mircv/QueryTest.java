@@ -16,7 +16,7 @@ class QueryTest {
 
     @BeforeAll
     static void getFromFile(){
-        Flags.setConsiderSkipInfo(true);
+        Flags.setConsiderSkipElem(true);
         queryStartControl();
 
     }
@@ -59,7 +59,7 @@ class QueryTest {
                 System.out.println(PQtime);
                 avgTimePQ += (int) (endTimePQ - startTimePQ);
                 long startTime = System.currentTimeMillis();
-                Query.executeQuery(query, numberOfResults, false, false, false);
+                Query.executeQuery(query, numberOfResults, "d", "t", "d");
                 long endTime = System.currentTimeMillis();
                 String time = "query \"" + query + " \" time : " + (endTime - startTime) + "ms";
                 //System.out.println(time);
@@ -119,7 +119,7 @@ class QueryTest {
             while ((line = TSVReader.readLine()) != null) {
                 String query = line.split("\t")[1];
                 long startTime = System.currentTimeMillis();
-                Query.executeQuery(query, numberOfResults, false, false, true);
+                Query.executeQuery(query, numberOfResults, "d", "t", "m");
                 long endTime = System.currentTimeMillis();
                 String time = "query \"" + query + " \" time : " + (endTime - startTime) + "ms";
                 System.out.println(time);

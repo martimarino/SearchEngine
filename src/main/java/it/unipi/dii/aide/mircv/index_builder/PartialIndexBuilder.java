@@ -10,11 +10,11 @@ import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import it.unipi.dii.aide.mircv.data_structures.*;
 import it.unipi.dii.aide.mircv.utils.TextProcessor;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.*;
-import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+
 
 
 public final class PartialIndexBuilder {
@@ -32,27 +32,17 @@ public final class PartialIndexBuilder {
      */
     public static void SPIMI() {
 
+        dictionary = new Dictionary();
+        invertedIndex = new HashMap<>();
+
         long memoryAvailable = (long) (Runtime.getRuntime().maxMemory() * MEMORY_THRESHOLD);
         int docCounter = 1;         // counter for DocID
         int totDocLen = 0;          // variable for the sum of the lengths of all documents
 
         File file = new File(COLLECTION_PATH);
         try (
-                // open partial files to write the partial dictionary and index
-                RandomAccessFile partialDocidFile = new RandomAccessFile(PARTIAL_DOCID_FILE, "rw");
-                RandomAccessFile partialTermfreqFile = new RandomAccessFile(PARTIAL_TERMFREQ_FILE, "rw");
-                RandomAccessFile partialDictFile = new RandomAccessFile(PARTIAL_DICTIONARY_FILE, "rw");
-                RandomAccessFile blocksFile = new RandomAccessFile(BLOCKOFFSETS_FILE, "rw");
-                RandomAccessFile docTableFile = new RandomAccessFile(DOCTABLE_FILE, "rw");
-
                 final TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(new GzipCompressorInputStream(new FileInputStream(file)))
         ) {
-
-            partialDict_channel = partialDictFile.getChannel();
-            partialDocId_channel = partialDocidFile.getChannel();
-            partialTermFreq_channel = partialTermfreqFile.getChannel();
-            blocks_channel = blocksFile.getChannel();
-            docTable_channel = docTableFile.getChannel();
 
             // read from compressed collection
             TarArchiveEntry tarArchiveEntry = tarArchiveInputStream.getNextTarEntry();
@@ -118,7 +108,7 @@ public final class PartialIndexBuilder {
                 freeMemory();
             }
 
-            DataStructureHandler.storeBlockOffsetsIntoDisk();
+            //DataStructureHandler.storeBlockOffsetsIntoDisk();
 
             CollectionStatistics.setNDocs(docCounter);        // set total number of Document in the collection
             CollectionStatistics.setTotDocLen(totDocLen);     // set the sum of the all document length in the collection

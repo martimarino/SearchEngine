@@ -13,30 +13,35 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 
-import static it.unipi.dii.aide.mircv.data_structures.DocumentElement.*;
-import static it.unipi.dii.aide.mircv.index_builder.PartialIndexBuilder.*;
+import static it.unipi.dii.aide.mircv.data_structures.DocumentElem.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 
-import static it.unipi.dii.aide.mircv.index_builder.PartialIndexBuilder.dictionaryBlockOffsets;
 
 /**
  * This class handles the storage and retrieval of data structures used for document indexing.
  */
 public final class DataStructureHandler {
 
+    public static HashMap<Integer, DocumentElem> documentTable = new HashMap<>();     // hash table DocID to related DocElement
+    public static Dictionary dictionary;                                                 // dictionary in memory
+    public static HashMap<String, ArrayList<Posting>> invertedIndex;                     // hash table Term to related Posting list
+    public static ArrayList<Long> dictionaryBlockOffsets = new ArrayList<>();            // Offsets of the dictionary blocks
+
+
     // function to store the whole document table into disk
     public static void storeDocumentTableIntoDisk() {
 
         try {
-            MappedByteBuffer buffer = docTable_channel.map(FileChannel.MapMode.READ_WRITE, docTable_channel.size(), (long) DOCELEM_SIZE * PartialIndexBuilder.documentTable.size());
+            MappedByteBuffer buffer = docTable_channel.map(FileChannel.MapMode.READ_WRITE, docTable_channel.size(), (long) DOCELEM_SIZE * documentTable.size());
 
             // Buffer not created
             if(buffer == null)
                 return;
             // scan all document elements of the Document Table
-            for(DocumentElement de: PartialIndexBuilder.documentTable.values()) {
+            for(DocumentElem de: documentTable.values()) {
                 //allocate bytes for docno
                 CharBuffer charBuffer = CharBuffer.allocate(DOCNO_DIM);
 
@@ -59,34 +64,6 @@ public final class DataStructureHandler {
 
     }
 
-
-    // function to store offset of the blocks into disk
-    public static void storeBlockOffsetsIntoDisk() {
-
-        System.out.println("\nStoring block offsets into disk...");
-
-        try {
-            MappedByteBuffer buffer = blocks_channel.map(FileChannel.MapMode.READ_WRITE, 0, (long) Long.BYTES * dictionaryBlockOffsets.size()); //offset_size (size of dictionary offset) * number of blocks
-
-            // Buffer not created
-            if(buffer == null)
-                return;
-
-            // scan all block and for each one write offset into disk
-            for (int i = 0; i < dictionaryBlockOffsets.size(); i++) {
-                printDebug("OFFSET BLOCK " + i + ": " + dictionaryBlockOffsets.get(i));
-                buffer.putLong(dictionaryBlockOffsets.get(i)); //store into file the dictionary offset of the i-th block
-                if(Flags.isDebug_flag())
-                    saveIntoFile("Offset block " + i + ": " + dictionaryBlockOffsets.get(i), "blocks.txt");
-            }
-
-            System.out.println(dictionaryBlockOffsets.size() + " blocks stored");
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
 
     // function to store Dictionary and Inverted Index into disk
     public static void storeIndexAndDictionaryIntoDisk() {
@@ -129,7 +106,7 @@ public final class DataStructureHandler {
                 }
 
                 // store dictionary entry to disk
-                dictElem.storeDictionaryElemIntoDisk();
+                dictElem.storeDictionaryElemIntoDisk(partialDict_channel);
             }
             System.out.println(dictionary.getTermToTermStat().size() + " terms stored in block " + (dictionaryBlockOffsets.size()-1));
 
@@ -194,7 +171,7 @@ public final class DataStructureHandler {
 
 
     // function to read all document table from disk and put it in memory (HashMap documentTable)
-    public static void readDocumentTableFromDisk(boolean indexBuilding) {
+    public static void readDocumentTableFromDisk() {
 
         System.out.println("Loading document table from disk...");
 
@@ -218,34 +195,6 @@ public final class DataStructureHandler {
 
     }
 
-    // function to read offset of the block from disk
-    public static void readBlockOffsetsFromDisk(){
-
-        System.out.println("\nLoading block offsets from disk...");
-
-        if(!dictionaryBlockOffsets.isEmpty()) //control check
-            dictionaryBlockOffsets.clear();
-
-        try {
-            MappedByteBuffer buffer = blocks_channel.map(FileChannel.MapMode.READ_WRITE, 0 , blocks_channel.size());
-
-            if(buffer == null)      // Buffer not created
-                return;
-
-            // iterate through all files for #blocks times
-            for(int i = 0; i < blocks_channel.size()/ Long.BYTES; i++){
-                dictionaryBlockOffsets.add(buffer.getLong());
-                buffer.position((i+1)*Long.BYTES); //skip to position of the data of the next block to read
-                printDebug("OFFSET BLOCK " + i + ": " + dictionaryBlockOffsets.get(i));
-            }
-
-            System.out.println(dictionaryBlockOffsets.size() + " blocks loaded");
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
 
     /**
      * function to read and return a posting list from disk
@@ -253,9 +202,11 @@ public final class DataStructureHandler {
      * @param offsetDocId       offset of the DocID
      * @param offsetTermFreq    offset of the Term Frequency
      * @param posting_size      size of the posting list
+     * @param di_channel        channel where to read docids
+     * @param tf_channel        channel where to read termfreq
      * @return the posting lists read from disk
      */
-    public static ArrayList<Posting> readPostingListFromDisk(long offsetDocId, long offsetTermFreq, int posting_size) {
+    public static ArrayList<Posting> readPostingListFromDisk(long offsetDocId, long offsetTermFreq, int posting_size, FileChannel di_channel, FileChannel tf_channel) {
 
         ArrayList<Posting> pl = new ArrayList<>();
 
@@ -264,13 +215,8 @@ public final class DataStructureHandler {
 
         try {
 
-            if(Flags.considerSkipInfo()){      // merge or query mode
-                docidBuffer = docId_channel.map(FileChannel.MapMode.READ_ONLY, offsetDocId, (long) posting_size * Integer.BYTES);
-                termfreqBuffer = termFreq_channel.map(FileChannel.MapMode.READ_ONLY, offsetTermFreq, (long) posting_size * Integer.BYTES);
-            } else {    //
-                docidBuffer = partialDocId_channel.map(FileChannel.MapMode.READ_ONLY, offsetDocId, (long) posting_size * Integer.BYTES);
-                termfreqBuffer = partialTermFreq_channel.map(FileChannel.MapMode.READ_ONLY, offsetTermFreq, (long) posting_size * Integer.BYTES);
-            }
+            docidBuffer = di_channel.map(FileChannel.MapMode.READ_ONLY, offsetDocId, (long) posting_size * Integer.BYTES);
+            termfreqBuffer = tf_channel.map(FileChannel.MapMode.READ_ONLY, offsetTermFreq, (long) posting_size * Integer.BYTES);
 
             //while nr of postings read are less than the number of postings to read (all postings of the term)
             for (int i = 0; i < posting_size; i++) {
@@ -371,6 +317,63 @@ public final class DataStructureHandler {
         }
         // in caso di errore
         return null;
+    }
+
+    // function to store offset of the blocks into disk
+    public static void storeBlockOffsetsIntoDisk() {
+
+        System.out.println("\nStoring block offsets into disk...");
+
+        try {
+            MappedByteBuffer buffer = blocks_channel.map(FileChannel.MapMode.READ_WRITE, 0, (long) Long.BYTES * dictionaryBlockOffsets.size()); //offset_size (size of dictionary offset) * number of blocks
+
+            // Buffer not created
+            if(buffer == null)
+                return;
+
+            // scan all block and for each one write offset into disk
+            for (int i = 0; i < dictionaryBlockOffsets.size(); i++) {
+                printDebug("OFFSET BLOCK " + i + ": " + dictionaryBlockOffsets.get(i));
+                buffer.putLong(dictionaryBlockOffsets.get(i)); //store into file the dictionary offset of the i-th block
+                if(Flags.isDebug_flag())
+                    saveIntoFile("Offset block " + i + ": " + dictionaryBlockOffsets.get(i), "blocks.txt");
+            }
+
+            System.out.println(dictionaryBlockOffsets.size() + " blocks stored");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    // function to read offset of the block from disk
+    public static void readBlockOffsetsFromDisk(){
+
+        System.out.println("\nLoading block offsets from disk...");
+
+        if(!dictionaryBlockOffsets.isEmpty()) //control check
+            dictionaryBlockOffsets.clear();
+
+        try {
+            MappedByteBuffer buffer = blocks_channel.map(FileChannel.MapMode.READ_WRITE, 0 , blocks_channel.size());
+
+            if(buffer == null)      // Buffer not created
+                return;
+
+            // iterate through all files for #blocks times
+            for(int i = 0; i < blocks_channel.size()/ Long.BYTES; i++){
+                dictionaryBlockOffsets.add(buffer.getLong());
+                buffer.position((i+1)*Long.BYTES); //skip to position of the data of the next block to read
+                printDebug("OFFSET BLOCK " + i + ": " + dictionaryBlockOffsets.get(i));
+            }
+
+            System.out.println(dictionaryBlockOffsets.size() + " blocks loaded");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
 }

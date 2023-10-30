@@ -1,10 +1,8 @@
 package it.unipi.dii.aide.mircv;
 
-import it.unipi.dii.aide.mircv.data_structures.CollectionStatistics;
 import it.unipi.dii.aide.mircv.data_structures.Flags;
 import it.unipi.dii.aide.mircv.index_builder.IndexBuilder;
 import it.unipi.dii.aide.mircv.query.Query;
-import it.unipi.dii.aide.mircv.utils.FileSystem;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -63,34 +61,6 @@ public class Main {
     }
 
     /**
-     * function to get the choice of the user for options, the options are pass
-     *
-     * @param sc     scanner to get the choice of the user inserted via keyboard
-     * @param option options passed by parameter
-     * @return true if the user chooses yes (enter Y), false if the user chooses no (enter N)
-     */
-    public static boolean getUserChoice(Scanner sc, String option) {
-        while (true) {
-            printUI("Type Y or N for " + option + " option");   // print of the option
-            String choice = sc.nextLine().toUpperCase();                    // take the user's choice
-            // check the user's input
-            if (choice.equals("Y")) {
-                return true;
-            } else if (choice.equals("N")) {
-                return false;
-            }
-        }
-    }
-
-    private static boolean indexOrQuery() {
-
-        // -- control for file into disk
-        return !FileSystem.areThereAllMergedFiles() ||
-                !Flags.isThereFlagsFile() ||
-                !CollectionStatistics.isThereStatsFile();
-    }
-
-    /**
      * function to shows the user the ranked results (DocID) of the query executed
      *
      * @param rankedResults the results returned by the query
@@ -127,4 +97,5 @@ public class Main {
                 return false;
         }
     }
+
 }

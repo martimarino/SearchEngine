@@ -46,7 +46,7 @@ public class TestConjunctive {
         try (BufferedReader TSVReader = new BufferedReader(new FileReader("src/main/resources/msmarco-test2020-queries.tsv"))) {
             String line;
 
-            Flags.setConsiderSkipInfo(true);
+            Flags.setConsiderSkipElem(true);
 
             if (!Query.queryStartControl())
                 return;

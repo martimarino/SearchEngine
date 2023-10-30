@@ -34,8 +34,8 @@ public final class Query {
 
     //------------------ //
 
-    public static final ArrayList<PostingList> p = new ArrayList<>(); // ordered posting lists for increasing score
-    public static final ArrayList<PostingList> postingLists = new ArrayList<>(); // contains the posting lists of the query terms
+    public static final ArrayList<PostingList> ordered_PostingLists = new ArrayList<>(); // ordered posting lists for increasing score
+    public static final ArrayList<PostingList> all_postingLists = new ArrayList<>(); // contains the posting lists of the query terms
     public static PriorityQueue<ResultBlock> pq_res;   // contains results (increasing)
 
     public Query()  { throw new UnsupportedOperationException(); }
@@ -89,7 +89,7 @@ public final class Query {
      * @param daat_maxscore (algorithm type) -> false = DAAT, true = MaxScore
      * @throws IOException
      */
-    public static void executeQuery(String q, int k, boolean disj_conj, boolean tfidf_bm25, boolean daat_maxscore) throws IOException {
+    public static void executeQuery(String q, int k, String disj_conj, String tfidf_bm25, String daat_maxscore) throws IOException {
 
         long startTime = System.currentTimeMillis();
         ArrayList<String> query = TextProcessor.preprocessText(q);
@@ -107,14 +107,14 @@ public final class Query {
 
     private static void clearStructures() {
 
-        if(!postingLists.isEmpty())
-            postingLists.clear();
+        if(!all_postingLists.isEmpty())
+            all_postingLists.clear();
 
         if(!pq_res.isEmpty())
             pq_res.clear();
 
-        if(!p.isEmpty())
-            p.clear();
+        if(!ordered_PostingLists.isEmpty())
+            ordered_PostingLists.clear();
     }
 
     /***
@@ -141,36 +141,37 @@ public final class Query {
                     continue;
 
                 PostingList pl = new PostingList(de);
-                if(daat_maxscore)
+                if(daat_maxscore.equals("m"))
                 {
                     double score;
-                    if(Query.tfidf_bm25)
+                    if(tfidf_bm25.equals("b"))
                         score = de.getMaxBM25();
                     else
                         score = de.getMaxTFIDF();
                     pl.setMaxScore(score);
                     orderByScore.add(new ScoreElem(index, score));
                 }
-                if(disj_conj)
+                if(disj_conj.equals("c"))
                 {
                     if (pl.getLen() == 0 || pl.getList() == null)
                         continue;
 
                     index_len.put(index, pl.getLen());
                 }
-                postingLists.add(pl);
+                all_postingLists.add(pl);
                 index++;
             }
 
             if(disj_conj) {
                 pq_res = Conjunctive.executeConjunctive();
+
             }else {
-                if (!daat_maxscore)
+                if (daat_maxscore.equals("d"))
                     pq_res = DocumentAtATime();
                 else {
                     //idf, posting lists and maxscore are ordered by the order define by orderByScore (increasing value of score)
                     while (!orderByScore.isEmpty()) {
-                        p.add(postingLists.get(orderByScore.poll().getIndex()));
+                        ordered_PostingLists.add(all_postingLists.get(orderByScore.poll().getIndex()));
                     }
                     pq_res = computeMaxScore();
                     orderByScore.clear();
@@ -212,7 +213,7 @@ public final class Query {
 
     public static void printResults(){
 
-        PriorityQueue<ResultBlock> resultQueueInverse = new PriorityQueue<>(k,new ResultBlock.CompareResInverse());
+        PriorityQueue<ResultBlock> resultQueueInverse = new PriorityQueue<>(k,new ResultBlock.CompareResDec());
 
         //results from increasing order priority queue to decreasing order one
         while (!pq_res.isEmpty()) {
@@ -236,5 +237,17 @@ public final class Query {
         }
         printUI(String.format("%30s\n", "-".repeat(30)));
 
+    }
+
+    public static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(Map<K, V> map) {
+
+        List<Map.Entry<K, V>> list = new ArrayList<>(map.entrySet());
+        list.sort(Map.Entry.comparingByValue());
+        Map<K, V> result = new LinkedHashMap<>();
+
+        for (Map.Entry<K, V> entry : list)
+            result.put(entry.getKey(), entry.getValue());
+
+        return result;
     }
 }

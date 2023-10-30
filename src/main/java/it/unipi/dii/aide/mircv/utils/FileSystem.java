@@ -87,15 +87,6 @@ public final class FileSystem {
                 }
             }
 
-            // Delete FLAGS_FILE if it exists
-            File flags = new File(FLAGS_FILE);
-            if (flags.exists()) {
-                FileUtils.delete(flags);
-                System.out.println("FLAGS_FILE deleted.");
-            } else {
-                System.out.println("FLAGS_FILE does not exist.");
-            }
-
         } catch (IOException e) {
             e.printStackTrace();
         }

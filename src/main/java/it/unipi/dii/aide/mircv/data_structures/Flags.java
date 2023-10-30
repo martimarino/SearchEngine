@@ -98,7 +98,7 @@ public final class Flags {
         return skip_flag;
     }
 
-    public static void setConsiderSkipInfo(boolean skip_flag) {
+    public static void setConsiderSkipElem(boolean skip_flag) {
         Flags.skip_flag = skip_flag;
     }
 

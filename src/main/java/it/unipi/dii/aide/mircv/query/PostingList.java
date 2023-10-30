@@ -8,6 +8,8 @@ import java.util.Iterator;
 
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readCompressedPostingListFromDisk;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.readPostingListFromDisk;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.docId_channel;
+import static it.unipi.dii.aide.mircv.utils.FileSystem.termFreq_channel;
 
 public class PostingList {
 
@@ -39,7 +41,7 @@ public class PostingList {
             if (Flags.isCompressionEnabled())
                 list = readCompressedPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getTermFreqSize(), de.getDocIdSize());
             else
-                list = readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf());
+                list = readPostingListFromDisk(de.getOffsetDocId(), de.getOffsetTermFreq(), de.getDf(), docId_channel, termFreq_channel);
         }
         assert list != null;
         this.postingIterator = list.iterator();
@@ -54,7 +56,7 @@ public class PostingList {
             currPosting = postingIterator.next();
         } else {
             // if there are other blocks
-            if (sl != null && sl.getSkipInfoIterator().hasNext() && firstPL) {
+            if (sl != null && sl.getSkipElemIterator().hasNext() && firstPL) {
                 sl.next();
                 SkipInfo si = sl.getCurrSkipInfo();
                 list.clear();
@@ -62,7 +64,7 @@ public class PostingList {
                 if (Flags.isCompressionEnabled())
                     list.addAll(readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), si.getTermFreqBlockLen(), si.getDocIdBlockLen()));
                 else
-                    list.addAll(readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), si.getDocIdBlockLen()));
+                    list.addAll(readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), si.getDocIdBlockLen(), docId_channel, termFreq_channel));
                 postingIterator = list.iterator();
                 currPosting = postingIterator.next();
             } else {
@@ -78,13 +80,13 @@ public class PostingList {
         boolean isNew = false;
 
         assert sl != null;
-        if (sl.getCurrSkipInfo() == null) {
+        if (sl.getCurrSkipElem() == null) {
             currPosting = null;
             return;
         }
 
         // if not in the right block
-        while (sl.getCurrSkipInfo().getMaxDocId() < targetDocId) { // search right block
+        while (sl.getCurrSkipElem().getMaxDocId() < targetDocId) { // search right block
             if (!sl.next()) {
                 currPosting = null;
                 return;
@@ -99,7 +101,7 @@ public class PostingList {
             if (Flags.isCompressionEnabled())
                 list = readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), si.getTermFreqBlockLen(), si.getDocIdBlockLen());
             else
-                list = readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), si.getDocIdBlockLen());
+                list = readPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), si.getDocIdBlockLen(), docId_channel, termFreq_channel);
 
             assert list != null;
             postingIterator = list.iterator();
@@ -161,4 +163,5 @@ public class PostingList {
     public void setMaxScore(double maxScore) {
         this.maxScore = maxScore;
     }
+
 }

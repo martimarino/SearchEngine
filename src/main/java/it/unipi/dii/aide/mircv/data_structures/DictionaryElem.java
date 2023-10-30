@@ -28,14 +28,14 @@ public class DictionaryElem {
     private long offsetDocId;   // starting point of the posting list of the term in the docid file
 
     // compression
-    private int docIdSize;  // dimension in byte of compressed docid of the posting list
-    private int termFreqSize; //dimension in byte of compressed termfreq of the posting list
+    private int docIdSize;      // dimension in byte of compressed docid of the posting list
+    private int termFreqSize;   //dimension in byte of compressed termfreq of the posting list
 
     private double idf;
 
     //skipping
-    private long skipOffset;    // offset of the skip element
-    private int skipArrLen;       // how many skip blocks
+    private long skipListOffset;      // offset of the skip element
+    private int skipListLen;       // how many skip blocks
 
     //scoring
     private double maxTFIDF;
@@ -48,8 +48,8 @@ public class DictionaryElem {
         this.term = "";
         this.docIdSize = 0;
         this.termFreqSize = 0;
-        this.skipOffset = -1;
-        this.skipArrLen = -1;
+        this.skipListOffset = -1;
+        this.skipListLen = -1;
         this.idf = 0;
         this.maxTFIDF = 0;
         this.maxBM25 = 0;
@@ -67,8 +67,8 @@ public class DictionaryElem {
         this.cf = 0;
         this.docIdSize = 0;
         this.termFreqSize = 0;
-        this.skipOffset = -1;
-        this.skipArrLen = -1;
+        this.skipListOffset = -1;
+        this.skipListLen = -1;
         this.idf = 0;
         this.maxTFIDF = 0;
         this.maxBM25 = 0;
@@ -130,13 +130,13 @@ public class DictionaryElem {
         this.termFreqSize = termFreqSize;
     }
 
-    public long getSkipOffset() { return skipOffset; }
+    public long getSkipListOffset() { return skipListOffset; }
 
-    public void setSkipOffset(long skipOffset) { this.skipOffset = skipOffset; }
+    public void setSkipListOffset(long skipOffset) { this.skipListOffset = skipOffset; }
 
-    public int getSkipArrLen() { return skipArrLen; }
+    public int getSkipListLen() { return skipListLen; }
 
-    public void setSkipArrLen(int skipArrLen) { this.skipArrLen = skipArrLen; }
+    public void setSkipListLen(int skipArrLen) { this.skipListLen = skipArrLen; }
 
     @Override
     public String toString() {
@@ -148,8 +148,8 @@ public class DictionaryElem {
                 ", offsetDocId=" + offsetDocId +
                 ", docIdSize=" + docIdSize +
                 ", termFreqSize=" + termFreqSize +
-                ", offsetSkip=" + skipOffset +
-                ", skipArrLen=" + skipArrLen +
+                ", offsetSkipList=" + skipListOffset +
+                ", skipListLen=" + skipListLen +
                 ", idf=" + idf +
                 ", maxBM25=" + maxBM25 +
                 ", maxTFIDF=" + maxTFIDF +
@@ -159,15 +159,12 @@ public class DictionaryElem {
     /**
      * function to store one dictionary elem into disk
      */
-    public void storeDictionaryElemIntoDisk(){
+    public void storeDictionaryElemIntoDisk(FileChannel channel){
 
         MappedByteBuffer buffer;
-        try {
-            if(!Flags.considerSkipInfo())
-                buffer = partialDict_channel.map(FileChannel.MapMode.READ_WRITE, partialDict_channel.size(), getDictElemSize());
-            else{
-                buffer = dict_channel.map(FileChannel.MapMode.READ_WRITE, dict_channel.size(), getDictElemSize());
-            }
+        try
+        {
+            buffer = channel.map(FileChannel.MapMode.READ_WRITE, channel.size(), getDictElemSize());
 
             // Buffer not created
             if (buffer == null)
@@ -190,8 +187,8 @@ public class DictionaryElem {
                     buffer.putInt(termFreqSize);
                     buffer.putInt(docIdSize);
                 }
-                buffer.putLong(skipOffset);
-                buffer.putInt(skipArrLen);
+                buffer.putLong(skipListOffset);
+                buffer.putInt(skipListLen);
                 buffer.putDouble(idf);
                 buffer.putDouble(maxBM25);
                 buffer.putDouble(maxTFIDF);
@@ -232,8 +229,8 @@ public class DictionaryElem {
             offsetTermFreq = buffer.getLong();     // read offset tf
             offsetDocId = buffer.getLong();        // read offset docid
             if(Flags.considerSkipInfo()) {
-                skipOffset = buffer.getLong();
-                skipArrLen = buffer.getInt();
+                skipListOffset = buffer.getLong();
+                skipListLen = buffer.getInt();
                 idf = buffer.getDouble();
             }
 
@@ -246,7 +243,9 @@ public class DictionaryElem {
     public void setIdf(double idf){
         this.idf = idf;
     }
+
     public double computeIdf() {return Math.log10(CollectionStatistics.getNDocs() / (double)this.df);}
+
     public double getMaxTFIDF() {
         return maxTFIDF;
     }

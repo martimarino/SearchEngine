@@ -13,7 +13,7 @@ import static it.unipi.dii.aide.mircv.utils.Constants.printTime;
 public class Test {
     public static void main(String[] args){
 
-        Flags.setConsiderSkipInfo(true);
+        Flags.setConsiderSkipElem(true);
         queryStartControl();
         Scanner sc = new Scanner(System.in);
 

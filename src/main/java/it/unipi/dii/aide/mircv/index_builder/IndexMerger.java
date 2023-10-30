@@ -23,8 +23,7 @@ public final class IndexMerger {
 
     // Priority queue which will contain the first term (in lexicographic order) of each block. Used for merge and to
     // take from all the blocks the terms in the right order.
-    private static final PriorityQueue<TermBlock> pq = new PriorityQueue<>(dictionaryBlockOffsets.isEmpty() ? 1 : dictionaryBlockOffsets.size(), new CompareTerm());
-    public static final HashMap<Integer, DocumentElement> documentTable = new HashMap<>();     // hash table DocID to related DocElement
+    private static PriorityQueue<TermBlock> pq = new PriorityQueue<>(dictionaryBlockOffsets.isEmpty() ? 1 : dictionaryBlockOffsets.size(), new CompareTerm());
 
     private IndexMerger() {
         throw new UnsupportedOperationException();
@@ -45,33 +44,20 @@ public final class IndexMerger {
 
         // open file and create channels for reading the partial dictionary and index file and write the complete index and dictionary file
         try (
-                // open partial files to read the partial dictionary and index
-                RandomAccessFile partialDocidFile = new RandomAccessFile(PARTIAL_DOCID_FILE, "rw");
-                RandomAccessFile partialTermfreqFile = new RandomAccessFile(PARTIAL_TERMFREQ_FILE, "rw");
-                RandomAccessFile partialDictFile = new RandomAccessFile(PARTIAL_DICTIONARY_FILE, "rw");
-                RandomAccessFile documentTableFile = new RandomAccessFile(DOCTABLE_FILE, "rw");
-
-                RandomAccessFile blocksFile = new RandomAccessFile(BLOCKOFFSETS_FILE, "rw");
                 // open complete files to write the merged dictionary and merged index
                 RandomAccessFile docidFile = new RandomAccessFile(DOCID_FILE, "rw");
                 RandomAccessFile termfreqFile = new RandomAccessFile(TERMFREQ_FILE, "rw");
                 RandomAccessFile dictFile = new RandomAccessFile(DICTIONARY_FILE, "rw");
                 // open skipping file
                 RandomAccessFile skipFile = new RandomAccessFile(SKIP_FILE, "rw")
-        ) {
-            // FileChannel in input (partial file)
-            partialDict_channel = partialDictFile.getChannel();
-            partialDocId_channel = partialDocidFile.getChannel();
-            partialTermFreq_channel = partialTermfreqFile.getChannel();
-            docTable_channel = documentTableFile.getChannel();
-            blocks_channel = blocksFile.getChannel();
+        ){
+
             // FileChannel in output (complete file)
             dict_channel = dictFile.getChannel();
             docId_channel = docidFile.getChannel();
             termFreq_channel = termfreqFile.getChannel();
             // FileChannel in output (skipping)
             skip_channel = skipFile.getChannel();
-
 
             System.out.println("\nMerging partial files...");                     // print of the merging start
 
@@ -81,8 +67,7 @@ public final class IndexMerger {
             // array containing the current read offset for each block
             ArrayList<Long> currentBlockOffset = new ArrayList<>(nrBlocks);
             currentBlockOffset.addAll(dictionaryBlockOffsets);
-            readDocumentTableFromDisk(true);
-
+            readDocumentTableFromDisk();
             // var which indicates the steps of 'i' progression print during merge
             System.out.println("Compression " + Flags.isCompressionEnabled());
 
@@ -171,7 +156,7 @@ public final class IndexMerger {
 
     private static void writeOnDisk() throws IOException {
 
-        Flags.setConsiderSkipInfo(true);
+        Flags.setConsiderSkipElem(true);
         tempDE.setIdf(tempDE.computeIdf());
 
         if (Flags.isDebug_flag()) {
@@ -191,7 +176,7 @@ public final class IndexMerger {
             int skipInterval = (int) Math.ceil(Math.sqrt(lenPL));        // one skip every sqrt(docs)
             int nSkip = 0;
 
-            tempDE.setSkipOffset(skip_channel.size());
+            tempDE.setSkipListOffset(skip_channel.size());
 
             for(int i = 0; i < lenPL; i += skipInterval) {
                 List<Posting> subPL = tempPL.subList(i, min(i + skipInterval, lenPL));
@@ -209,7 +194,7 @@ public final class IndexMerger {
                     tempCompressedLength[1] += compressedLength[1]; //docid
                     sp.setTermFreqBlockLen(compressedLength[0]);
                     sp.setDocIdBlockLen(compressedLength[1]);
-                    sp.storeSkipInfoToDisk();
+                    sp.storeSkipElemToDisk();
                 } else {
                     SkipInfo sp = new SkipInfo(tempSubPL.get(tempSubPL.size()-1).getDocId(), docId_channel.size(), termFreq_channel.size(), tempSubPL.size(), tempSubPL.size());
                     sp.storeSkipInfoToDisk();
@@ -220,7 +205,7 @@ public final class IndexMerger {
                 }
                 nSkip++;
             }
-            tempDE.setSkipArrLen(nSkip);
+            tempDE.setSkipListLen(nSkip);
 
             if(Flags.isCompressionEnabled()) {
                 tempDE.setTermFreqSize(tempCompressedLength[0]);
@@ -242,9 +227,9 @@ public final class IndexMerger {
                 tempDE.setMaxTFIDF(score[1]);
             }
         }
-        tempDE.storeDictionaryElemIntoDisk();
+        tempDE.storeDictionaryElemIntoDisk(dict_channel);
         termCounter++;
-        Flags.setConsiderSkipInfo(false);
+        Flags.setConsiderSkipElem(false);
 
     }
 

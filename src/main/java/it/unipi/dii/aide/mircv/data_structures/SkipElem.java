@@ -41,7 +41,7 @@ public class SkipInfo {
     }
 
 
-    public void storeSkipInfoToDisk() throws IOException {
+    public void storeSkipElemToDisk() throws IOException {
 
         MappedByteBuffer skipPointsBuffer = skip_channel.map(FileChannel.MapMode.READ_WRITE, skip_channel.size(), SKIPPING_INFO_SIZE);
 
@@ -55,7 +55,7 @@ public class SkipInfo {
 
     @Override
     public String toString() {
-        return "SkipInfo{" +
+        return "SkipElem{" +
                 "maxDocId=" + maxDocId +
                 ", docIdOffset=" + docIdOffset +
                 ", freqOffset=" + freqOffset +

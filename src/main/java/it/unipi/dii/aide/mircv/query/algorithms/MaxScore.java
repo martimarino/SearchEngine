@@ -1,7 +1,6 @@
 package it.unipi.dii.aide.mircv.query.algorithms;
 import it.unipi.dii.aide.mircv.query.*;
 
-import java.io.IOException;
 import java.util.*;
 
 import static it.unipi.dii.aide.mircv.query.Query.*;
@@ -14,7 +13,7 @@ public class MaxScore {
      **/
     public static PriorityQueue<ResultBlock> computeMaxScore() {
 
-        PriorityQueue<ResultBlock> resultQueue = new PriorityQueue<>(k,new ResultBlock.CompareRes());
+        PriorityQueue<ResultBlock> resultQueue = new PriorityQueue<>(k,new ResultBlock.CompareResInc());
         ArrayList<Double> ub = new ArrayList<>();
 
         int n;
@@ -23,17 +22,17 @@ public class MaxScore {
         int next;
         int pivot = 0;
 
-        n = p.size();
+        n = ordered_PostingLists.size();
 
         //compute the upperbound for each query term
-        ub.add(0, p.get(0).getMaxScore());
+        ub.add(0, ordered_PostingLists.get(0).getMaxScore());
 
         for(int i = 1; i < n; i++)
         {
-            ub.add(i, ub.get(i-1) + p.get(i).getMaxScore()); // each uppebound is given by the maxscore of the previous ones
+            ub.add(i, ub.get(i-1) + ordered_PostingLists.get(i).getMaxScore()); // each uppebound is given by the maxscore of the previous ones
         }
 
-        int current = minDocID(p);
+        int current = minDocID(ordered_PostingLists);
 
         while(pivot < n && current != -1){
             score = 0;
@@ -42,17 +41,17 @@ public class MaxScore {
             for(int i = pivot; i < n; i++)
             {
                 //if the i-th posting list has no scanned postings and the docid of the current posting is the current one to consider, the score is updated
-                if( (p.get(i).getCurrPosting() != null) && p.get(i).getCurrPosting().getDocId() == current)
+                if( (ordered_PostingLists.get(i).getCurrPosting() != null) && ordered_PostingLists.get(i).getCurrPosting().getDocId() == current)
                 {
-                    score = score + computeScore(p.get(i).getIdf(), p.get(i).getCurrPosting());
-                    p.get(i).next(true); // get the next posting in the posting list, if posting list ended the current posting is set to null
+                    score = score + computeScore(ordered_PostingLists.get(i).getIdf(), ordered_PostingLists.get(i).getCurrPosting());
+                    ordered_PostingLists.get(i).next(true); // get the next posting in the posting list, if posting list ended the current posting is set to null
 
-                    if(p.get(i).getCurrPosting() == null)
+                    if(ordered_PostingLists.get(i).getCurrPosting() == null)
                         continue;
                 }
                 // next is the next docid of the current postings among all the posting lists
-                if((p.get(i).getCurrPosting() != null) && p.get(i).getCurrPosting().getDocId() < next)
-                    next = p.get(i).getCurrPosting().getDocId();
+                if((ordered_PostingLists.get(i).getCurrPosting() != null) && (ordered_PostingLists.get(i).getCurrPosting().getDocId() < next))
+                    next = ordered_PostingLists.get(i).getCurrPosting().getDocId();
             }
             //non essential postings
             for(int i = pivot - 1; i > 0; i--)
@@ -62,14 +61,14 @@ public class MaxScore {
                     break;
 
                 //it is peak as current element of the posting list the one with docid >= current
-                if(p.get(i).getSl() != null)
-                    p.get(i).nextGEQ(current, true);
+                if(ordered_PostingLists.get(i).getSl() != null)
+                    ordered_PostingLists.get(i).nextGEQ(current, true);
 
-                if(p.get(i).getCurrPosting() == null)
+                if(ordered_PostingLists.get(i).getCurrPosting() == null)
                     continue;
 
-                if((p.get(i).getCurrPosting() != null) && (p.get(i).getCurrPosting().getDocId() == current))
-                    score = score + computeScore(p.get(i).getIdf(), p.get(i).getCurrPosting());
+                if((ordered_PostingLists.get(i).getCurrPosting() != null) && (ordered_PostingLists.get(i).getCurrPosting().getDocId() == current))
+                    score = score + computeScore(ordered_PostingLists.get(i).getIdf(), ordered_PostingLists.get(i).getCurrPosting());
             }
 
             //if the queue has not reached the maximum capacity k, every pair docid,score is put inside the queue

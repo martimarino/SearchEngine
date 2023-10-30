@@ -95,8 +95,8 @@ public class Dictionary {
                     dictElem.setTermFreqSize(buffer.getInt());
                     dictElem.setDocIdSize(buffer.getInt());
                 }
-                dictElem.setSkipOffset(buffer.getLong());
-                dictElem.setSkipArrLen(buffer.getInt());
+                dictElem.setSkipListOffset(buffer.getLong());
+                dictElem.setSkipListLen(buffer.getInt());
                 dictElem.setIdf(buffer.getDouble());
                 dictElem.setMaxBM25(buffer.getDouble());
                 dictElem.setMaxTFIDF(buffer.getDouble());

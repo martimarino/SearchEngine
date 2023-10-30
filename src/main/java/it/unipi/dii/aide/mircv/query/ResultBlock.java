@@ -38,7 +38,7 @@ public class ResultBlock {
     }
 
 
-    public static class CompareRes implements Comparator<ResultBlock> {
+    public static class CompareResInc implements Comparator<ResultBlock> {
         @Override
         public int compare(ResultBlock pb1, ResultBlock pb2) {
 
@@ -51,7 +51,7 @@ public class ResultBlock {
         }
     }
 
-    public static class CompareResInverse implements Comparator<ResultBlock> {
+    public static class CompareResDec implements Comparator<ResultBlock> {
         @Override
         public int compare(ResultBlock pb1, ResultBlock pb2) {
 
