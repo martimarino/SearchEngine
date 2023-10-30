@@ -29,7 +29,7 @@ public class IndexBuilder {
         // Do SPIMI Algorithm
         System.out.println("\nIndexing...");
         startTime = System.currentTimeMillis();         // start time to SPIMI Algorithm
-        PartialIndexBuilder.SPIMIalgorithm();          // do SPIMI
+        PartialIndexBuilder.SPIMI();          // do SPIMI
         endTime = System.currentTimeMillis();           // end time of SPIMI algorithm
         printTime("\nSPIMI Algorithm done in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
 

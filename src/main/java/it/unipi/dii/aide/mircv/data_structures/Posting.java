@@ -5,9 +5,6 @@ public class Posting {
     private final int docId;    // DocID (recommended delta code compression)
     private int termFreq;       // frequency of the term in the document(recommended unary code compression)
 
-    private double maxTFIDF;
-
-    private double maxBM25;
 
     /**
      * Create a posting with a specified document ID.

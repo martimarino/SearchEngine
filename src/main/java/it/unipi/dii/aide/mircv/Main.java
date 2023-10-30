@@ -63,7 +63,7 @@ public class Main {
     }
 
     /**
-     * fucntion to get the choise of the user for options, the options are pass
+     * function to get the choice of the user for options, the options are pass
      *
      * @param sc     scanner to get the choice of the user inserted via keyboard
      * @param option options passed by parameter

@@ -19,20 +19,17 @@ public final class Constants {
     public static final String PARTIAL_DOCID_FILE = PARTIAL_FOLDER + "partial_docId";  // file containing the docId (element of posting list) for each block
     public static final String PARTIAL_TERMFREQ_FILE = PARTIAL_FOLDER + "partial_termFreq";   // file containing the TermFrequency (element of posting list) for each block
 
+    public static final String BLOCKOFFSETS_FILE = PARTIAL_FOLDER + "blocks"; // file containing the offset of each vocabulary block
+
     public static final String DOCTABLE_FILE = MERGED_FOLDER + "documentTable"; // file in which is stored the document table
     public static final String DICTIONARY_FILE = MERGED_FOLDER + "dictionary"; // file in which is stored the dictionary
     public static final String DOCID_FILE = MERGED_FOLDER + "docId";   // file containing the docId of the InvertedIndex merged
     public static final String TERMFREQ_FILE = MERGED_FOLDER + "termFreq";   // file containing the termFreq of the InvertedIndex merged
-
-    public static final String BLOCKOFFSETS_FILE = PARTIAL_FOLDER + "blocks"; // file containing the offset of each vocabulary block
-    public static final String FLAGS_FILE = RES_FOLDER + "flags"; // file in which flags are stored
-    public static final String STATS_FILE = RES_FOLDER + "collectionStatistics"; // file in which collection statistics are stored
-
+    public static final String FLAGS_FILE = MERGED_FOLDER + "flags"; // file in which flags are stored
+    public static final String STATS_FILE = MERGED_FOLDER + "collectionStatistics"; // file in which collection statistics are stored
     public static final String SKIP_FILE = MERGED_FOLDER + "skipInfo";
 
     // -------------------------------- Constants for variable bytes -------------------------------------------
-
-    public static final int DOUBLE_BYTES = Double.BYTES;
 
     public static final int TERM_DIM = 20;                      // Length of a term (in bytes)
 

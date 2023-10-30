@@ -37,18 +37,10 @@ public class DocumentElement {
         return doclength;
     }
 
-    public void setDoclength(int doclength) {
-        this.doclength = doclength;
-    }
-
     public String getDocno() {
         return docno;
     }
-
-    public void setDocno(String docno) {
-        this.docno = docno;
-    }
-
+    
     public int getDocid() {
         return docid;
     }

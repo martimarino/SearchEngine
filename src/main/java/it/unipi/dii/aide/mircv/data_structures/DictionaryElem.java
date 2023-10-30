@@ -18,8 +18,7 @@ public class DictionaryElem {
         // if compression case, need to store 2 more integers (dimension of compressed DocID and Term Frequency values)
         int DICT_ELEM_SIZE = TERM_DIM + 2*Integer.BYTES + 2*Long.BYTES;
         return DICT_ELEM_SIZE + ((Flags.considerSkipInfo() && Flags.isCompressionEnabled()) ? 2*Integer.BYTES : 0)
-                              + ((Flags.considerSkipInfo()) ? (2*Long.BYTES + Integer.BYTES) : 0)
-                                + ((Flags.considerSkipInfo()) ? (2*Long.BYTES) : 0);
+                              + ((Flags.considerSkipInfo()) ? (4*Long.BYTES + Integer.BYTES) : 0);
     }
 
     private String term;        //32 byte

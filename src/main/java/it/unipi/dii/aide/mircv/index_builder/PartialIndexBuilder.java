@@ -30,7 +30,7 @@ public final class PartialIndexBuilder {
     /**
      * Implements the SPIMI algorithm for indexing large collections.
      */
-    public static void SPIMIalgorithm() {
+    public static void SPIMI() {
 
         long memoryAvailable = (long) (Runtime.getRuntime().maxMemory() * MEMORY_THRESHOLD);
         int docCounter = 1;         // counter for DocID
