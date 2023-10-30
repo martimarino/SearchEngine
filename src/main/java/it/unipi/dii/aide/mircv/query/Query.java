@@ -30,8 +30,6 @@ public final class Query {
     public static boolean tfidf_bm25; // (false = TFIDF or true = BM25)
     public static boolean daat_maxscore; // (false = DAAT, true = MaxScore)
 
-    static PriorityQueue<DAATBlock> pq_DAAT;    // used during DAAT algorithm
-    static HashMap<String, PostingList> term_pl = new HashMap<>();
     static HashMap<Integer, Integer> index_len = new HashMap<>();
 
     //------------------ //
@@ -39,7 +37,6 @@ public final class Query {
     public static final ArrayList<PostingList> p = new ArrayList<>(); // ordered posting lists for increasing score
     public static final ArrayList<PostingList> postingLists = new ArrayList<>(); // contains the posting lists of the query terms
     public static PriorityQueue<ResultBlock> pq_res;   // contains results (increasing)
-    public static PriorityQueue<ResultBlock> inverse_pq_res;  // contains results (decreasing)
 
     public Query()  { throw new UnsupportedOperationException(); }
 
@@ -140,9 +137,9 @@ public final class Query {
             int index = 0;
             for (String t : query) {
                 DictionaryElem de = dictionary.getTermStat(t);
-                if (de == null) {
+                if (de == null)
                     continue;
-                }
+
                 PostingList pl = new PostingList(de);
                 if(daat_maxscore)
                 {
