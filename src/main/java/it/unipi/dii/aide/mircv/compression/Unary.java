@@ -24,7 +24,6 @@ public class Unary {
         int bitToWrite = 7; //start from most significant bit
 
         for (int num : termFreqToCompress) {
-            //System.out.println("num: " + num);
             for (int j = 0; j < num - 1; j++) {
                 //set correspondent bit to 1 using OR bit a bit
                 compressedResult[byteToWrite] = (byte) (compressedResult[byteToWrite] | (1 << bitToWrite));
@@ -46,12 +45,6 @@ public class Unary {
             }
 
         }
-/*
-        for (byte b : compressedResult) {
-           System.out.print(Integer.toBinaryString(b & 0xFF) + " ");
-        }*/
-        //unaryToInt(compressedResult);
-        //integerArrayDecompression(compressedResult, 3);
         return compressedResult;
 
     }

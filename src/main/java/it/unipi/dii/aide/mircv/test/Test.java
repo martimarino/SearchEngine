@@ -22,16 +22,16 @@ public class Test {
             int nQuery = 0;
             String filename = "src/main/resources/performance/";
             String message = "Select Conjunctive (c) or Disjunctive (d)";
-            boolean type = getUserInput(sc, message, "c", "d");
+            String type = getUserInput(sc, message, "c", "d");
             message = "Select scoring type between bm25 (b) and tfidf (t):";
-            boolean score = getUserInput(sc, message, "bm25", "tfidf");
-            boolean algorithm = false;
-            if(!type) {
+            String score = getUserInput(sc, message, "bm25", "tfidf");
+            String algorithm = " ";
+            if(type.equals("d")) {
                 message = "Select algorithm type between maxscore (m) or daat (d) :";
                 algorithm = getUserInput(sc, message, "maxscore", "daat");
             }
             int nResults = getNumberOfResults(sc);
-            filename += (type ? "conj" : "disj") + "_" + (score ? "bm25" : "tfidf") + "_" + (!type ? (algorithm ? "maxscore" : "daat") : "") + "_" + (Flags.isSwsEnabled() ? "nostopwords" : "")+ ".txt";
+            filename += (type.equals("c") ? "conj" : "disj") + "_" + (score.equals("b") ? "bm25" : "tfidf") + "_" + (type.equals("d") ? (algorithm.equals("m") ? "maxscore" : "daat") : "") + "_" + (Flags.isSwsEnabled() ? "nostopwords" : "")+ ".txt";
             try (BufferedReader TSVReader = new BufferedReader(new FileReader("src/main/resources/msmarco-test2020-queries.tsv"))) {
                 String line = null;
                 while ((line = TSVReader.readLine()) != null) {

@@ -54,7 +54,7 @@ public class TestConjunctive {
             while ((line = TSVReader.readLine()) != null) {
                 String query = line.split("\t")[1]; //splitting the line and adding its items in String[]
                 startTime = System.currentTimeMillis();
-                Query.executeQuery(query, 10, true, false, false);
+                Query.executeQuery(query, 10, "c", "t", "d");
                 endTime = System.currentTimeMillis();
                 avgTime += (int) (endTime - startTime);
                 String time = "query = \"" + query + " \"" + " -> " + (endTime - startTime) + " ms";

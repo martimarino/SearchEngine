@@ -19,7 +19,7 @@ aswering to the questions displayed by the command line interface.
 -  docid
 -  termFreq
 -  documentTable
--  skipInfo
+-  skipElem
 - collectionStatistics
 - flags
   

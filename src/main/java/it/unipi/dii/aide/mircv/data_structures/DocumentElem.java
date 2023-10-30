@@ -1,13 +1,12 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 
-public class DocumentElement {
+public class DocumentElem {
 
     public static final int DOCNO_DIM = 10;                     // Length of docno (in bytes)
     public final static int DOCELEM_SIZE = 4 + DOCNO_DIM + 4;   // Size in bytes of docid, docno, and doclength
@@ -18,13 +17,13 @@ public class DocumentElement {
     private int doclength;
 
 
-    public DocumentElement(String docno, int docid, int doclength) {
+    public DocumentElem(String docno, int docid, int doclength) {
         this.docno = docno;
         this.doclength = doclength;
         this.docid = docid;
     }
 
-    public DocumentElement() {
+    public DocumentElem() {
         this.docno = "";
         this.docid = 0;
         this.doclength = 0;

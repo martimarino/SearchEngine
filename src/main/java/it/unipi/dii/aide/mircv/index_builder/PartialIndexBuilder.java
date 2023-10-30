@@ -19,14 +19,6 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 public final class PartialIndexBuilder {
 
-    public static final HashMap<Integer, DocumentElement> documentTable = new HashMap<>();     // hash table DocID to related DocElement
-    public static final Dictionary dictionary = new Dictionary();                              // dictionary in memory
-    public static final HashMap<String, ArrayList<Posting>> invertedIndex = new HashMap<>();   // hash table Term to related Posting list
-
-    public static final ArrayList<Long> dictionaryBlockOffsets = new ArrayList<>();                         // Offsets of the dictionary blocks
-
-//    static ArrayList<String> termList = new ArrayList<>();
-
     /**
      * Implements the SPIMI algorithm for indexing large collections.
      */
@@ -68,7 +60,7 @@ public final class PartialIndexBuilder {
                 if (preprocessed.isEmpty() || (preprocessed.size() == 1 && preprocessed.get(0).isEmpty()))
                     continue;
 
-                DocumentElement de = new DocumentElement(docno, docCounter, preprocessed.size());
+                DocumentElem de = new DocumentElem(docno, docCounter, preprocessed.size());
                 documentTable.put(docCounter, de);      // add current Doc into Document Table in memory
                 totDocLen += preprocessed.size();       // add current document length
 

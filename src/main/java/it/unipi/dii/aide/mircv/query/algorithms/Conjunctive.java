@@ -1,10 +1,12 @@
-package it.unipi.dii.aide.mircv.query;
+package it.unipi.dii.aide.mircv.query.algorithms;
 
 import it.unipi.dii.aide.mircv.data_structures.*;
-import it.unipi.dii.aide.mircv.query.scores.Score;
+import it.unipi.dii.aide.mircv.query.PostingList;
+import it.unipi.dii.aide.mircv.query.ResultBlock;
 
 import java.util.*;
 
+import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.dictionary;
 import static it.unipi.dii.aide.mircv.query.Query.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.printDebug;
 

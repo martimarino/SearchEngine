@@ -6,7 +6,7 @@ import java.nio.channels.FileChannel;
 
 import static it.unipi.dii.aide.mircv.utils.FileSystem.skip_channel;
 
-public class SkipInfo {
+public class SkipElem {
 
     public static final int SKIPPING_INFO_SIZE = 3 * Long.BYTES + 2 * Integer.BYTES;
 
@@ -16,11 +16,11 @@ public class SkipInfo {
     private int docIdBlockLen;      // docid block len
     private int termFreqBlockLen;   // termFreq block len
 
-    public SkipInfo() {
+    public SkipElem() {
 
     }
 
-    public SkipInfo(long maxDocId, long docIdOffset, long freqOffset, int termFreqBlockLen, int docIdBlockLen) {
+    public SkipElem(long maxDocId, long docIdOffset, long freqOffset, int termFreqBlockLen, int docIdBlockLen) {
         this.maxDocId = maxDocId;
         this.docIdOffset = docIdOffset;
         this.freqOffset = freqOffset;

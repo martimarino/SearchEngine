@@ -28,14 +28,14 @@ public class PostingList {
         this.term = de.getTerm();
         len = de.getDf();
         //System.out.println("term: " + term);
-        if (de.getSkipArrLen() > 0) {   // if there are skipping blocks read partial postings of the first block
-            sl = new SkipList(de.getSkipOffset(), de.getSkipArrLen());
-            SkipInfo skipInfo = sl.getCurrSkipInfo();
+        if (de.getSkipListLen() > 0) {   // if there are skipping blocks read partial postings of the first block
+            sl = new SkipList(de.getSkipListOffset(), de.getSkipListLen());
+            SkipElem skipElem = sl.getCurrSkipElem();
 
             if (Flags.isCompressionEnabled())
-                list = readCompressedPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), skipInfo.getTermFreqBlockLen(), skipInfo.getDocIdBlockLen());
+                list = readCompressedPostingListFromDisk(skipElem.getDocIdOffset(), skipElem.getFreqOffset(), skipElem.getTermFreqBlockLen(), skipElem.getDocIdBlockLen());
             else
-                list = readPostingListFromDisk(skipInfo.getDocIdOffset(), skipInfo.getFreqOffset(), skipInfo.getDocIdBlockLen());
+                list = readPostingListFromDisk(skipElem.getDocIdOffset(), skipElem.getFreqOffset(), skipElem.getDocIdBlockLen(), docId_channel, termFreq_channel);
         } else {    // read all postings
 
             if (Flags.isCompressionEnabled())
@@ -58,7 +58,7 @@ public class PostingList {
             // if there are other blocks
             if (sl != null && sl.getSkipElemIterator().hasNext() && firstPL) {
                 sl.next();
-                SkipInfo si = sl.getCurrSkipInfo();
+                SkipElem si = sl.getCurrSkipElem();
                 list.clear();
                 System.out.println("term: " + term);
                 if (Flags.isCompressionEnabled())
@@ -96,7 +96,7 @@ public class PostingList {
         if(isNew)
         {
             list.clear();
-            SkipInfo si = sl.getCurrSkipInfo();
+            SkipElem si = sl.getCurrSkipElem();
 
             if (Flags.isCompressionEnabled())
                 list = readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), si.getTermFreqBlockLen(), si.getDocIdBlockLen());

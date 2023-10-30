@@ -1,7 +1,6 @@
 package it.unipi.dii.aide.mircv;
 
 import it.unipi.dii.aide.mircv.data_structures.Flags;
-import it.unipi.dii.aide.mircv.index_builder.IndexBuilder;
 import it.unipi.dii.aide.mircv.query.Query;
 
 import java.io.IOException;
@@ -20,44 +19,38 @@ public class Main {
 
         printUI("\n++++++++++++  SEARCH ENGINE  ++++++++++++\n");
 
-        // while constituting the user interface
-        //String mode = sc.nextLine();        // take user's choice
-        if (indexOrQuery()) { //no index file, create index option
-            IndexBuilder.buildInvertedIndex();
-        } else  //index file already present, query option
-        {
-            printUI("Index already present, query mode\n");
-            while (true) {
-                Flags.setConsiderSkipInfo(true);
+        Flags.setConsiderSkipElem(true);
 
-                if (!Query.queryStartControl())
-                    continue;
+        if (!Query.queryStartControl())
+            return;
 
-                printUI("\nInsert query (or press x to exit):");
-                String q = sc.nextLine();           // take user's query
+        while (true) {
 
-                if (q == null || q.isEmpty()) {
-                    printError("Error: the query is empty. Please, retry.");
-                    continue;                           // go next while iteration
-                }
+            printUI("\nInsert query (or press x to exit):");
+            String q = sc.nextLine();           // take user's query
 
-                if (q.equals("x"))
-                    return;
-
-                String message = "Select Conjunctive (c) or Disjunctive (d)";
-                boolean type = getUserInput(sc, message, "c", "d");
-                message = "Select scoring type between bm25 (b) and tfidf (t):";
-                boolean score = getUserInput(sc, message, "b", "t");
-                boolean algorithm = false;
-                if (!type) {
-                    message = "Select algorithm type between Max score (m) or DAAT (d) :";
-                    algorithm = getUserInput(sc, message, "m", "d");
-                }
-                int nResults = getNumberOfResults(sc);
-                Query.executeQuery(q, nResults, type, score, algorithm);
-                closeChannels();
+            if (q == null || q.isEmpty()) {
+                printError("Error: the query is empty. Please, retry.");
+                continue;                           // go next while iteration
             }
+
+            if (q.equals("x"))
+                return;
+
+            String message = "Select Conjunctive (c) or Disjunctive (d)";
+            String type = getUserInput(sc, message, "c", "d");
+            message = "Select scoring type between bm25 (b) and tfidf (t):";
+            String score = getUserInput(sc, message, "b", "t");
+            String algorithm = " ";
+            if (type.equals("d")) {
+                message = "Select algorithm type between Max score (m) or DAAT (d) :";
+                algorithm = getUserInput(sc, message, "m", "d");
+            }
+            int nResults = getNumberOfResults(sc);
+            Query.executeQuery(q, nResults, type, score, algorithm);
+            closeChannels();
         }
+
     }
 
     /**
@@ -87,14 +80,14 @@ public class Main {
         }
     }
 
-    public static boolean getUserInput(Scanner sc, String message, String option1, String option2){
+    public static String getUserInput(Scanner sc, String message, String option1, String option2){
         while(true){
             printUI(message);
             String text = sc.nextLine().toLowerCase().trim();
             if(text.equals(option1))
-                return true;
+                return option1;
             if(text.equals(option2))
-                return false;
+                return option2;
         }
     }
 

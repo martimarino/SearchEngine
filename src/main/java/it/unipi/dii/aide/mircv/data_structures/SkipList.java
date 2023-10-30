@@ -7,17 +7,16 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import static it.unipi.dii.aide.mircv.data_structures.SkipInfo.SKIPPING_INFO_SIZE;
+import static it.unipi.dii.aide.mircv.data_structures.SkipElem.SKIPPING_INFO_SIZE;
 import static it.unipi.dii.aide.mircv.utils.Constants.SKIP_FILE;
-import static it.unipi.dii.aide.mircv.utils.Constants.printDebug;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.skip_channel;
 
 public class SkipList {
 
-    private final ArrayList<SkipInfo> arr_skipInfo;
-    private final Iterator<SkipInfo> skipInfoIterator;
+    private final ArrayList<SkipElem> arr_skipElem;
+    private final Iterator<SkipElem> skipElemIterator;
 
-    private SkipInfo currSkipInfo;
+    private SkipElem currSkipElem;
 
     private double maxTFIDF;
     private double maxBM25;
@@ -30,38 +29,38 @@ public class SkipList {
             skip_channel = skipFile.getChannel();
             MappedByteBuffer skipPointsBuffer = skip_channel.map(FileChannel.MapMode.READ_ONLY, offset , SKIPPING_INFO_SIZE + (long) nSkipBlocks * SKIPPING_INFO_SIZE);
 
-            this.arr_skipInfo = new ArrayList<>();
+            this.arr_skipElem = new ArrayList<>();
 
             for (int i = 0; i < nSkipBlocks; i++) {
-                SkipInfo skipInfo = new SkipInfo();
-                skipInfo.setMaxDocId(skipPointsBuffer.getLong());
-                skipInfo.setDocIdOffset(skipPointsBuffer.getLong());
-                skipInfo.setFreqOffset(skipPointsBuffer.getLong());
-                skipInfo.setDocIdBlockLen(skipPointsBuffer.getInt());
-                skipInfo.setTermFreqBlockLen(skipPointsBuffer.getInt());
-                arr_skipInfo.add(skipInfo);
+                SkipElem skipElem = new SkipElem();
+                skipElem.setMaxDocId(skipPointsBuffer.getLong());
+                skipElem.setDocIdOffset(skipPointsBuffer.getLong());
+                skipElem.setFreqOffset(skipPointsBuffer.getLong());
+                skipElem.setDocIdBlockLen(skipPointsBuffer.getInt());
+                skipElem.setTermFreqBlockLen(skipPointsBuffer.getInt());
+                arr_skipElem.add(skipElem);
             }
-            this.skipInfoIterator = arr_skipInfo.iterator();
-            currSkipInfo = skipInfoIterator.next();
+            this.skipElemIterator = arr_skipElem.iterator();
+            currSkipElem = skipElemIterator.next();
         }
     }
 
     public boolean next() {
 
-        if(skipInfoIterator.hasNext()) {
-            currSkipInfo = skipInfoIterator.next();
+        if(skipElemIterator.hasNext()) {
+            currSkipElem = skipElemIterator.next();
             return true;
         }
-        currSkipInfo = null;
+        currSkipElem = null;
         return false;
     }
 
-    public SkipInfo getCurrSkipInfo() {
-        return currSkipInfo;
+    public SkipElem getCurrSkipElem() {
+        return currSkipElem;
     }
 
-    public Iterator<SkipInfo> getSkipInfoIterator() {
-        return skipInfoIterator;
+    public Iterator<SkipElem> getSkipElemIterator() {
+        return skipElemIterator;
     }
 
     public double getMaxTFIDF() {

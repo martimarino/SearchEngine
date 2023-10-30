@@ -1,9 +1,6 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
 import it.unipi.dii.aide.mircv.compression.Unary;
-import it.unipi.dii.aide.mircv.index_builder.IndexMerger;
-import it.unipi.dii.aide.mircv.index_builder.PartialIndexBuilder;
-import it.unipi.dii.aide.mircv.query.Query;
 import it.unipi.dii.aide.mircv.compression.VariableBytes;
 import it.unipi.dii.aide.mircv.query.scores.Score;
 
@@ -145,7 +142,7 @@ public final class DataStructureHandler {
                     debug_docid.append(posting.getDocId()).append( ", ");
                 }
 
-                currentScoreBM25 = Score.computeBM25(idf, posting, true);
+                currentScoreBM25 = Score.computeBM25(idf, posting);
                 currentScoreTFIDF = Score.computeTFIDF(idf, posting);
 
                 if(currentScoreBM25 > scoreBM25)
@@ -181,12 +178,9 @@ public final class DataStructureHandler {
 
             // for to read all DocumentElement stored into disk
             for (int i = 0; i < docTable_channel.size(); i += DOCELEM_SIZE) {
-                DocumentElement de = new DocumentElement();
+                DocumentElem de = new DocumentElem();
                 de.readDocumentElementFromDisk(i, docTable_channel); // get the ith DocElem
-                if(indexBuilding)
-                    IndexMerger.documentTable.put(de.getDocid(), de);
-                else
-                    Query.documentTable.put(de.getDocid(), de);
+                documentTable.put(de.getDocid(), de);
             }
 
         }catch (IOException ioe) {

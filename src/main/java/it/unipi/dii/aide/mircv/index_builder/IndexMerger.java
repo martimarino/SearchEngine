@@ -10,7 +10,6 @@ import java.util.*;
 
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.*;
 import static it.unipi.dii.aide.mircv.data_structures.DictionaryElem.getDictElemSize;
-import static it.unipi.dii.aide.mircv.index_builder.PartialIndexBuilder.dictionaryBlockOffsets;
 import static it.unipi.dii.aide.mircv.query.scores.Score.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
@@ -61,8 +60,8 @@ public final class IndexMerger {
 
             System.out.println("\nMerging partial files...");                     // print of the merging start
 
+            //DataStructureHandler.readBlockOffsetsFromDisk();        // get offsets of dictionary blocks from disk
             int nrBlocks = dictionaryBlockOffsets.size();           // dictionary number
-            DataStructureHandler.readBlockOffsetsFromDisk();        // get offsets of dictionary blocks from disk
             MappedByteBuffer buffer;
             // array containing the current read offset for each block
             ArrayList<Long> currentBlockOffset = new ArrayList<>(nrBlocks);
@@ -107,7 +106,7 @@ public final class IndexMerger {
                 // get current elem of dictionary
                 currentDE.readDictionaryElemFromDisk(currentBlockOffset.get(block_id));
                 // get current posting list
-                currentPL = readPostingListFromDisk(currentDE.getOffsetDocId(), currentDE.getOffsetTermFreq(), currentDE.getDf());
+                currentPL = readPostingListFromDisk(currentDE.getOffsetDocId(), currentDE.getOffsetTermFreq(), currentDE.getDf(), partialDocId_channel, partialTermFreq_channel);
 
                 if (tempDE.getTerm().isEmpty()) {        // first iteration
 
@@ -185,7 +184,7 @@ public final class IndexMerger {
                     for(Posting p : subPL)
                         saveIntoFile(" docid: " + p.getDocId() + " tf: " + p.getTermFreq(), tempDE.getTerm() + ".txt");
                 if (Flags.isCompressionEnabled()) {
-                    SkipInfo sp = new SkipInfo(tempSubPL.get(tempSubPL.size()-1).getDocId(), docId_channel.size(), termFreq_channel.size(), -1, -1);
+                    SkipElem sp = new SkipElem(tempSubPL.get(tempSubPL.size()-1).getDocId(), docId_channel.size(), termFreq_channel.size(), -1, -1);
                     tempDE.setMaxBM25(computeMaxBM25(tempSubPL, tempDE.getIdf()));
                     tempDE.setMaxTFIDF(computeMaxTFIDF(tempSubPL, tempDE.getIdf()));
                     int[] compressedLength = DataStructureHandler.storeCompressedPostingIntoDisk(tempSubPL);//store index with compression - unary compression for termfreq
@@ -196,8 +195,8 @@ public final class IndexMerger {
                     sp.setDocIdBlockLen(compressedLength[1]);
                     sp.storeSkipElemToDisk();
                 } else {
-                    SkipInfo sp = new SkipInfo(tempSubPL.get(tempSubPL.size()-1).getDocId(), docId_channel.size(), termFreq_channel.size(), tempSubPL.size(), tempSubPL.size());
-                    sp.storeSkipInfoToDisk();
+                    SkipElem sp = new SkipElem(tempSubPL.get(tempSubPL.size()-1).getDocId(), docId_channel.size(), termFreq_channel.size(), tempSubPL.size(), tempSubPL.size());
+                    sp.storeSkipElemToDisk();
                     double[] score = storePostingListIntoDisk(tempSubPL, tempDE.getIdf());
                     assert score != null;
                     tempDE.setMaxBM25(score[0]);

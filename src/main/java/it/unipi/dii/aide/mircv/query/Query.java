@@ -1,7 +1,8 @@
 package it.unipi.dii.aide.mircv.query;
 
-import it.unipi.dii.aide.mircv.data_structures.Dictionary;
 import it.unipi.dii.aide.mircv.data_structures.*;
+import it.unipi.dii.aide.mircv.data_structures.Dictionary;
+import it.unipi.dii.aide.mircv.query.algorithms.Conjunctive;
 import it.unipi.dii.aide.mircv.query.scores.ScoreElem;
 import it.unipi.dii.aide.mircv.utils.FileSystem;
 import it.unipi.dii.aide.mircv.utils.TextProcessor;
@@ -12,6 +13,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.readCollectionStatsFromDisk;
+import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.dictionary;
+import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.documentTable;
 import static it.unipi.dii.aide.mircv.data_structures.Flags.readFlagsFromDisk;
 import static it.unipi.dii.aide.mircv.query.algorithms.DAAT.DocumentAtATime;
 import static it.unipi.dii.aide.mircv.query.algorithms.MaxScore.computeMaxScore;
@@ -22,15 +25,10 @@ import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 
 public final class Query {
 
-    public static final HashMap<Integer, DocumentElement> documentTable = new HashMap<>();
-    public static final Dictionary dictionary = new Dictionary();
-
-    public static int k; //number of result to return
-    private static boolean disj_conj; // (false = disjunctive, true = conjunctive)
-    public static boolean tfidf_bm25; // (false = TFIDF or true = BM25)
-    public static boolean daat_maxscore; // (false = DAAT, true = MaxScore)
-
-    static HashMap<Integer, Integer> index_len = new HashMap<>();
+    public static int k;                    //number of result to return
+    private static String disj_conj;       // (d = disjunctive, c = conjunctive)
+    public static String tfidf_bm25;       // (t = TFIDF or b = BM25)
+    public static String daat_maxscore;    // (d = DAAT, m = MaxScore)
 
     //------------------ //
 
@@ -46,13 +44,13 @@ public final class Query {
      */
     public static boolean queryStartControl() {
 
-/*        // -- control for file into disk
+        // -- control for file into disk
         if (!FileSystem.areThereAllMergedFiles() ||
                 !Flags.isThereFlagsFile() ||
                 !CollectionStatistics.isThereStatsFile()) {
             printError("Error: missing required files.");
             return false;
-        }*/
+        }
 
         readFlagsFromDisk();
         readCollectionStatsFromDisk();
@@ -62,21 +60,18 @@ public final class Query {
         printUI(" - compression: " + Flags.isCompressionEnabled());
         printUI(" - debug mode: " + Flags.isDebug_flag() + "\n");
 
+        dictionary = new Dictionary();
         // -- control for structures in memory - if not load them from disk
-        if (!dictionary.dictionaryIsSet()) {
-            long startTime = System.currentTimeMillis();
-            Query.dictionary.readDictionaryFromDisk();
-            long endTime = System.currentTimeMillis();
-            printTime("Dictionary loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
-        }
-
-//        if (documentTable.isEmpty()) {
-//            long startTime = System.currentTimeMillis();
-//            DataStructureHandler.readDocumentTableFromDisk(false);
-//            long endTime = System.currentTimeMillis();
-//            printTime("Document Table loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
-//        }
-
+        long startTime = System.currentTimeMillis();
+        dictionary.readDictionaryFromDisk();
+        long endTime = System.currentTimeMillis();
+        printTime("Dictionary loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+/*
+        startTime = System.currentTimeMillis();
+        DataStructureHandler.readDocumentTableFromDisk();
+        endTime = System.currentTimeMillis();
+        printTime("Document Table loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
+*/
         return true;
     }
 
@@ -134,6 +129,8 @@ public final class Query {
             skip_channel = skip_raf.getChannel();
 
             PriorityQueue<ScoreElem> orderByScore = new PriorityQueue<>(query.size(), new ScoreElem.CompareScoreElem());
+            HashMap<Integer, Integer> index_len = new HashMap<>();
+
             int index = 0;
             for (String t : query) {
                 DictionaryElem de = dictionary.getTermStat(t);
@@ -162,7 +159,15 @@ public final class Query {
                 index++;
             }
 
-            if(disj_conj) {
+            if(disj_conj.equals("c")) {
+
+                // sort indices
+                index_len = (HashMap<Integer, Integer>) sortByValue(index_len);
+
+                // copy list using ordered indices
+                for (Map.Entry<Integer, Integer> entry : index_len.entrySet())
+                    ordered_PostingLists.add(all_postingLists.get(entry.getKey()));
+
                 pq_res = Conjunctive.executeConjunctive();
 
             }else {
@@ -202,9 +207,9 @@ public final class Query {
     }
 
     public static double computeScore(double idf, Posting currentPosting){
-        double score = 0;
-        if (tfidf_bm25)
-            score = computeBM25(idf, currentPosting, false);
+        double score;
+        if (tfidf_bm25.equals("b"))
+            score = computeBM25(idf, currentPosting);
         else
             score = computeTFIDF(idf, currentPosting);
 
