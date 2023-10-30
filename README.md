@@ -6,7 +6,7 @@ The main parts of the project are:
 2. [Query Processing](#query)
 3. [Performance Evaluation](#performance)
 
-## Index Building
+##  [Index Building](#index)
 
 To generate the index, the file "collection.tsv", available at https://microsoft.github.io/msmarco/TREC-Deep-Learning-2020, must be placed inside *src/main/resources*. The index building starts executing the Main.java file in the path *src/main/java/it/unipi/dii/aide/mircv*.
 After the program launch, the user sets out his preferences about: 
