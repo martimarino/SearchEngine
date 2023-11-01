@@ -11,6 +11,9 @@ import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.docum
 
 public final class Score {
 
+    static double k = 1.2;
+    static double b = 0.75;
+
     private Score() {
         throw new UnsupportedOperationException();
     }
@@ -22,9 +25,9 @@ public final class Score {
 
     public static double computeBM25(Double idf, Posting p){
         return (p.getTermFreq()/
-                (1.2*((1-0.75) + (0.75*(documentTable.get(p.getDocId()).getDoclength()) /
-                        (CollectionStatistics.getTotDocLen()/CollectionStatistics.getNDocs()))
-                        + p.getTermFreq())))*idf;
+                (k*((1-b) + (b*(documentTable.get(p.getDocId()).getDoclength() /
+                        (CollectionStatistics.getTotDocLen()/CollectionStatistics.getNDocs()))))
+                        + p.getTermFreq()))*idf;
     }
 
     public static double computeMaxBM25(ArrayList<Posting> postings, double idf){
