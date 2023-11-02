@@ -33,7 +33,7 @@ public class PartialIndexBuilder {
 
 
         Constants.COLLECTION_PATH = "src/main/resources/small_collection.tar.gz";
-        it.unipi.dii.aide.mircv.index_builder.PartialIndexBuilder.SPIMI();
+        it.unipi.dii.aide.mircv.index.PartialIndexBuilder.SPIMI();
     }
 
 /*    @Test

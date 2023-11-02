@@ -1,9 +1,7 @@
 package it.unipi.dii.aide.mircv.query.scores;
 
 import it.unipi.dii.aide.mircv.data_structures.CollectionStatistics;
-import it.unipi.dii.aide.mircv.index_builder.IndexMerger;
 import it.unipi.dii.aide.mircv.data_structures.Posting;
-import it.unipi.dii.aide.mircv.query.Query;
 
 import java.util.ArrayList;
 
