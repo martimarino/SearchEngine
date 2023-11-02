@@ -24,11 +24,11 @@ public class Test {
             String message = "Select Conjunctive (c) or Disjunctive (d)";
             String type = getUserInput(sc, message, "c", "d");
             message = "Select scoring type between bm25 (b) and tfidf (t):";
-            String score = getUserInput(sc, message, "bm25", "tfidf");
+            String score = getUserInput(sc, message, "b", "t");
             String algorithm = " ";
             if(type.equals("d")) {
                 message = "Select algorithm type between maxscore (m) or daat (d) :";
-                algorithm = getUserInput(sc, message, "maxscore", "daat");
+                algorithm = getUserInput(sc, message, "m", "d");
             }
             int nResults = getNumberOfResults(sc);
             filename += (type.equals("c") ? "conj" : "disj") + "_" + (score.equals("b") ? "bm25" : "tfidf") + "_" + (type.equals("d") ? (algorithm.equals("m") ? "maxscore" : "daat") : "") + "_" + (Flags.isSwsEnabled() ? "nostopwords" : "")+ ".txt";

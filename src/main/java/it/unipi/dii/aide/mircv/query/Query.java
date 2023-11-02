@@ -66,12 +66,11 @@ public final class Query {
         dictionary.readDictionaryFromDisk();
         long endTime = System.currentTimeMillis();
         printTime("Dictionary loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
-/*
+
         startTime = System.currentTimeMillis();
         DataStructureHandler.readDocumentTableFromDisk();
         endTime = System.currentTimeMillis();
         printTime("Document Table loaded in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
-*/
         return true;
     }
 

@@ -60,7 +60,6 @@ public class PostingList {
                 sl.next();
                 SkipElem si = sl.getCurrSkipElem();
                 list.clear();
-                System.out.println("term: " + term);
                 if (Flags.isCompressionEnabled())
                     list.addAll(readCompressedPostingListFromDisk(si.getDocIdOffset(), si.getFreqOffset(), si.getTermFreqBlockLen(), si.getDocIdBlockLen()));
                 else

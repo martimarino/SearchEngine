@@ -52,8 +52,7 @@ public class Conjunctive {
             shortest.next(true);
 
         } while (shortest.getCurrPosting() != null);
-        
-        printDebug("FOUND: " + counter);
+
         return conj_res;
     }
 
