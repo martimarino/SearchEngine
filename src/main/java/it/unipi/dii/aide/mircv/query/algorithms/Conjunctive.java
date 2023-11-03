@@ -47,6 +47,7 @@ public class Conjunctive {
                     conj_res.remove();
                     conj_res.add(new ResultBlock(currentDocId, score));
                 }
+                System.out.println(new ResultBlock(currentDocId, score));
                counter++;  
             }
             shortest.next(true);

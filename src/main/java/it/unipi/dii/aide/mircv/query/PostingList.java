@@ -25,6 +25,8 @@ public class PostingList {
 
     public PostingList (DictionaryElem de) throws IOException {
 
+        System.out.println(de.getTerm() + " df: " + de.getDf());
+
         this.term = de.getTerm();
         len = de.getDf();
         //System.out.println("term: " + term);
@@ -143,7 +145,14 @@ public class PostingList {
     @Override
     public String toString() {
         return "PostingList{" +
-                "list=" + list +
+                "term='" + term + '\'' +
+                ", list=" + list +
+                ", postingIterator=" + postingIterator +
+                ", currPosting=" + currPosting +
+                ", sl=" + sl +
+                ", idf=" + idf +
+                ", maxScore=" + maxScore +
+                ", len=" + len +
                 '}';
     }
 

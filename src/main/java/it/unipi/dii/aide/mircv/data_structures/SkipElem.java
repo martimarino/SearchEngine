@@ -59,6 +59,8 @@ public class SkipElem {
                 "maxDocId=" + maxDocId +
                 ", docIdOffset=" + docIdOffset +
                 ", freqOffset=" + freqOffset +
+                ", docIdBlockLen=" + docIdBlockLen +
+                ", termFreqBlockLen=" + termFreqBlockLen +
                 '}';
     }
 

@@ -39,8 +39,6 @@ public final class Constants {
 
     public static long PARTIAL_DICTIONARY_OFFSET = 0;          // Offset of the terms in the dictionary
     public static long INDEX_OFFSET = 0;               // Offset of the termfreq and docid in index
-
-//    public static double MEMORY_THRESHOLD = 0.008;
     public static double MEMORY_THRESHOLD = 0.8;
 
     // ---------------------------------------- Utilities for debugging -----------------------------------------------

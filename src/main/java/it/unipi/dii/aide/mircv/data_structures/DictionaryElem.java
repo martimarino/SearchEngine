@@ -148,11 +148,11 @@ public class DictionaryElem {
                 ", offsetDocId=" + offsetDocId +
                 ", docIdSize=" + docIdSize +
                 ", termFreqSize=" + termFreqSize +
-                ", offsetSkipList=" + skipListOffset +
-                ", skipListLen=" + skipListLen +
                 ", idf=" + idf +
-                ", maxBM25=" + maxBM25 +
+                ", skipListOffset=" + skipListOffset +
+                ", skipListLen=" + skipListLen +
                 ", maxTFIDF=" + maxTFIDF +
+                ", maxBM25=" + maxBM25 +
                 '}';
     }
 
