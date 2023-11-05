@@ -25,8 +25,6 @@ public class PostingList {
 
     public PostingList (DictionaryElem de) throws IOException {
 
-        System.out.println(de.getTerm() + " df: " + de.getDf());
-
         this.term = de.getTerm();
         len = de.getDf();
         //System.out.println("term: " + term);

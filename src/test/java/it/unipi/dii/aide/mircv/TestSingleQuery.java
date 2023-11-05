@@ -34,10 +34,11 @@ public class TestSingleQuery {
 //                String query = "what the best way to get clothes white";
 //                String query = "define etruscans";
 //                String query = "holidays definition";
-                String query = "is caffeine an narcotic";
+//                String query = "is caffeine an narcotic";
 //                String query = "conformative definition";
 //                String query = "who is aziz hashim";
 //                String query = "berlin center";
+                String query = "is the duodenum a muscle";
 
                 ArrayList<String> prep_query = TextProcessor.preprocessText(query);
 
@@ -62,11 +63,11 @@ public class TestSingleQuery {
                         if(term.equals(prep_query.get(i)))
                             check[i] = true;
                 }
-                boolean ok = true;
+                boolean ok = false;
                 for (boolean c : check)
-                    ok &= c;
+                    ok |= c;
 
-                if(ok)
+                if(ok && docno.equals("5139607"))
                     System.out.println(record);
             }
 
