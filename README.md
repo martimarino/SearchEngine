@@ -8,29 +8,32 @@ The main parts of the project are:
 
 ##  Index Building
 
-To generate the index, the file "collection.tsv", available at https://microsoft.github.io/msmarco/TREC-Deep-Learning-2020, must be placed inside *src/main/resources*. The index building starts executing the Main.java file in the path *src/main/java/it/unipi/dii/aide/mircv*.
+To generate the index, the file "collection.tsv", available at https://microsoft.github.io/msmarco/TREC-Deep-Learning-2020, must be placed inside *src/main/resources*. The index building starts executing the IndexBuilder.java file in the path *src/main/java/it/unipi/dii/aide/mircv/index*.
 After the program launch, the user sets out his preferences about: 
-- compression
+- compression    
 - stopwords and stemming
 - debug mode
-aswering to the questions displayed by the command line interface.
- After the construction of the index, the following files are saved into *src/main/resources/merged*:
+
+answering to the questions displayed by the command line interface.
+
+After the construction of the index, the following files are saved into *src/main/resources/merged*:
 -  dictionary
 -  docid
 -  termFreq
 -  documentTable
 -  skipElem
-- collectionStatistics
-- flags
+-  collectionStatistics
+-  flags
   
 All these files are used in the query phase.
 
 ## Query Processing
-Executing the file Main.java as before, after the index build, the user can insert the query choosing between different options displaues by the command line interface: 
+Executing the file Main.java, after the index building, the user can insert the query choosing between different options displayed by the command line interface: 
 - Conjunctive (pressing *c*) or disjunctive (pressing *d*) queries
 - DAAT (pressing *d*) or MaxScore (pressing *m*) algorithm
 - TFIDF (pressing *t*) or BM25 (pressing *b*)
-- the number of document to obtain
+- the number of documents to obtain
+
 Subsequently the top k documents are returned.
 
 ## Performance Evaluation
@@ -39,7 +42,7 @@ The performance test starts with the execution of the file Test.java in *src/mai
 - Conjunctive (pressing *c*) or disjunctive (pressing *d*) queries
 - DAAT (pressing *d*) or MaxScore (pressing *m*) algorithm
 - TFIDF (pressing *t*) or BM25 (pressing *b*)
-- the number of document to obtain
+- the number of documents to obtain
   
 The program shows the execution time of each query and the average response time. 
 These results are saved into files with different names depending on the selected options in the path *src/main/resources/performance*.
