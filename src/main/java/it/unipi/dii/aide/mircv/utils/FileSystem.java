@@ -5,9 +5,11 @@ import java.io.*;
 import it.unipi.dii.aide.mircv.data_structures.Flags;
 import org.apache.commons.io.FileUtils;
 
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
+import static it.unipi.dii.aide.mircv.data_structures.DocumentElem.DOCELEM_SIZE;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 
 
@@ -121,17 +123,6 @@ public final class FileSystem {
         File docTF = new File(TERMFREQ_FILE);           // termFreq.txt
 
         return docTable.exists() && dict.exists() && docDID.exists() && docTF.exists();
-    }
-
-    public static void saveStructureToFile (ArrayList<String> data, String fileName, boolean append) {
-        try (FileWriter writer = new FileWriter(DEBUG_FOLDER + fileName, append)) {
-            for (String line : data) {
-                writer.write(line);
-                writer.write(System.lineSeparator());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public static void saveIntoFile(String data, String fileName) {

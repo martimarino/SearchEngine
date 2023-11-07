@@ -55,6 +55,7 @@ public class IndexBuilder {
             IndexMerger.mergeBlocks();                      // merge blocks
             endTime = System.currentTimeMillis();           // end time of merge blocks
             printTime("\nTime index building " + (endTime - startTime) + "ms (" + formatTime(startTime, endTime) + ")");
+            delete_tempFiles();
 
         } catch (IOException e) {
             e.printStackTrace();
