@@ -1,4 +1,4 @@
-package it.unipi.dii.aide.mircv.index_builder;
+package it.unipi.dii.aide.mircv.index;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;

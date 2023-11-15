@@ -1,4 +1,4 @@
-package it.unipi.dii.aide.mircv.index_builder;
+package it.unipi.dii.aide.mircv.index;
 
 import it.unipi.dii.aide.mircv.data_structures.*;
 
@@ -69,7 +69,6 @@ public final class IndexMerger {
             readDocumentTableFromDisk();
             // var which indicates the steps of 'i' progression print during merge
             System.out.println("Compression " + Flags.isCompressionEnabled());
-
 
             // scroll all blocks and add the first term of each block to priority queue
             for (int i = 0; i < nrBlocks; i++) {

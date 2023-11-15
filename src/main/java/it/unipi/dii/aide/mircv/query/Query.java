@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 
 import static it.unipi.dii.aide.mircv.data_structures.CollectionStatistics.readCollectionStatsFromDisk;
 import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.dictionary;
-import static it.unipi.dii.aide.mircv.data_structures.DataStructureHandler.documentTable;
 import static it.unipi.dii.aide.mircv.data_structures.Flags.readFlagsFromDisk;
 import static it.unipi.dii.aide.mircv.query.algorithms.DAAT.DocumentAtATime;
 import static it.unipi.dii.aide.mircv.query.algorithms.MaxScore.computeMaxScore;
@@ -232,12 +231,12 @@ public final class Query {
             return;
         }
 
-        printUI(String.format("\t%-15s%-15s", "Document", "Score"));
+        printUI(String.format("\t%-15s%-15s", "DocumentNo", "Score"));
         printUI(String.format("%30s", "-".repeat(30)));
 
         while (!resultQueueInverse.isEmpty()) {
             ResultBlock polled = resultQueueInverse.poll();
-            printUI(String.format("\t%-15s%-15s", documentTable.get(polled.getDocId()).getDocno(), String.format("%.3f", polled.getScore())));
+            printUI(String.format("\t%-15s%-15s", DataStructureHandler.documentTable.get(polled.getDocId()).getDocno(), String.format("%.3f", polled.getScore())));
         }
         printUI(String.format("%30s\n", "-".repeat(30)));
 

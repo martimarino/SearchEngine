@@ -143,7 +143,14 @@ public class PostingList {
     @Override
     public String toString() {
         return "PostingList{" +
-                "list=" + list +
+                "term='" + term + '\'' +
+                ", list=" + list +
+                ", postingIterator=" + postingIterator +
+                ", currPosting=" + currPosting +
+                ", sl=" + sl +
+                ", idf=" + idf +
+                ", maxScore=" + maxScore +
+                ", len=" + len +
                 '}';
     }
 

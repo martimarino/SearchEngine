@@ -1,15 +1,12 @@
-package it.unipi.dii.aide.mircv.index_builder;
+package it.unipi.dii.aide.mircv.index;
 
-import it.unipi.dii.aide.mircv.data_structures.CollectionStatistics;
 import it.unipi.dii.aide.mircv.data_structures.Flags;
-import it.unipi.dii.aide.mircv.utils.FileSystem;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Scanner;
 
 import static it.unipi.dii.aide.mircv.data_structures.Flags.*;
-import static it.unipi.dii.aide.mircv.data_structures.Flags.storeFlagsIntoDisk;
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
 import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 
@@ -58,6 +55,7 @@ public class IndexBuilder {
             IndexMerger.mergeBlocks();                      // merge blocks
             endTime = System.currentTimeMillis();           // end time of merge blocks
             printTime("\nTime index building " + (endTime - startTime) + "ms (" + formatTime(startTime, endTime) + ")");
+            delete_tempFiles();
 
         } catch (IOException e) {
             e.printStackTrace();

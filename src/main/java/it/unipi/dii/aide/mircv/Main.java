@@ -4,7 +4,6 @@ import it.unipi.dii.aide.mircv.data_structures.Flags;
 import it.unipi.dii.aide.mircv.query.Query;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 import static it.unipi.dii.aide.mircv.utils.Constants.*;
@@ -13,7 +12,6 @@ import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 public class Main {
 
     public static Scanner sc = new Scanner(System.in);
-    public static long startTime, endTime;                // variables to calculate the execution time
 
     public static void main(String[] args) throws IOException {
 
@@ -51,23 +49,6 @@ public class Main {
             closeChannels();
         }
 
-    }
-
-    /**
-     * function to shows the user the ranked results (DocID) of the query executed
-     *
-     * @param rankedResults the results returned by the query
-     */
-    public static void printQueryResults(ArrayList<Integer> rankedResults)
-    {
-        if (!rankedResults.isEmpty())      // there are results
-        {
-            System.out.println(ANSI_CYAN + "Query results:" + ANSI_RESET);
-            for (int i = 0; i < rankedResults.size(); i++)
-                printUI((i + 1) + " - " + rankedResults.get(i));
-        }
-        else                                // there aren't results
-            printUI("No results found for this query.");
     }
 
     public static int getNumberOfResults(Scanner sc){

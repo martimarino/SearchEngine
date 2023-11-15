@@ -47,7 +47,7 @@ public class Conjunctive {
                     conj_res.remove();
                     conj_res.add(new ResultBlock(currentDocId, score));
                 }
-               counter++;  
+               counter++;
             }
             shortest.next(true);
 
@@ -65,8 +65,8 @@ public class Conjunctive {
 
         for (PostingList pl : ordered_PostingLists) {
 
-            // if has skipping but and it is not in the right block (right = maxDocId > currentDocId)
-            if((pl.getSl() != null) && (pl.getSl().getCurrSkipElem() != null) && (currentDocId > pl.getSl().getCurrSkipElem().getMaxDocId()))
+            // if has skipping
+            if(pl.getSl() != null)
                 pl.nextGEQ(currentDocId, false);
             else        // if no skip or has skip but already in the right block
                 while ((pl.getCurrPosting() != null) && (pl.getCurrPosting().getDocId() < currentDocId))
