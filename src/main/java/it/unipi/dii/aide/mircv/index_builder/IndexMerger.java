@@ -166,9 +166,7 @@ public final class IndexMerger {
         tempDE.setOffsetTermFreq(termFreq_channel.size());
         tempDE.setOffsetDocId(docId_channel.size());
 
-        if(tempDE.getTerm().equals("berlin") || tempDE.getTerm().equals("center"))
-            printUI(tempDE.getTerm() + " df: " + tempDE.getDf());
-            assert tempPL != null;
+        assert tempPL != null;
         int lenPL = tempPL.size();
 
         int[] tempCompressedLength = new int[2];

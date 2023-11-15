@@ -74,7 +74,7 @@ public class Main {
         while(true) {
             printUI("Insert number of results (10 or 20):");
             int k = Integer.parseInt(sc.nextLine().trim());
-            if(k == 10 || k == 20) {
+            if(k == 10 || k == 20 || k == 100) {
                     return k;
             }
         }

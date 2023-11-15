@@ -26,7 +26,7 @@ import static it.unipi.dii.aide.mircv.utils.FileSystem.*;
 public final class Query {
 
     public static int k;                    //number of result to return
-    private static String disj_conj;       // (d = disjunctive, c = conjunctive)
+    public static String disj_conj;       // (d = disjunctive, c = conjunctive)
     public static String tfidf_bm25;       // (t = TFIDF or b = BM25)
     public static String daat_maxscore;    // (d = DAAT, m = MaxScore)
 
@@ -99,7 +99,7 @@ public final class Query {
         printTime("Query \"" + q + "\" performed in " + (endTime - startTime) + " ms (" + formatTime(startTime, endTime) + ")");
     }
 
-    private static void clearStructures() {
+    public static void clearStructures() {
 
         if(!all_postingLists.isEmpty())
             all_postingLists.clear();
@@ -237,7 +237,7 @@ public final class Query {
 
         while (!resultQueueInverse.isEmpty()) {
             ResultBlock polled = resultQueueInverse.poll();
-            printUI(String.format("\t%-15s%-15s", polled.getDocId(), String.format("%.3f", polled.getScore())));
+            printUI(String.format("\t%-15s%-15s", documentTable.get(polled.getDocId()).getDocno(), String.format("%.3f", polled.getScore())));
         }
         printUI(String.format("%30s\n", "-".repeat(30)));
 
