@@ -51,4 +51,5 @@ Then the user can choice between the different options:
   
 In case the efficiency option is chosen, the program shows the execution time of each query and the average response time. 
 These results are saved into files with different names depending on the selected options in the path *src/main/resources/performance*.
+
 In case the effectiveness option is chosen, the program retrieves the top100 results for each query in a TREC format in the path *src/main/resources/performance*. 
