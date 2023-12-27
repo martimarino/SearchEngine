@@ -87,7 +87,6 @@ public final class IndexMerger {
             String term = "";   // var that contain the Term of the TermBlock extract from pq in the current iteration
             int block_id = -1;  // var that contain the blockID of the TermBlock extract from pq in the current iteration
 
-            // Merging the posting list -> SEE NOTE 1
             while(!pq.isEmpty()) {
 
                 // get first element from priority queue

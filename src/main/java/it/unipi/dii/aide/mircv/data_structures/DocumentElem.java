@@ -5,6 +5,7 @@ import java.nio.CharBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 public class DocumentElem {
 
@@ -74,4 +75,13 @@ public class DocumentElem {
         doclength = buffer.getInt();
 
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DocumentElem that = (DocumentElem) o;
+        return docid == that.docid && doclength == that.doclength && Objects.equals(docno, that.docno);
+    }
+
 }

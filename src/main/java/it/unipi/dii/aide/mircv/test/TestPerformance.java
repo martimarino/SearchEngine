@@ -17,7 +17,7 @@ import static it.unipi.dii.aide.mircv.Main.getUserInput;
 import static it.unipi.dii.aide.mircv.query.Query.*;
 import static it.unipi.dii.aide.mircv.utils.Constants.printTime;
 
-public class Test {
+public class TestPerformance {
 
     public static PriorityQueue<ResultBlock> pq_res;   // contains results (increasing)
 

@@ -78,8 +78,6 @@ public final class PartialIndexBuilder {
                         dictElem.addDf(1);
                     dictElem.addCf(1);
 
-//                    if(!termList.contains(term))
-//                        termList.add(term);
                 }
 
                 docCounter++;       // update DocID counter

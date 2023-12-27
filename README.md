@@ -38,7 +38,7 @@ Subsequently the top k documents are returned.
 
 ## Performance Evaluation
 To evaluate the performance of the system, the *msmarco-test2020-queries.tsv*, that can be downloaded from *https://microsoft.github.io/msmarco/TREC-Deep-Learning-2020* must be added to *src/main/resources*.
-The performance test starts with the execution of the file Test.java in *src/main/java/it/unipi/dii/aide/mircv/test*. The user must choose between two options displayed by the command line interface:
+The performance test starts with the execution of the file TestPerformance.java in *src/main/java/it/unipi/dii/aide/mircv/test*. The user must choose between two options displayed by the command line interface:
 
 - effectiveness (pressing *ef*)
 - efficiency (pressing *e*)

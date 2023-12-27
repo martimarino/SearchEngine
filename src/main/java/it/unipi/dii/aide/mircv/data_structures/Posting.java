@@ -1,5 +1,7 @@
 package it.unipi.dii.aide.mircv.data_structures;
 
+import java.util.Objects;
+
 public class Posting {
 
     private final int docId;    // DocID (recommended delta code compression)
@@ -38,5 +40,13 @@ public class Posting {
                 "docId=" + docId +
                 ", termFreq=" + termFreq +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Posting posting = (Posting) o;
+        return ((docId == posting.docId) && (termFreq == posting.termFreq));
     }
 }

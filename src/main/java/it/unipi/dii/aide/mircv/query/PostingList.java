@@ -27,7 +27,7 @@ public class PostingList {
 
         this.term = de.getTerm();
         len = de.getDf();
-        //System.out.println("term: " + term);
+
         if (de.getSkipListLen() > 0) {   // if there are skipping blocks read partial postings of the first block
             sl = new SkipList(de.getSkipListOffset(), de.getSkipListLen());
             SkipElem skipElem = sl.getCurrSkipElem();
